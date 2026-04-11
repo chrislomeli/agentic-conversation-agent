@@ -1,5 +1,5 @@
 | Component                                 | Role / Responsibility                                                              | Flow / Interaction Notes                                                                               |
-| ----------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+|-------------------------------------------|------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------|
 | **Conversation Loop**                     | Backbone for multi-turn interaction; receives human input and delivers AI response | Sends each turn to Fragment Extraction; receives context from Memory/RAG for enriched responses        |
 | **Fragment Extraction**                   | Splits conversation turns into atomic fragments                                    | Outputs fragments to Tagging/Classification and Memory Store                                           |
 | **Tagging / Classification**              | Assigns domain/theme labels to fragments (story, health, project, personal, etc.)  | Tagged fragments feed into Memory Store; tags are used for retrieval                                   |
@@ -10,9 +10,10 @@
 | **System Prompt / Personality Layer**     | Encodes “Drew” personality, tone, and reasoning style                              | Combined with retrieved context to guide LLM responses                                                 |
 | **Optional Analytics / Connections**      | Detects relationships between fragments; identifies trends or patterns             | Can highlight story connections, thematic patterns, or practical insights                              |
 | **Human-in-the-Loop (optional)**          | Allows review, approval, or modification of fragments                              | Could be used post-conversation for refinement, but not required in real-time loop                     |
+| **CONTEXT -BUILDER**                      | Drew-like memory                                                                   | See the file context-builder                                                                           |
 
 
-
+> ASO look at the context-builder.md 
 
 ```
 Human Input → Conversation Loop → Fragment Extraction → Tagging / Summarization → Memory Store
