@@ -98,11 +98,13 @@ from uuid import uuid4
 
 from config_builder import configure_environment
 from llm_client import create_llm_client
-from storage import SessionStore, SessionStoreJSON
+from storage import SessionStore
 from model import Turn, Role
 
-JOURNAL_SYSTEM_PROMPT = "You are a transcriber who classifies the content of our conversation into one of the following categories: astronomy, biology, chemistry, physics, or other.  Always provide the answer to the question and a classification for the question"
-
+JOURNAL_SYSTEM_PROMPT = \
+    ("You are a transcriber who classifies the content of our conversation into one of the following categories: astronomy, biology, chemistry, physics, or other.  "
+     "Always provide the answer to the question and a classification for the question")
+LOAD_CONTEXT = True
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -110,38 +112,51 @@ JOURNAL_SYSTEM_PROMPT = "You are a transcriber who classifies the content of our
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
-
-    messages: list[BaseMessage] = [SystemMessage(JOURNAL_SYSTEM_PROMPT)]
+    # configuration and setup
     settings = configure_environment()
     model_config = settings.selected_model
     client = create_llm_client(model_config.provider, model_config.api_key, model_config.model)
 
-    session = SessionStoreJSON("data/sessions/test.jsonl")
+    # set session variables
     session_id  =  str(uuid4())
-    turns = []
+    turns: list[Turn] = []
+
+    # create a session store
+    session_store = SessionStore("data/sessions")
+
+    # get messages from previous sessions - the option was to perform special handling for the system prompt or just get all history as we do here
+    messages: list[BaseMessage] | None = None
+    if LOAD_CONTEXT:
+        if ( latest_session_id := session_store.get_last_session_id() ) is not None:
+            if (session_data := session_store.load_session_messages(latest_session_id)) is not None:
+                turns.extend(session_data.turns)
+                messages = session_data.messages
+    if messages is None:
+        messages = [SystemMessage(JOURNAL_SYSTEM_PROMPT)]
+        turns.append(Turn(session_id=session_id, role=Role.SYSTEM, content=JOURNAL_SYSTEM_PROMPT))
+
+    # conversation loop
     while True:
-        user_input = input("You: ")
-        if user_input == "/quit":
+        try:
+            user_input = input("You: ")
+            if user_input == "/quit":
+                break
+
+            # Add user message
+            messages.append(HumanMessage(content=user_input))
+
+            # call the AI
+            turns.append(Turn(session_id=session_id, role=Role.HUMAN, content=user_input))
+            response = client.chat(messages)
+            turns.append(Turn(session_id=session_id, role=Role.AI, content=response.content))
+
+            print(response.content)
+        except Exception as e:
             break
-        if user_input == "/load":
-            break
-
-        # turn
-        turn_id = str(uuid4())
-
-        # Add user message
-        messages.append(HumanMessage(content=user_input))
-
-        # call the AI
-        turns.append(Turn(exchange_id=turn_id, role=Role.HUMAN, content=user_input))
-        response = client.chat(messages)
-        turns.append(Turn(exchange_id=turn_id, role=Role.AI, content=response.content))
-
-        print(response.content)
 
     print("end session")
-    session.save_session(session_id, turns)
-    loaded_messages =  session.load_session_messages(session_id)
+    session_store.save_session(session_id, turns)
+
     print("done")
 
 

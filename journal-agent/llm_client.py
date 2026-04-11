@@ -53,12 +53,7 @@ class LLMClient(ABC):
         response: AIMessage = self._client.invoke(messages)
 
         # Add response to history
-        messages.append(response)  # AIMessage
         return response
-
-
-
-
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -83,6 +78,7 @@ class AnthropicClient(LLMClient):
     WHY: Anthropic takes system as a separate parameter (not in messages)
     HOW: We extract the system param separately before calling Anthropic
     """
+
     def __init__(self, api_key: SecretStr, model: str = "claude-haiku-4-5"):
         self._model = model
         from langchain_anthropic import ChatAnthropic
@@ -94,7 +90,6 @@ class AnthropicClient(LLMClient):
         self._client = llm
 
 
-
 class OllamaClient(LLMClient):
     """
     Ollama implementation.
@@ -104,18 +99,16 @@ class OllamaClient(LLMClient):
     HOW: Similar to OpenAI but with different base URL and response format
     """
 
-    def __init__(self, base_url: str = "http://localhost:11434", model: str = "llama2"):
+    def __init__(self, base_url: str = "http://localhost:11434", model: str = "llama3"):
         self._model = model
         # Initialize the model (ensure Ollama is running locally)
         from langchain_ollama import ChatOllama
         llm = ChatOllama(
             model=model,
             temperature=0,
-            base_url= base_url
+            base_url=base_url
         )
         self._client = llm
-
-
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -123,10 +116,10 @@ class OllamaClient(LLMClient):
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def create_llm_client(
-    provider: LLMProvider,
-    api_key: SecretStr,
-    model: str,
-    base_url: Optional[str] = None,
+        provider: LLMProvider,
+        api_key: SecretStr,
+        model: str,
+        base_url: Optional[str] = None,
 ) -> LLMClient:
     """
     Create the right LLM client based on the provider.

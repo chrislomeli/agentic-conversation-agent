@@ -7,10 +7,11 @@ from pydantic import BaseModel, Field
 class Role(Enum):
     HUMAN = "human"
     AI = "ai"
+    SYSTEM = "system"
     NONE = "none"
 
 class Turn(BaseModel):
-    exchange_id: str
+    session_id: str
     role: Role
     content: str
     timestamp: datetime = Field(default_factory=datetime.now)
