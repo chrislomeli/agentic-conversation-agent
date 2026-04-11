@@ -242,13 +242,14 @@ Run tests:
 This implementation uses the same conceptual model as production graph databases.
 
 **To migrate to Neo4j:**
+
 ```python
 # Current (in-memory)
 graph.add_node(goal)
 graph.add_edge(edge)
 
 # Neo4j (same pattern)
-session.run("CREATE (g:Goal {id: $id, name: $name})", id=goal.id, name=goal.name)
+session.run("CREATE (g:Goal {id: $id, name: $name})", id=goal.exchange_id, name=goal.name)
 session.run("MATCH (g:Goal {id: $src}), (r:Requirement {id: $tgt}) CREATE (g)-[:SATISFIED_BY]->(r)", ...)
 ```
 

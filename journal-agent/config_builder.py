@@ -57,7 +57,7 @@ def _redacted_settings_json(settings: Settings) -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 literals = {
     "AI_ENV_FILE": "/Users/chrislomeli/Source/SECRETS/.env",
-    "USE_MODEL": LLMLabel.GPT_NANO
+    "USE_MODEL": LLMLabel.OLLAMA_LLAMA3
 }
 
 def configure_environment() -> Settings:

@@ -74,7 +74,7 @@ class TestValidateNode:
 
         result = validate(state)
 
-        ids = [f.id for f in result["findings"]]
+        ids = [f.exchange_id for f in result["findings"]]
         assert "old-resolved" in ids
 
 
