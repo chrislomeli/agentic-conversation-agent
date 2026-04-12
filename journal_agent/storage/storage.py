@@ -12,6 +12,7 @@ class SessionData:
     messages: list[BaseMessage]
     turns: list[Turn]
 
+
 class DataStore(ABC):
     @abstractmethod
     def save_session(self, session_id: str, turn: list[Turn]):
@@ -24,39 +25,39 @@ class DataStore(ABC):
 
 @dataclasses.dataclass
 class SessionDatabase(DataStore):
-
     _path: Path
 
     def __init__(self):
         path_name = "data/sessions"  # this is just placeholder internal access - no one else needs to know or set this
         self._path = Path(path_name)
-        if not self._path.parent.exists():
-            self._path.parent.mkdir(parents=True, exist_ok=True)
-
+        if not self._path.exists():
+            self._path.mkdir(parents=True, exist_ok=True)
 
     def get_last_session_id(self) -> str | None:
         if not self._path.exists():
             return None
 
         # Get all files and find the one with the maximum st_ctime
-        files = self._path.glob('*')
+        files = self._path.glob("*")
 
         # Filter for files only and find the max by creation time (st_ctime)
         try:
             latest_file = max((f for f in files if f.is_file()), key=lambda x: x.stat().st_ctime)
-            return latest_file.name.split('.')[0]
+            return latest_file.name.split(".")[0]
         except ValueError:
             return None
-
 
     def save_session(self, session_id: str, turn: list[Turn]):
         if self._path is None:
             raise ValueError("Path name is not set")
 
+        if not turn:
+            return
+
         file = self._path / f"{session_id}.jsonl"
 
-        # Write line by line
-        with file.open(mode="w", encoding="utf-8") as file:
+        # Append line by line
+        with file.open(mode="a", encoding="utf-8") as file:
             for t in turn:
                 file.write(f"{t.model_dump_json()}\n")  # Manually add newline characters
 
@@ -64,11 +65,9 @@ class SessionDatabase(DataStore):
         file = self._path / f"{session_id}.jsonl"
         data = []
         if file.exists():
-            with file.open('r') as f:
+            with file.open("r") as f:
                 for line in f:
                     t = Turn.model_validate(json.loads(line.strip()))
                     data.append(t)
 
         return data if len(data) > 0 else None
-
-

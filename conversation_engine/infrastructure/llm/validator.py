@@ -47,9 +47,11 @@ from conversation_engine.models.validation_quiz import ValidationQuiz, FactualQu
 
 # ── Per-question result ─────────────────────────────────────────────
 
+
 @dataclass
 class QuizResult:
     """Result of scoring a single quiz question."""
+
     question: str
     response: str
     found_concepts: List[str]
@@ -62,9 +64,11 @@ class QuizResult:
 
 # ── Overall report ──────────────────────────────────────────────────
 
+
 @dataclass
 class LLMValidatorReport:
     """Full report from a pre-run validation run."""
+
     results: List[QuizResult]
     weighted_score: float  # 0.0–1.0
     passed: bool
@@ -74,6 +78,7 @@ class LLMValidatorReport:
 
 
 # ── Scoring logic ───────────────────────────────────────────────────
+
 
 def _score_response(
     response_text: str,
@@ -93,11 +98,11 @@ def _score_response(
     # Handle different quiz types
     if quiz.quiz_type == "factual":
         # For FactualQuiz, split expected_answer into concepts
-        required_concepts = [c.strip() for c in quiz.expected_answer.split(',') if c.strip()]
+        required_concepts = [c.strip() for c in quiz.expected_answer.split(",") if c.strip()]
         prohibited_concepts = []  # FactualQuiz doesn't have prohibited concepts
     elif quiz.quiz_type == "reasoning":
-        # For ReasoningQuiz, split evaluation_criteria into concepts  
-        required_concepts = [c.strip() for c in quiz.evaluation_criteria.split(',') if c.strip()]
+        # For ReasoningQuiz, split evaluation_criteria into concepts
+        required_concepts = [c.strip() for c in quiz.evaluation_criteria.split(",") if c.strip()]
         prohibited_concepts = []  # ReasoningQuiz doesn't have prohibited concepts in the new structure
     else:
         raise ValueError(f"Unknown quiz type: {quiz.quiz_type}")
@@ -106,7 +111,7 @@ def _score_response(
     missing = []
     for concept in required_concepts:
         # Use word-boundary-aware search for short concepts
-        pattern = re.compile(r'\b' + re.escape(concept.lower()) + r'\b')
+        pattern = re.compile(r"\b" + re.escape(concept.lower()) + r"\b")
         if pattern.search(text_lower):
             found.append(concept)
         else:
@@ -114,7 +119,7 @@ def _score_response(
 
     prohibited_found = []
     for concept in prohibited_concepts:
-        pattern = re.compile(r'\b' + re.escape(concept.lower()) + r'\b')
+        pattern = re.compile(r"\b" + re.escape(concept.lower()) + r"\b")
         if pattern.search(text_lower):
             prohibited_found.append(concept)
 
@@ -141,6 +146,7 @@ def _score_response(
 
 
 # ── Validator ───────────────────────────────────────────────────────
+
 
 class LLMValidator:
     """
@@ -193,22 +199,24 @@ class LLMValidator:
                 # LLM call itself failed — automatic zero
                 # Get concepts based on quiz type
                 if q.quiz_type == "factual":
-                    concepts = [c.strip() for c in q.expected_answer.split(',') if c.strip()]
+                    concepts = [c.strip() for c in q.expected_answer.split(",") if c.strip()]
                 elif q.quiz_type == "reasoning":
-                    concepts = [c.strip() for c in q.evaluation_criteria.split(',') if c.strip()]
+                    concepts = [c.strip() for c in q.evaluation_criteria.split(",") if c.strip()]
                 else:
                     concepts = []
-                
-                results.append(QuizResult(
-                    question=q.question,
-                    response=response.error or "(LLM call failed)",
-                    found_concepts=[],
-                    missing_concepts=concepts,
-                    prohibited_found=[],
-                    score=0.0,
-                    passed=False,
-                    weight=q.weight,
-                ))
+
+                results.append(
+                    QuizResult(
+                        question=q.question,
+                        response=response.error or "(LLM call failed)",
+                        found_concepts=[],
+                        missing_concepts=concepts,
+                        prohibited_found=[],
+                        score=0.0,
+                        passed=False,
+                        weight=q.weight,
+                    )
+                )
                 continue
 
             result = _score_response(response.content, q)
@@ -234,6 +242,7 @@ class LLMValidator:
 
 # ── Report formatting ───────────────────────────────────────────────
 
+
 def quiz_report_summary(report: LLMValidatorReport) -> str:
     """
     Produce a human-readable summary of a validation report.
@@ -248,7 +257,9 @@ def quiz_report_summary(report: LLMValidatorReport) -> str:
     for i, r in enumerate(report.results, 1):
         q_status = "✓" if r.passed else "✗"
         lines.append(f"  {q_status} Q{i}: {r.question}")
-        lines.append(f"    Score: {r.score:.1%}  |  Found: {r.found_concepts}  |  Missing: {r.missing_concepts}")
+        lines.append(
+            f"    Score: {r.score:.1%}  |  Found: {r.found_concepts}  |  Missing: {r.missing_concepts}"
+        )
         if r.prohibited_found:
             lines.append(f"    ⚠ Prohibited concepts found: {r.prohibited_found}")
 

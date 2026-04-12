@@ -25,10 +25,11 @@ class HumanRequest:
     The node tells the human what it needs; the surface implementation
     decides how to present it (CLI prompt, web form, Slack message, etc.).
     """
+
     prompt: str
     context: Dict[str, Any] = field(default_factory=dict)
     options: Optional[List[str]] = None  # optional multiple-choice
-    allow_skip: bool = True              # human can skip / say nothing
+    allow_skip: bool = True  # human can skip / say nothing
 
 
 @dataclass(frozen=True)
@@ -39,6 +40,7 @@ class HumanResponse:
     Always contains the raw text.  skipped=True if the human chose
     to skip or the interaction timed out.
     """
+
     content: str
     skipped: bool = False
     metadata: Dict[str, Any] = field(default_factory=dict)

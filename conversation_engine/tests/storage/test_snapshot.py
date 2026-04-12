@@ -9,6 +9,7 @@ Covers:
 - SnapshotConversionError on bad references
 - make_project_spec_tool() — CREATE, READ, UPDATE, DELETE via ToolSpec
 """
+
 from __future__ import annotations
 
 import pytest
@@ -48,6 +49,7 @@ from conversation_engine.models.rule_node import IntegrityRule
 
 # ── Helpers ────────────────────────────────────────────────────────
 
+
 def _sample_snapshot() -> ProjectSnapshot:
     """A realistic snapshot with all five entity types."""
     return ProjectSnapshot(
@@ -82,8 +84,8 @@ def _sample_snapshot() -> ProjectSnapshot:
 
 # ── ProjectSnapshot model ─────────────────────────────────────────
 
-class TestProjectSnapshot:
 
+class TestProjectSnapshot:
     def test_minimal_snapshot(self):
         snap = ProjectSnapshot(project_name="empty")
         assert snap.project_name == "empty"
@@ -114,8 +116,8 @@ class TestProjectSnapshot:
 
 # ── Slugify helper ─────────────────────────────────────────────────
 
-class TestSlugify:
 
+class TestSlugify:
     def test_basic(self):
         assert _slugify("goal", "User Authentication") == "goal-user-authentication"
 
@@ -125,8 +127,8 @@ class TestSlugify:
 
 # ── snapshot_to_graph ──────────────────────────────────────────────
 
-class TestSnapshotToGraph:
 
+class TestSnapshotToGraph:
     def test_creates_all_nodes(self):
         graph = snapshot_to_graph(_sample_snapshot())
         assert graph.node_count() == 5  # goal, req, step, cstr, dep
@@ -255,8 +257,8 @@ class TestSnapshotToGraph:
 
 # ── graph_to_snapshot ──────────────────────────────────────────────
 
-class TestGraphToSnapshot:
 
+class TestGraphToSnapshot:
     def test_basic_reverse(self):
         """Build a graph manually and convert back to snapshot."""
         graph = KnowledgeGraph()
@@ -289,6 +291,7 @@ class TestGraphToSnapshot:
     def test_unknown_node_types_silently_skipped(self):
         """Nodes the snapshot doesn't model (e.g. Feature) are skipped."""
         from conversation_engine.models.nodes import Feature
+
         graph = KnowledgeGraph()
         graph.add_node(Feature(id="f1", name="F1", description="A feature"))
         graph.add_node(Goal(id="g1", name="G1", statement="s"))
@@ -300,8 +303,8 @@ class TestGraphToSnapshot:
 
 # ── Round-trip ─────────────────────────────────────────────────────
 
-class TestRoundTrip:
 
+class TestRoundTrip:
     def test_snapshot_to_graph_and_back(self):
         """snapshot → graph → snapshot preserves all business data."""
         original = _sample_snapshot()
@@ -331,8 +334,8 @@ class TestRoundTrip:
 
 # ── make_project_spec_tool ─────────────────────────────────────────
 
-class TestProjectSpecTool:
 
+class TestProjectSpecTool:
     def _make_tool(self):
         store = InMemoryProjectStore()
         spec = make_project_spec_tool(store)
@@ -432,9 +435,7 @@ class TestProjectSpecTool:
 
         updated = _sample_snapshot()
         updated.goals.append(GoalSpec(name="New Goal", statement="Added later"))
-        updated.requirements.append(
-            RequirementSpec(name="New Req", goal_ref="New Goal")
-        )
+        updated.requirements.append(RequirementSpec(name="New Req", goal_ref="New Goal"))
         out = spec.handler(ProjectGraphInput(method="UPDATE", key="acme", payload=updated))
         assert out.success is True
         assert "updated" in out.message.lower()
@@ -452,10 +453,15 @@ class TestProjectSpecTool:
 
         # Seed with a full DomainConfig that has control fields
         rule = IntegrityRule(
-            id="r1", name="test rule", description="d",
-            applies_to_node_type="goal", rule_type="minimum_outgoing_edge_count",
-            edge_type="SATISFIED_BY", target_node_types=["requirement"],
-            minimum_count=1, severity="high",
+            id="r1",
+            name="test rule",
+            description="d",
+            applies_to_node_type="goal",
+            rule_type="minimum_outgoing_edge_count",
+            edge_type="SATISFIED_BY",
+            target_node_types=["requirement"],
+            minimum_count=1,
+            severity="high",
             failure_message_template="Goal '{subject_name}' has no requirements.",
         )
         config = DomainConfig(
@@ -487,9 +493,13 @@ class TestProjectSpecTool:
     def test_update_not_found(self):
         """UPDATE on nonexistent project fails."""
         spec, _ = self._make_tool()
-        out = spec.handler(ProjectGraphInput(
-            method="UPDATE", key="nope", payload=_sample_snapshot(),
-        ))
+        out = spec.handler(
+            ProjectGraphInput(
+                method="UPDATE",
+                key="nope",
+                payload=_sample_snapshot(),
+            )
+        )
         assert out.success is False
         assert "not found" in out.message.lower()
 
@@ -539,6 +549,7 @@ class TestProjectSpecTool:
             ToolRegistry,
             LocalToolClient,
         )
+
         store = InMemoryProjectStore()
         spec = make_project_spec_tool(store)
         reg = ToolRegistry()
@@ -546,10 +557,13 @@ class TestProjectSpecTool:
         client = LocalToolClient(reg)
 
         # CREATE
-        env = client.call("project_spec", {
-            "method": "CREATE",
-            "payload": _sample_snapshot().model_dump(),
-        })
+        env = client.call(
+            "project_spec",
+            {
+                "method": "CREATE",
+                "payload": _sample_snapshot().model_dump(),
+            },
+        )
         assert not env.is_error
         assert env.structured["success"] is True
 
@@ -562,11 +576,14 @@ class TestProjectSpecTool:
         # UPDATE
         updated = _sample_snapshot()
         updated.goals.append(GoalSpec(name="New Goal", statement="Added"))
-        env = client.call("project_spec", {
-            "method": "UPDATE",
-            "key": "acme",
-            "payload": updated.model_dump(),
-        })
+        env = client.call(
+            "project_spec",
+            {
+                "method": "UPDATE",
+                "key": "acme",
+                "payload": updated.model_dump(),
+            },
+        )
         assert not env.is_error
         assert env.structured["success"] is True
 

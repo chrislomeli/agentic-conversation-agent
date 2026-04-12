@@ -14,6 +14,7 @@ Also covers:
   - NodeMiddleware ABC: applies_to() per-node selectivity
   - InstrumentedGraph: chain building, ordering, composition
 """
+
 import time
 import pytest
 from typing import Any, Optional, TypedDict
@@ -37,6 +38,7 @@ from conversation_engine.infrastructure.node_validation.result_schema import Nod
 
 
 # ── Test fixtures ───────────────────────────────────────────────────
+
 
 class SimpleState(TypedDict):
     value: int
@@ -71,6 +73,7 @@ def flaky_node(state: SimpleState) -> dict:
 
 class RecordingMiddleware(NodeMiddleware):
     """Records calls for assertion."""
+
     def __init__(self, name: str, **kwargs):
         super().__init__(**kwargs)
         self.name = name
@@ -85,8 +88,8 @@ class RecordingMiddleware(NodeMiddleware):
 
 # ── NodeMiddleware ABC ──────────────────────────────────────────────
 
-class TestNodeMiddlewareBase:
 
+class TestNodeMiddlewareBase:
     def test_applies_to_all_by_default(self):
         mw = RecordingMiddleware("r")
         assert mw.applies_to("any_node")
@@ -106,8 +109,8 @@ class TestNodeMiddlewareBase:
 
 # ── Chain building in InstrumentedGraph ─────────────────────────────
 
-class TestMiddlewareChain:
 
+class TestMiddlewareChain:
     def test_chain_executes_in_order(self):
         r1 = RecordingMiddleware("outer")
         r2 = RecordingMiddleware("inner")
@@ -163,8 +166,8 @@ class TestMiddlewareChain:
 
 # ── LoggingMiddleware ───────────────────────────────────────────────
 
-class TestLoggingMiddleware:
 
+class TestLoggingMiddleware:
     def test_no_crash_on_success(self):
         g = InstrumentedGraph(SimpleState, node_middleware=[LoggingMiddleware()])
         g.add_node("inc", increment)
@@ -193,8 +196,8 @@ class TestLoggingMiddleware:
 
 # ── MetricsMiddleware ───────────────────────────────────────────────
 
-class TestMetricsMiddleware:
 
+class TestMetricsMiddleware:
     def test_collects_metrics(self):
         mm = MetricsMiddleware()
         g = InstrumentedGraph(SimpleState, node_middleware=[mm])
@@ -256,6 +259,7 @@ class TestMetricsMiddleware:
 
 # ── ValidationMiddleware ────────────────────────────────────────────
 
+
 class ValidInput(BaseModel):
     model_config = {"extra": "ignore"}
     value: int
@@ -269,7 +273,6 @@ class StrictInput(BaseModel):
 
 
 class TestValidationMiddleware:
-
     def test_valid_input_passes(self):
         vm = ValidationMiddleware(schemas={"inc": ValidInput})
         g = InstrumentedGraph(SimpleState, node_middleware=[vm])
@@ -309,8 +312,8 @@ class TestValidationMiddleware:
 
 # ── ErrorHandlingMiddleware ─────────────────────────────────────────
 
-class TestErrorHandlingMiddleware:
 
+class TestErrorHandlingMiddleware:
     def test_swallows_exception(self):
         ehm = ErrorHandlingMiddleware(swallow_exceptions=True)
         g = InstrumentedGraph(SimpleState, node_middleware=[ehm])
@@ -375,8 +378,8 @@ class TestErrorHandlingMiddleware:
 
 # ── RetryMiddleware ─────────────────────────────────────────────────
 
-class TestRetryMiddleware:
 
+class TestRetryMiddleware:
     def test_retries_on_failure(self):
         global _call_count
         _call_count = 0
@@ -458,8 +461,8 @@ class TestRetryMiddleware:
 
 # ── CircuitBreakerMiddleware ────────────────────────────────────────
 
-class TestCircuitBreakerMiddleware:
 
+class TestCircuitBreakerMiddleware:
     def test_starts_closed(self):
         cb = CircuitBreakerMiddleware(failure_threshold=3)
         assert cb.get_state("any") == CircuitState.CLOSED
@@ -579,8 +582,8 @@ class TestCircuitBreakerMiddleware:
 
 # ── ConfigMiddleware ────────────────────────────────────────────────
 
-class TestConfigMiddleware:
 
+class TestConfigMiddleware:
     def test_injects_config(self):
         received_config = {}
 
@@ -588,9 +591,11 @@ class TestConfigMiddleware:
             received_config.update(state.get("_node_config", {}))
             return {"value": state["value"] + 1}
 
-        cm = ConfigMiddleware(config={
-            "inc": {"temperature": 0.5, "model": "gpt-4"},
-        })
+        cm = ConfigMiddleware(
+            config={
+                "inc": {"temperature": 0.5, "model": "gpt-4"},
+            }
+        )
         g = InstrumentedGraph(SimpleState, node_middleware=[cm])
         g.add_node("inc", capture_config)
         g.add_edge(START, "inc")
@@ -641,8 +646,8 @@ class TestConfigMiddleware:
 
 # ── Composition tests ───────────────────────────────────────────────
 
-class TestMiddlewareComposition:
 
+class TestMiddlewareComposition:
     def test_logging_plus_metrics(self):
         """Logging + Metrics compose without interference."""
         mm = MetricsMiddleware()

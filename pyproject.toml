@@ -27,7 +27,27 @@ dev = [
     "pytest>=7.0",
     "pytest-asyncio>=0.23",
     "pytest-cov>=4.0",
+    "nbconvert>=7.0",
+    "ruff>=0.4",
 ]
+
+[tool.ruff]
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes (unused imports, undefined names)
+    "I",   # isort (import ordering)
+    "UP",  # pyupgrade (modern Python syntax)
+]
+ignore = [
+    "E501",  # line too long — handled by formatter
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["agents", "bridge", "config", "domains", "resources", "sensors", "tools", "transport", "world"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["commons", "conversation_engine"]

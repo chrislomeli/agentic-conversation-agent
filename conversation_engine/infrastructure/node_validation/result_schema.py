@@ -1,4 +1,5 @@
 """Structured result envelope for LangGraph nodes."""
+
 from typing import Any, Optional
 from pydantic import BaseModel, Field
 

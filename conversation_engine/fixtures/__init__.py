@@ -4,6 +4,7 @@ Shared fixtures for tests and examples.
 Graph fixtures: pre-built KnowledgeGraph instances with specific shapes.
 Config fixtures: reusable rules, DomainConfigs, contexts, and state factories.
 """
+
 from conversation_engine.fixtures.graph_fixtures import (
     create_graph_with_gaps,
     create_graph_with_orphans,

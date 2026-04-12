@@ -1,6 +1,7 @@
 """
 Domain models for the Reusable Conversation Engine.
 """
+
 from conversation_engine.models.base import NodeType, EdgeType, BaseNode, BaseEdge
 from conversation_engine.models.nodes import (
     Feature,
@@ -27,6 +28,7 @@ from conversation_engine.models.rule_node import (
     Severity,
     IntegrityRule,
 )
+
 # from conversation_engine.models.query_node import (
 #     QueryIntent,
 #     OutputKind,

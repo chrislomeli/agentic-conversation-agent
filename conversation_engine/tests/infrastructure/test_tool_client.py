@@ -7,6 +7,7 @@ Covers:
 - ToolResultEnvelope and metadata
 - LocalToolClient: happy path, input validation error, execution error, output validation error
 """
+
 import pytest
 from pydantic import BaseModel
 
@@ -22,6 +23,7 @@ from conversation_engine.infrastructure.tool_client import (
 
 
 # ── Test models ─────────────────────────────────────────────────────
+
 
 class AddInput(BaseModel):
     a: int
@@ -55,8 +57,8 @@ ADD_SPEC = ToolSpec(
 
 # ── ToolSpec ────────────────────────────────────────────────────────
 
-class TestToolSpec:
 
+class TestToolSpec:
     def test_creation(self):
         assert ADD_SPEC.name == "add"
         assert ADD_SPEC.description == "Add two numbers"
@@ -79,8 +81,8 @@ class TestToolSpec:
 
 # ── ToolRegistry ────────────────────────────────────────────────────
 
-class TestToolRegistry:
 
+class TestToolRegistry:
     def test_register_and_get(self):
         reg = ToolRegistry()
         reg.register(ADD_SPEC)
@@ -114,8 +116,8 @@ class TestToolRegistry:
 
 # ── ToolResultEnvelope ──────────────────────────────────────────────
 
-class TestToolResultEnvelope:
 
+class TestToolResultEnvelope:
     def test_meta_hash_deterministic(self):
         h1 = ToolResultMeta.hash_args({"a": 1, "b": 2})
         h2 = ToolResultMeta.hash_args({"b": 2, "a": 1})
@@ -147,8 +149,8 @@ class TestToolResultEnvelope:
 
 # ── LocalToolClient ────────────────────────────────────────────────
 
-class TestLocalToolClient:
 
+class TestLocalToolClient:
     def _make_client(self, handler=add_handler) -> LocalToolClient:
         spec = ToolSpec(
             name="add",

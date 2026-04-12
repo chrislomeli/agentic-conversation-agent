@@ -15,6 +15,7 @@ Usage::
     store.save(DomainConfig(project_name="acme", project_spec=spec, rules=rules))
     cfg = store.load("acme")
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
 
 
 # ── Abstract interface ───────────────────────────────────────────────
+
 
 class ProjectStore(ABC):
     """
@@ -102,6 +104,7 @@ class ProjectStore(ABC):
 
 
 # ── In-memory implementation ─────────────────────────────────────────
+
 
 class InMemoryProjectStore(ProjectStore):
     """

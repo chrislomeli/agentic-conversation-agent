@@ -7,6 +7,7 @@ Coverage:
 - FileProjectStore: save/load/delete/list/exists on disk
 - End-to-end: DomainConfig → JSON file → DomainConfig → ArchitecturalOntologyContext
 """
+
 from __future__ import annotations
 
 import json
@@ -18,6 +19,7 @@ from conversation_engine.storage.graph import KnowledgeGraph
 from conversation_engine.storage.file_project_store import FileProjectStore
 from conversation_engine.storage.snapshot_facade import graph_to_snapshot
 from conversation_engine.models.rule_node import IntegrityRule
+
 # from conversation_engine.models.query_node import (
 #     GraphQueryPattern,
 #     EdgeCheck,
@@ -35,6 +37,7 @@ from conversation_engine.models.base import BaseEdge
 
 
 # ── Helpers ──────────────────────────────────────────────────────────
+
 
 def _sample_graph() -> KnowledgeGraph:
     g = KnowledgeGraph()
@@ -116,8 +119,8 @@ def _full_config() -> DomainConfig:
 #  KnowledgeGraph serialization
 # ═════════════════════════════════════════════════════════════════════
 
-class TestKnowledgeGraphSerialization:
 
+class TestKnowledgeGraphSerialization:
     def test_round_trip(self):
         original = _sample_graph()
         data = original.to_dict()
@@ -186,8 +189,8 @@ class TestKnowledgeGraphSerialization:
 #  DomainConfig serialization
 # ═════════════════════════════════════════════════════════════════════
 
-class TestDomainConfigSerialization:
 
+class TestDomainConfigSerialization:
     def test_round_trip_full(self):
         original = _full_config()
         data = original.to_dict()
@@ -234,8 +237,8 @@ class TestDomainConfigSerialization:
 #  FileProjectStore
 # ═════════════════════════════════════════════════════════════════════
 
-class TestFileProjectStore:
 
+class TestFileProjectStore:
     def test_save_and_load(self, tmp_path):
         store = FileProjectStore(tmp_path / "projects")
         store.save(_full_config())
@@ -306,8 +309,8 @@ class TestFileProjectStore:
 #  End-to-end: File → DomainConfig → ArchitecturalOntologyContext
 # ═════════════════════════════════════════════════════════════════════
 
-class TestFileStoreEndToEnd:
 
+class TestFileStoreEndToEnd:
     def test_save_load_build_context(self, tmp_path):
         store = FileProjectStore(tmp_path / "projects")
         store.save(_full_config())

@@ -9,6 +9,7 @@ Coverage:
 - Fallback: no context, no name, no human → error
 - Router: running → preflight, needs_project_name → resolve_domain, error → __end__
 """
+
 from __future__ import annotations
 
 import pytest
@@ -31,6 +32,7 @@ from conversation_engine.fixtures import (
 #  resolve_domain node
 # ═════════════════════════════════════════════════════════════════════
 
+
 class TestResolveDomainPassThrough:
     """Scenario 1: context already provided."""
 
@@ -45,7 +47,9 @@ class TestResolveDomainPassThrough:
     def test_context_set_does_not_overwrite(self):
         config = sample_config()
         ctx = ArchitecturalOntologyContext(config)
-        state = minimal_state(context=ctx, project_name="other", project_store=InMemoryProjectStore())
+        state = minimal_state(
+            context=ctx, project_name="other", project_store=InMemoryProjectStore()
+        )
         result = resolve_domain(state)
         assert result["status"] == "running"
         assert "context" not in result
@@ -53,6 +57,7 @@ class TestResolveDomainPassThrough:
 
 class TestResolveDomainFromStore:
     """Scenario 2: load from store by project_name."""
+
     def test_load_partial_project(self):
         store = InMemoryProjectStore()
         config = partial_config()
@@ -131,8 +136,8 @@ class TestResolveDomainFallback:
 #  route_after_resolve_domain
 # ═════════════════════════════════════════════════════════════════════
 
-class TestRouteAfterResolveDomain:
 
+class TestRouteAfterResolveDomain:
     def test_running_goes_to_preflight(self):
         assert route_after_resolve_domain({"status": "running"}) == "preflight"
 
@@ -149,6 +154,7 @@ class TestRouteAfterResolveDomain:
 # ═════════════════════════════════════════════════════════════════════
 #  Integration: resolve_domain → router → preflight chain
 # ═════════════════════════════════════════════════════════════════════
+
 
 class TestResolveDomainIntegration:
     """Simulate the resolve → route → resolve loop for scenario 3."""

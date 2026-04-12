@@ -14,6 +14,7 @@ Usage::
     store.save(config)
     loaded = store.load("my-project")
 """
+
 from __future__ import annotations
 
 import json

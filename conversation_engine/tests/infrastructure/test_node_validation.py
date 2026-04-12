@@ -6,6 +6,7 @@ Covers:
 - validated_node decorator: happy path, validation failure
 - handle_error node: reads NodeResult and sets status
 """
+
 import pytest
 from typing import Optional
 from pydantic import BaseModel, Field
@@ -20,8 +21,8 @@ from conversation_engine.infrastructure.node_validation import (
 
 # ── NodeResult ──────────────────────────────────────────────────────
 
-class TestNodeResult:
 
+class TestNodeResult:
     def test_success(self):
         r = NodeResult.success(data={"x": 42})
         assert r.ok is True
@@ -47,6 +48,7 @@ class TestNodeResult:
 
 # ── validated_node decorator ────────────────────────────────────────
 
+
 class MyInput(BaseModel):
     model_config = {"extra": "ignore"}
     name: str
@@ -54,7 +56,6 @@ class MyInput(BaseModel):
 
 
 class TestValidatedNode:
-
     def test_happy_path(self):
         @validated_node(MyInput)
         def my_node(inp: MyInput, state: dict) -> dict:
@@ -92,8 +93,8 @@ class TestValidatedNode:
 
 # ── handle_error ────────────────────────────────────────────────────
 
-class TestHandleError:
 
+class TestHandleError:
     def test_sets_error_status(self):
         state = {
             "node_result": NodeResult.failure("TEST_ERR", "test error"),

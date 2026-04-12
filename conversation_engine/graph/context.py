@@ -13,6 +13,7 @@ Design principles:
 - Immutable findings — the loop reads them, only the context produces them
 - The context owns the domain state; the loop owns conversation mechanics
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -36,6 +37,7 @@ class Finding:
     whether the finding came from a graph integrity check, a code lint
     rule, a security scan, or anything else.
     """
+
     id: str
     finding_type: str
     severity: Severity
@@ -55,11 +57,13 @@ class ValidationResult:
     Contains all findings (both new and previously-resolved) so the
     loop has a single, consistent snapshot.
     """
+
     findings: List[Finding]
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 # ── Protocol ────────────────────────────────────────────────────────
+
 
 @runtime_checkable
 class ConversationContext(Protocol):

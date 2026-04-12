@@ -9,6 +9,7 @@ Covers:
 - LLM injectable via state["llm"] (stub)
 - Pre-flight LLM validation as a graph node
 """
+
 import pytest
 
 from conversation_engine.graph.context import (
@@ -40,6 +41,7 @@ from conversation_engine.models.validation_quiz import FactualQuiz
 
 # ── Fake contexts ───────────────────────────────────────────────────
 
+
 class _CleanContext:
     """Context with no findings and no preflight quiz — graph exits in one pass."""
 
@@ -66,15 +68,18 @@ class _GappyContext:
 
     def validate(self, prior_findings):
         resolved = [f for f in prior_findings if f.resolved]
-        return ValidationResult(findings=resolved + [
-            Finding(
-                id="gap-1",
-                finding_type="test_gap",
-                severity="high",
-                subject_ids=["x"],
-                message="Something is missing.",
-            ),
-        ])
+        return ValidationResult(
+            findings=resolved
+            + [
+                Finding(
+                    id="gap-1",
+                    finding_type="test_gap",
+                    severity="high",
+                    subject_ids=["x"],
+                    message="Something is missing.",
+                ),
+            ]
+        )
 
     def format_finding_summary(self, findings):
         return f"{len(findings)} issue(s) found."
@@ -158,8 +163,8 @@ def _make_state(ctx, llm=None):
 
 # ── Tests ───────────────────────────────────────────────────────────
 
-class TestInterceptorsInGraph:
 
+class TestInterceptorsInGraph:
     def test_metrics_collected_on_clean_run(self):
         """MetricsInterceptor collects data for all nodes during a clean run."""
         mi = MetricsInterceptor()
@@ -210,7 +215,6 @@ class TestInterceptorsInGraph:
 
 
 class TestErrorRoutingInGraph:
-
     def test_failing_context_propagates_without_error_mw(self):
         """Without ErrorHandlingMiddleware, exceptions propagate."""
         graph = build_conversation_graph()
@@ -236,8 +240,8 @@ class TestErrorRoutingInGraph:
 
 # ── New middleware integration tests ─────────────────────────────────
 
-class TestMiddlewareInGraph:
 
+class TestMiddlewareInGraph:
     def test_metrics_collected_on_clean_run(self):
         """MetricsMiddleware collects data for all nodes during a clean run."""
         mm = MetricsMiddleware()
@@ -287,7 +291,6 @@ class TestMiddlewareInGraph:
 
 
 class TestLLMInjection:
-
     def test_stub_llm_in_state(self):
         """State can carry an LLM callable used by the converse node."""
         graph = build_conversation_graph()
@@ -312,6 +315,7 @@ class TestLLMInjection:
 # The quiz and system_prompt come from the ConversationContext.
 # The LLM comes from state["llm"].
 
+
 def _smart_llm(request: LLMRequest) -> LLMResponse:
     """Echoes system prompt — always contains the right concepts."""
     return LLMResponse(content=request.system_prompt, model="smart", success=True)
@@ -323,7 +327,6 @@ def _dumb_llm(request: LLMRequest) -> LLMResponse:
 
 
 class TestPreflightNode:
-
     def test_smart_llm_passes_preflight(self):
         """Smart LLM passes preflight — graph continues to validate/reason/respond."""
         graph = build_conversation_graph()

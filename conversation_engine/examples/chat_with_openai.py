@@ -19,6 +19,7 @@ Usage:
     # Or use a specific model
     OPENAI_MODEL=gpt-4o python examples/chat_with_openai.py
 """
+
 from __future__ import annotations
 
 import logging
@@ -100,6 +101,7 @@ from conversation_engine.infrastructure.middleware import (
 #         system_prompt="Test system prompt.",
 #     )
 
+
 def _minimal_state(**overrides) -> ConversationState:
     """Build a minimal ConversationState dict with sensible defaults."""
     state: ConversationState = {
@@ -119,7 +121,6 @@ def _minimal_state(**overrides) -> ConversationState:
     }
     state.update(overrides)
     return state
-
 
 
 def build_context() -> ArchitecturalOntologyContext:
@@ -217,7 +218,7 @@ def main():
         "context": ctx,
         "session_id": "chat-session",
         "llm": llm,
-        "human": None,          # human interaction now goes through ask_human tool
+        "human": None,  # human interaction now goes through ask_human tool
         "tool_client": tool_client,
         "findings": [],
         "messages": [],

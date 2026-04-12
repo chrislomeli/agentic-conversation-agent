@@ -34,6 +34,7 @@ class CircuitState(Enum):
 @dataclass
 class _CircuitStatus:
     """Per-node circuit breaker state."""
+
     state: CircuitState = CircuitState.CLOSED
     failure_count: int = 0
     last_failure_time: float = 0.0

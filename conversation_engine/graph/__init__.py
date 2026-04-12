@@ -15,6 +15,7 @@ Infrastructure is injected at build time:
 - Tool client via state["tool_client"]
 - Error handling via ErrorHandlingMiddleware
 """
+
 from conversation_engine.graph.context import (
     ConversationContext,
     Finding,

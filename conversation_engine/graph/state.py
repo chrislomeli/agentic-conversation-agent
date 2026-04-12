@@ -13,6 +13,7 @@ Design principles:
 - The subgraph does NOT own the checkpointer, LLM client, or human surface
 - Grows organically as new nodes demand new fields
 """
+
 from __future__ import annotations
 
 from typing import Any, Dict, List, Literal, Optional
@@ -31,14 +32,17 @@ from conversation_engine.storage.project_store import ProjectStore
 
 # ── Subgraph contract ────────────────────────────────────────────────
 
+
 class ConversationInput(TypedDict):
     """What the parent graph passes in at entry."""
+
     context: ConversationContext
     session_id: str
 
 
 class ConversationOutput(TypedDict):
     """What the subgraph returns at exit."""
+
     findings: List[Finding]
     domain_state: Dict[str, Any]
     session_summary: str
@@ -46,6 +50,7 @@ class ConversationOutput(TypedDict):
 
 
 # ── Internal working state ───────────────────────────────────────────
+
 
 class ConversationState(TypedDict):
     # Injected domain context — set by resolve_domain, read by all downstream nodes

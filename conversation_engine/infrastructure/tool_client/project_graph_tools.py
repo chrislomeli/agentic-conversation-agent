@@ -11,6 +11,7 @@ Methods:
     UPDATE(key, payload) — full-replace the spec, preserving control fields
     DELETE(key)          — remove a project by name
 """
+
 from __future__ import annotations
 
 from enum import Enum
@@ -32,13 +33,14 @@ from conversation_engine.storage.snapshot_facade import (
 # ── I/O models ─────────────────────────────────────────────────────
 class CRUDMethod(str, Enum):
     CREATE = "CREATE"
-    READ   = "READ"
+    READ = "READ"
     UPDATE = "UPDATE"
     DELETE = "DELETE"
 
 
 class ProjectGraphInput(BaseModel):
     """Input for the project_spec tool."""
+
     method: CRUDMethod = Field(
         ...,
         description=(
@@ -59,14 +61,14 @@ class ProjectGraphInput(BaseModel):
     payload: Optional[ProjectSnapshot] = Field(
         None,
         description=(
-            "The project data — required for CREATE and UPDATE. "
-            "Omit for READ and DELETE."
+            "The project data — required for CREATE and UPDATE. Omit for READ and DELETE."
         ),
     )
 
 
 class ProjectGraphOutput(BaseModel):
     """Output from the project_spec tool."""
+
     success: bool = Field(..., description="Whether the operation succeeded")
     message: str = Field(default="", description="Human-readable status message")
     payload: Optional[ProjectSnapshot] = Field(
@@ -77,6 +79,7 @@ class ProjectGraphOutput(BaseModel):
 
 # ── CRUD operations ───────────────────────────────────────────────────
 
+
 def _create_project(
     project_store: ProjectStore,
     snapshot: ProjectSnapshot,
@@ -86,7 +89,7 @@ def _create_project(
         return ProjectGraphOutput(
             success=False,
             message=f"Project '{snapshot.project_name}' already exists. "
-                    "DELETE it first, then CREATE again.",
+            "DELETE it first, then CREATE again.",
         )
     try:
         # Validate refs by attempting a graph conversion (but don't store the graph)
@@ -105,6 +108,7 @@ def _create_project(
         success=True,
         message=f"Project '{snapshot.project_name}' created.",
     )
+
 
 def _update_project(
     project_store: ProjectStore,
@@ -184,6 +188,7 @@ def _delete_project(
 
 
 # ── Tool factory ───────────────────────────────────────────────────
+
 
 def make_project_spec_tool(project_store: ProjectStore) -> ToolSpec:
     """

@@ -42,9 +42,11 @@ from commons.llm.quiz import QuizQuestion
 
 # ── Per-question result ─────────────────────────────────────────────
 
+
 @dataclass
 class QuizResult:
     """Result of scoring a single quiz question."""
+
     question: str
     response: str
     found_concepts: List[str]
@@ -57,9 +59,11 @@ class QuizResult:
 
 # ── Overall report ──────────────────────────────────────────────────
 
+
 @dataclass
 class LLMValidatorReport:
     """Full report from a pre-run validation run."""
+
     results: List[QuizResult]
     weighted_score: float  # 0.0–1.0
     passed: bool
@@ -69,6 +73,7 @@ class LLMValidatorReport:
 
 
 # ── Scoring logic ───────────────────────────────────────────────────
+
 
 def _get_required_concepts(quiz: QuizQuestion) -> List[str]:
     """Extract required concepts from a quiz question, regardless of type."""
@@ -99,7 +104,7 @@ def _score_response(
     missing = []
     for concept in required_concepts:
         # Use word-boundary-aware search for short concepts
-        pattern = re.compile(r'\b' + re.escape(concept.lower()) + r'\b')
+        pattern = re.compile(r"\b" + re.escape(concept.lower()) + r"\b")
         if pattern.search(text_lower):
             found.append(concept)
         else:
@@ -127,6 +132,7 @@ def _score_response(
 
 
 # ── Validator ───────────────────────────────────────────────────────
+
 
 class LLMValidator:
     """
@@ -180,16 +186,18 @@ class LLMValidator:
             if not response.success:
                 # LLM call itself failed — automatic zero
                 concepts = _get_required_concepts(q)
-                results.append(QuizResult(
-                    question=q.question,
-                    response=response.error or "(LLM call failed)",
-                    found_concepts=[],
-                    missing_concepts=concepts,
-                    prohibited_found=[],
-                    score=0.0,
-                    passed=False,
-                    weight=q.weight,
-                ))
+                results.append(
+                    QuizResult(
+                        question=q.question,
+                        response=response.error or "(LLM call failed)",
+                        found_concepts=[],
+                        missing_concepts=concepts,
+                        prohibited_found=[],
+                        score=0.0,
+                        passed=False,
+                        weight=q.weight,
+                    )
+                )
                 continue
 
             result = _score_response(response.content, q)
@@ -215,6 +223,7 @@ class LLMValidator:
 
 # ── Report formatting ───────────────────────────────────────────────
 
+
 def quiz_report_summary(report: LLMValidatorReport) -> str:
     """
     Produce a human-readable summary of a validation report.
@@ -229,7 +238,9 @@ def quiz_report_summary(report: LLMValidatorReport) -> str:
     for i, r in enumerate(report.results, 1):
         q_status = "PASS" if r.passed else "FAIL"
         lines.append(f"  [{q_status}] Q{i}: {r.question}")
-        lines.append(f"    Score: {r.score:.1%}  |  Found: {r.found_concepts}  |  Missing: {r.missing_concepts}")
+        lines.append(
+            f"    Score: {r.score:.1%}  |  Found: {r.found_concepts}  |  Missing: {r.missing_concepts}"
+        )
         if r.prohibited_found:
             lines.append(f"    WARNING: Prohibited concepts found: {r.prohibited_found}")
 

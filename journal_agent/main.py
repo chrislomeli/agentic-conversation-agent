@@ -1,116 +1,114 @@
-
-
 """
---- WIP Phase 3 
-  Step 1 — Create models.py with a Turn Pydantic model                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+--- WIP Phase 3
+  Step 1 — Create models.py with a Turn Pydantic model
+
   Right now your messages are LangChain objects (HumanMessage, AIMessage). Those are great for talking to the LLM, but they're not easy to save to disk. You need your own simple data structure.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-  What is a Turn? One exchange: the user said something, the AI replied. Each Turn needs:                                                                                                                                                                                                                                                                                                                                                                                                                                 
-  - role — who spoke: "human" or "ai"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-  - content — what they said (a string)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
-  - timestamp — when it happened (datetime)                       
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+  What is a Turn? One exchange: the user said something, the AI replied. Each Turn needs:
+  - role — who spoke: "human" or "ai"
+  - content — what they said (a string)
+  - timestamp — when it happened (datetime)
+
   Why Pydantic? Pydantic models know how to serialize themselves to/from JSON automatically. You define the fields, and you get .model_dump() (to dict) and .model_validate() (from dict) for free. That's what makes saving and loading trivial.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-  How: from pydantic import BaseModel and from datetime import datetime. Define class Turn(BaseModel) with those three fields. For the timestamp, use datetime as the type — Pydantic handles ISO format serialization automatically.                                                                                                                                                                                                                                                                                     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-  ---                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-  Step 2 — Create storage.py with save and load functions         
+
+  How: from pydantic import BaseModel and from datetime import datetime. Define class Turn(BaseModel) with those three fields. For the timestamp, use datetime as the type — Pydantic handles ISO format serialization automatically.
+
+  ---
+  Step 2 — Create storage.py with save and load functions
 
   Two functions:
 
-  save_session(session_id: str, turns: list[Turn])                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+  save_session(session_id: str, turns: list[Turn])
   - Target path: data/sessions/{session_id}.json
-  - Create the directory if it doesn't exist (Path.mkdir(parents=True, exist_ok=True))                                                                                                                                                                                                                                                                                                                                                                                                                                    
+  - Create the directory if it doesn't exist (Path.mkdir(parents=True, exist_ok=True))
   - Convert each Turn to a dict with .model_dump(mode="json") — the mode="json" part makes datetime serialize as a string
-  - Write the list of dicts as JSON with json.dump()                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-  load_session(session_id: str) -> list[Turn]                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-  - Read the JSON file back                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
-  - Convert each dict back to a Turn with Turn.model_validate(d)                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-  - Return the list                                               
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+  - Write the list of dicts as JSON with json.dump()
+
+  load_session(session_id: str) -> list[Turn]
+  - Read the JSON file back
+  - Convert each dict back to a Turn with Turn.model_validate(d)
+  - Return the list
+
   Also add a helper list_sessions() -> list[str] that scans data/sessions/ and returns all session IDs. You'll need this for the startup menu.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
   ---
-  Step 3 — Generate a session ID                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+  Step 3 — Generate a session ID
+
   On startup, you need an ID that uniquely identifies this conversation. Two options:
-  - uuid.uuid4() — completely random, like "a3f9c2d1-..."                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
-  - datetime.now().strftime("%Y%m%d_%H%M%S") — human-readable, like "20260410_143022"                                                                                                                                                                                                                                                                                                                                                                                                                                     
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-  The datetime format is nicer for a journal — you can tell at a glance when the session was. Use that.                                                                                                                                                                                                                                                                                                                                                                                                                   
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-  ---                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-  Step 4 — Wire turns into the save/load cycle                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+  - uuid.uuid4() — completely random, like "a3f9c2d1-..."
+  - datetime.now().strftime("%Y%m%d_%H%M%S") — human-readable, like "20260410_143022"
+
+  The datetime format is nicer for a journal — you can tell at a glance when the session was. Use that.
+
+  ---
+  Step 4 — Wire turns into the save/load cycle
+
   Currently main.py stores messages as LangChain objects. You need to also maintain a parallel turns: list[Turn] list.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-  After each exchange (user input + AI response), append a Turn for each:                                                                                                                                                                                                                                                                                                                                                                                                                                                 
-  Turn(role="human", content=user_input, timestamp=now)                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
-  Turn(role="ai", content=response.content, timestamp=now)                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+  After each exchange (user input + AI response), append a Turn for each:
+  Turn(role="human", content=user_input, timestamp=now)
+  Turn(role="ai", content=response.content, timestamp=now)
+
   Call save_session(session_id, turns) after each exchange — so if you crash mid-conversation, you don't lose everything.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-  ---                                                             
-  Step 5 — Startup menu in main.py                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+  ---
+  Step 5 — Startup menu in main.py
+
   Before the conversation loop starts, ask the user what they want to do:
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-  1. Call list_sessions() — if there are previous sessions, show them                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-  2. Ask: "Start new session or resume? (new/session_id)"                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
-  3. If resuming:                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
-    - Load the turns with load_session()                          
-    - Rebuild the messages list from turns (loop through turns, create HumanMessage or AIMessage based on role)                                                                                                                                                                                                                                                                                                                                                                                                           
-    - Set turns to the loaded list so saving continues appending correctly                                                                                                                                                                                                                                                                                                                                                                                                                                                
-  4. If new: generate a fresh session_id, start with empty turns                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-  ---                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-  How it all connects                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-                                                                  
+
+  1. Call list_sessions() — if there are previous sessions, show them
+  2. Ask: "Start new session or resume? (new/session_id)"
+  3. If resuming:
+    - Load the turns with load_session()
+    - Rebuild the messages list from turns (loop through turns, create HumanMessage or AIMessage based on role)
+    - Set turns to the loaded list so saving continues appending correctly
+  4. If new: generate a fresh session_id, start with empty turns
+
+  ---
+  How it all connects
+
   startup
     ├── list sessions
-    ├── user picks new or resume                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+    ├── user picks new or resume
     │     └── if resume: load turns → rebuild messages list
-    └── enter conversation loop                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
-          ├── user types                                          
-          ├── append HumanMessage to messages, HumanTurn to turns                                                                                                                                                                                                                                                                                                                                                                                                                                                         
-          ├── call LLM                                            
-          ├── append AIMessage to messages, AiTurn to turns                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+    └── enter conversation loop
+          ├── user types
+          ├── append HumanMessage to messages, HumanTurn to turns
+          ├── call LLM
+          ├── append AIMessage to messages, AiTurn to turns
           ├── save_session(session_id, turns)   ← after every exchange
-          └── print response                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
-                                                                  
-  ---                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
-  Files to create                                                 
-                 
+          └── print response
+
+  ---
+  Files to create
+
   - journal-agent/models.py — Turn Pydantic model
-  - journal-agent/storage.py — save_session, load_session, list_sessions                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+  - journal-agent/storage.py — save_session, load_session, list_sessions
   - Update journal-agent/main.py — startup menu + turn tracking + save after each exchange
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
-  The data/sessions/ directory doesn't need to be created manually — your save_session function creates it on first write.                                                                                                                                                                                                                                                                                                                                                                                                
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+
+  The data/sessions/ directory doesn't need to be created manually — your save_session function creates it on first write.
+
 
 """
 
-from langchain_core.messages import SystemMessage, HumanMessage, BaseMessage
+from langchain_core.messages import SystemMessage, BaseMessage
 from uuid import uuid4
 
 from journal_agent.configure.config_builder import configure_environment
 from journal_agent.graph import build_journal_graph
 from journal_agent.storage.api import SessionStore
 from journal_agent.comms.llm_client import create_llm_client
-from journal_agent.model.storage import Role
 
-JOURNAL_SYSTEM_PROMPT = \
-    ("You are a transcriber who classifies the content of our conversation into one of the following categories: astronomy, biology, chemistry, physics, or other.  "
-     "Always provide the answer to the question and a classification for the question")
-LOAD_CONTEXT = True
+JOURNAL_SYSTEM_PROMPT = (
+    "You are a transcriber who classifies the content of our conversation into one of the following categories: astronomy, biology, chemistry, physics, or other.  "
+    "Always provide the answer to the question and a classification for the question"
+)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SECTION 2: MAIN PIPELINE
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def main():
     # configuration and setup
@@ -122,44 +120,21 @@ def main():
     session_store = SessionStore()
 
     # get messages from previous sessions - the option was to perform special handling for the system prompt or just get all history as we do here
-    messages: list[BaseMessage]  = [SystemMessage(JOURNAL_SYSTEM_PROMPT)]
-    stored_messages: list[BaseMessage]  = session_store.retrieve_context()
+    messages: list[BaseMessage] = [SystemMessage(JOURNAL_SYSTEM_PROMPT)]
+    stored_messages: list[BaseMessage] = session_store.retrieve_context()
     messages.extend(stored_messages or [])
 
     session_id = str(uuid4())  # or loaded from prior session
     initial_state = {
         "session_id": session_id,
-        "messages": [],
+        "seed_context": messages,
+        "session_messages": [],
         "status": "idle",
         "error_message": None,
     }
     graph = build_journal_graph(llm=client, session_store=session_store)
     graph.invoke(initial_state)
-
-    # conversation loop
-    while True:
-        try:
-            user_input = input("You: ")
-            if user_input == "/quit":
-                break
-
-            # Add user message
-            messages.append(HumanMessage(content=user_input))
-
-            # call the AI
-            session_store.cache_turn(session_id=session_id, role=Role.HUMAN, content=user_input)
-            response = client.chat(messages)
-            session_store.cache_turn(session_id=session_id, role=Role.AI, content=response.content)
-
-            print(response.content)
-        except Exception as e:
-            break
-
-    print("end session")
-    session_store.store_cache(session_id)
-
     print("done")
-
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

@@ -12,6 +12,7 @@ These nodes are **domain-agnostic**.  They work exclusively through the
 ConversationContext protocol and the Finding type.  No domain-specific
 imports (KnowledgeGraph, IntegrityRule, Assessment, etc.) appear here.
 """
+
 from __future__ import annotations
 
 import json
@@ -45,6 +46,7 @@ logger = logging.getLogger(__name__)
 
 
 # ── preflight ────────────────────────────────────────────────────────
+
 
 def preflight(state: ConversationState) -> Dict[str, Any]:
     """
@@ -85,7 +87,11 @@ def preflight(state: ConversationState) -> Dict[str, Any]:
         return {
             "status": "error",
             "preflight_passed": False,
-            "messages": [AIMessage(content=f"LLM failed pre-flight validation (score={report.weighted_score:.0%})")],
+            "messages": [
+                AIMessage(
+                    content=f"LLM failed pre-flight validation (score={report.weighted_score:.0%})"
+                )
+            ],
         }
 
     logger.info(
@@ -96,6 +102,7 @@ def preflight(state: ConversationState) -> Dict[str, Any]:
 
 
 # ── validate ─────────────────────────────────────────────────────────
+
 
 def validate(state: ConversationState) -> Dict[str, Any]:
     """
@@ -183,10 +190,12 @@ def _converse_simple(state: ConversationState) -> Dict[str, Any]:
     new_messages: List = [AIMessage(content=ai_text)]
 
     if human:
-        human_response = human(HumanRequest(
-            prompt=ai_text,
-            context={"turn": current_turn, "open_findings": len(open_findings)},
-        ))
+        human_response = human(
+            HumanRequest(
+                prompt=ai_text,
+                context={"turn": current_turn, "open_findings": len(open_findings)},
+            )
+        )
         if not human_response.skipped:
             new_messages.append(HumanMessage(content=human_response.content))
 
@@ -219,7 +228,7 @@ def _converse_agent(state: ConversationState) -> Dict[str, Any]:
     # Build the ChatOpenAI model with tools bound
     # We access the underlying ChatOpenAI from the adapter
     llm_callable: CallLLM = state["llm"]
-    if hasattr(llm_callable, '_chat'):
+    if hasattr(llm_callable, "_chat"):
         # OpenAICallLLM wraps a ChatOpenAI — use it directly
         chat_model = llm_callable._chat
     else:
@@ -234,10 +243,9 @@ def _converse_agent(state: ConversationState) -> Dict[str, Any]:
     # todo - pros and cons for doing jit binding?
     llm_with_tools = chat_model.bind_tools(tool_schemas)
 
-
-
     # Build initial messages for the LLM
     from langchain_core.messages import SystemMessage
+
     findings_context = _build_findings_context(open_findings)
 
     chat_messages = [
@@ -281,10 +289,12 @@ def _converse_agent(state: ConversationState) -> Dict[str, Any]:
             result_text = execute_tool_call(tool_client, tool_call)
 
             # Feed result back to LLM as a ToolMessage
-            chat_messages.append(ToolMessage(
-                content=result_text,
-                tool_call_id=tool_call["id"],
-            ))
+            chat_messages.append(
+                ToolMessage(
+                    content=result_text,
+                    tool_call_id=tool_call["id"],
+                )
+            )
 
             # Handle special tool side-effects
             if tool_name == "mark_complete":
@@ -355,6 +365,7 @@ def converse(state: ConversationState) -> Dict[str, Any]:
 
 # ── resolve_domain ──────────────────────────────────────────────────
 
+
 def resolve_domain(state: ConversationState) -> Dict[str, Any]:
     """
     Resolve the DomainConfig into a ready-to-use ConversationContext.
@@ -402,11 +413,13 @@ def resolve_domain(state: ConversationState) -> Dict[str, Any]:
     # ── Scenario 3: ask the human for a project name ─────────────
     human: Optional[CallHuman] = state.get("human")
     if human and not project_name:
-        response = human(HumanRequest(
-            prompt="Which project would you like to work on? Please provide the project name.",
-            context={"reason": "no_project_name"},
-            allow_skip=False,
-        ))
+        response = human(
+            HumanRequest(
+                prompt="Which project would you like to work on? Please provide the project name.",
+                context={"reason": "no_project_name"},
+                allow_skip=False,
+            )
+        )
         if response.content and not response.skipped:
             logger.info("resolve_domain: human provided project name '%s'", response.content)
             return {

@@ -13,6 +13,7 @@ from conversation_engine.infrastructure.middleware.base import NodeMiddleware
 @dataclass
 class NodeMetrics:
     """Accumulated metrics for a single node."""
+
     call_count: int = 0
     error_count: int = 0
     total_duration: float = 0.0
@@ -65,7 +66,9 @@ class MetricsMiddleware(NodeMiddleware):
                     "error_count": m.error_count,
                     "total_duration": round(m.total_duration, 6),
                     "last_duration": round(m.last_duration, 6),
-                    "avg_duration": round(m.total_duration / m.call_count, 6) if m.call_count else 0.0,
+                    "avg_duration": round(m.total_duration / m.call_count, 6)
+                    if m.call_count
+                    else 0.0,
                 }
                 for name, m in self.metrics.items()
             }

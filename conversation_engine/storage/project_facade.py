@@ -14,6 +14,7 @@ Edge wiring rules (source --EDGE_TYPE--> target):
     Step        --DEPENDS_ON-->    Dependency
     Constraint  --CONSTRAINS-->    (any node, not wired automatically)
 """
+
 from __future__ import annotations
 
 import json
@@ -27,7 +28,8 @@ from conversation_engine.models.nodes import (
     Requirement,
     Step,
     Constraint,
-    Dependency, Project,
+    Dependency,
+    Project,
 )
 from conversation_engine.storage.graph import KnowledgeGraph
 from conversation_engine.models.project_spec import (
@@ -40,11 +42,14 @@ from conversation_engine.models.project_spec import (
     DependencySpec,
 )
 
+
 # todo deprecate this
 def _create_id(prefix: str) -> str:
     """Deterministic ID from a prefix and a human-readable name."""
     # slug = name.strip().lower().replace(" ", "-")
     return prefix + str(uuid.uuid4())
+
+
 #
 #
 # # ── Snapshot → KnowledgeGraph ──────────────────────────────────────
@@ -56,23 +61,23 @@ def _create_id(prefix: str) -> str:
 class SnapshotConversionError(Exception):
     """Raised when a snapshot contains invalid references."""
 
+
 def _get_quiz_edge_type(quiz_type: str) -> EdgeType:
     return "HAS_REASONING_QUIZ" if quiz_type.lower() == "reasoning" else "HAS_FACTUAL_QUIZ"
+
 
 def project_to_graph(project: DomainConfig) -> KnowledgeGraph:
     graph = KnowledgeGraph()
 
-
     # 1. Add the root Project node
     project_id = _create_id("project")
     project_node = Project(
-        id=project_id, # _slugify("project", project.project_name),
+        id=project_id,  # _slugify("project", project.project_name),
         name=project.project_name,
         system_prompt=project.system_prompt or "",
-        metadata=json.dumps(project.metadata) or ""
+        metadata=json.dumps(project.metadata) or "",
     )
     graph.add_node(project_node)
-
 
     # ── Name → ID registries (built as nodes are added) ────────────
     goal_ids: Dict[str, str] = {}
@@ -86,12 +91,13 @@ def project_to_graph(project: DomainConfig) -> KnowledgeGraph:
         # Create a copy with the new ID
         rule_with_id = spec.model_copy(update={"id": nid})
         graph.add_node(rule_with_id)
-        graph.add_edge(BaseEdge(
-            edge_type="HAS_RULE",
-            source_id=project_id,
-            target_id=nid,
-        ))
-
+        graph.add_edge(
+            BaseEdge(
+                edge_type="HAS_RULE",
+                source_id=project_id,
+                target_id=nid,
+            )
+        )
 
     # ── Quiz ──────────────────────────────────────────────────────
     for spec in project.quiz or []:
@@ -103,11 +109,13 @@ def project_to_graph(project: DomainConfig) -> KnowledgeGraph:
         # Create a copy with the new ID
         quiz_with_id = spec.model_copy(update={"id": nid})
         graph.add_node(quiz_with_id)
-        graph.add_edge(BaseEdge(
-            edge_type=_get_quiz_edge_type(quiz_type),
-            source_id=project_id,
-            target_id=nid,
-        ))
+        graph.add_edge(
+            BaseEdge(
+                edge_type=_get_quiz_edge_type(quiz_type),
+                source_id=project_id,
+                target_id=nid,
+            )
+        )
 
     if not (project_spec := project.project_spec):
         pass
@@ -119,28 +127,34 @@ def project_to_graph(project: DomainConfig) -> KnowledgeGraph:
             goal_ids[spec.name] = nid
             graph.add_node(Goal(id=nid, name=spec.name, statement=spec.statement))
             # Wire: wire to project
-            graph.add_edge(BaseEdge(
-                edge_type="HAS_GOAL",
-                source_id=project_id,
-                target_id=nid,
-            ))
+            graph.add_edge(
+                BaseEdge(
+                    edge_type="HAS_GOAL",
+                    source_id=project_id,
+                    target_id=nid,
+                )
+            )
 
         # ── Requirements (→ Goal via SATISFIED_BY) ─────────────────────
         for spec in project_spec.requirements or []:
             nid = _create_id("req")
             req_ids[spec.name] = nid
-            graph.add_node(Requirement(
-                id=nid,
-                name=spec.name,
-                requirement_type=spec.requirement_type,
-                description=spec.description,
-            ))
+            graph.add_node(
+                Requirement(
+                    id=nid,
+                    name=spec.name,
+                    requirement_type=spec.requirement_type,
+                    description=spec.description,
+                )
+            )
             # Wire: wire to project
-            graph.add_edge(BaseEdge(
-                edge_type="HAS_REQUIREMENT",
-                source_id=project_id,
-                target_id=nid,
-            ))
+            graph.add_edge(
+                BaseEdge(
+                    edge_type="HAS_REQUIREMENT",
+                    source_id=project_id,
+                    target_id=nid,
+                )
+            )
 
             # Wire: Goal --SATISFIED_BY--> Requirement
             if spec.goal_ref:
@@ -150,44 +164,54 @@ def project_to_graph(project: DomainConfig) -> KnowledgeGraph:
                         f"Requirement '{spec.name}' references unknown goal '{spec.goal_ref}'. "
                         f"Known goals: {sorted(goal_ids)}"
                     )
-                graph.add_edge(BaseEdge(
-                    edge_type="SATISFIED_BY",
-                    source_id=goal_id,
-                    target_id=nid,
-                ))
+                graph.add_edge(
+                    BaseEdge(
+                        edge_type="SATISFIED_BY",
+                        source_id=goal_id,
+                        target_id=nid,
+                    )
+                )
 
         # ── Dependencies (added before steps so refs resolve) ─────
         for spec in project_spec.dependencies or []:
             nid = _create_id("dep")
             dep_ids[spec.name] = nid
-            graph.add_node(Dependency(
-                id=nid,
-                name=spec.name,
-                description=spec.description,
-            ))
+            graph.add_node(
+                Dependency(
+                    id=nid,
+                    name=spec.name,
+                    description=spec.description,
+                )
+            )
             # Wire: wire to project  todo - wire dependencies to a goal instead of at the project level?
-            graph.add_edge(BaseEdge(
-                edge_type="HAS_DEPENDENCY",
-                source_id=project_id,
-                target_id=nid,
-            ))
+            graph.add_edge(
+                BaseEdge(
+                    edge_type="HAS_DEPENDENCY",
+                    source_id=project_id,
+                    target_id=nid,
+                )
+            )
 
         # ── Steps (→ Requirement via REALIZED_BY, → Dependency via DEPENDS_ON)
         for spec in project_spec.steps or []:
             nid = _create_id("step")
             step_ids[spec.name] = nid
-            graph.add_node(Step(
-                id=nid,
-                name=spec.name,
-                description=spec.description,
-                has_no_dependencies=spec.has_no_dependencies,
-            ))
+            graph.add_node(
+                Step(
+                    id=nid,
+                    name=spec.name,
+                    description=spec.description,
+                    has_no_dependencies=spec.has_no_dependencies,
+                )
+            )
             # Wire: wire to project  todo - wire steps to a goal instead of at the project level?
-            graph.add_edge(BaseEdge(
-                edge_type="HAS_STEP",
-                source_id=project_id,
-                target_id=nid,
-            ))
+            graph.add_edge(
+                BaseEdge(
+                    edge_type="HAS_STEP",
+                    source_id=project_id,
+                    target_id=nid,
+                )
+            )
 
             for ref in spec.requirement_refs:
                 req_id = req_ids.get(ref)
@@ -196,11 +220,13 @@ def project_to_graph(project: DomainConfig) -> KnowledgeGraph:
                         f"Step '{spec.name}' references unknown requirement '{ref}'. "
                         f"Known requirements: {sorted(req_ids)}"
                     )
-                graph.add_edge(BaseEdge(
-                    edge_type="REALIZED_BY",
-                    source_id=req_id,
-                    target_id=nid,
-                ))
+                graph.add_edge(
+                    BaseEdge(
+                        edge_type="REALIZED_BY",
+                        source_id=req_id,
+                        target_id=nid,
+                    )
+                )
             for ref in spec.dependency_refs:
                 dep_id = dep_ids.get(ref)
                 if dep_id is None:
@@ -208,32 +234,37 @@ def project_to_graph(project: DomainConfig) -> KnowledgeGraph:
                         f"Step '{spec.name}' references unknown dependency '{ref}'. "
                         f"Known dependencies: {sorted(dep_ids)}"
                     )
-                graph.add_edge(BaseEdge(
-                    edge_type="DEPENDS_ON",
-                    source_id=nid,
-                    target_id=dep_id,
-                ))
+                graph.add_edge(
+                    BaseEdge(
+                        edge_type="DEPENDS_ON",
+                        source_id=nid,
+                        target_id=dep_id,
+                    )
+                )
 
         # ── Constraints (standalone — no automatic edges) ──────────────
         for spec in project_spec.constraints or []:
             nid = _create_id("cstr")
             graph.add_node(Constraint(id=nid, name=spec.name, statement=spec.statement))
             # Wire: wire to project  todo - wire steps to a goal instead of at the project level?
-            graph.add_edge(BaseEdge(
-                edge_type="HAS_CONSTRAINT",
-                source_id=project_id,
-                target_id=nid,
-            ))
+            graph.add_edge(
+                BaseEdge(
+                    edge_type="HAS_CONSTRAINT",
+                    source_id=project_id,
+                    target_id=nid,
+                )
+            )
 
     return graph
 
 
 # ── KnowledgeGraph → Snapshot ──────────────────────────────────────
 
+
 def graph_to_domain_config(graph: KnowledgeGraph) -> DomainConfig:
     """
     Convert a ``KnowledgeGraph`` back to a ``DomainConfig``.
-    
+
     Reconstructs the complete domain configuration including:
     - Project metadata (from root Project node)
     - ProjectSpecification (existing logic)
@@ -257,7 +288,7 @@ def graph_to_domain_config(graph: KnowledgeGraph) -> DomainConfig:
 
     # ── Get ProjectSpecification using existing logic ───────────────────
     project_specification = graph_to_snapshot(project_node.name, graph)
-    
+
     # ── Parse metadata from JSON string ─────────────────────────────────
     metadata = {}
     if meta_data:
@@ -276,6 +307,7 @@ def graph_to_domain_config(graph: KnowledgeGraph) -> DomainConfig:
         system_prompt=system_prompt or "",
         metadata=metadata,
     )
+
 
 def graph_to_snapshot(project_name: str, graph: KnowledgeGraph) -> ProjectSpecification:
     """
@@ -315,23 +347,16 @@ def graph_to_snapshot(project_name: str, graph: KnowledgeGraph) -> ProjectSpecif
     step_to_reqs: Dict[str, List[str]] = {}
     for edge in graph.get_edges_by_type("REALIZED_BY"):
         if edge.target_id in steps_by_id and edge.source_id in reqs_by_id:
-            step_to_reqs.setdefault(edge.target_id, []).append(
-                reqs_by_id[edge.source_id].name
-            )
+            step_to_reqs.setdefault(edge.target_id, []).append(reqs_by_id[edge.source_id].name)
 
     # Step → dependency names  (Step --DEPENDS_ON--> Dep)
     step_to_deps: Dict[str, List[str]] = {}
     for edge in graph.get_edges_by_type("DEPENDS_ON"):
         if edge.source_id in steps_by_id and edge.target_id in deps_by_id:
-            step_to_deps.setdefault(edge.source_id, []).append(
-                deps_by_id[edge.target_id].name
-            )
+            step_to_deps.setdefault(edge.source_id, []).append(deps_by_id[edge.target_id].name)
 
     # ── Assemble specs ─────────────────────────────────────────────
-    goal_specs = [
-        GoalSpec(name=g.name, statement=g.statement)
-        for g in goals_by_id.values()
-    ]
+    goal_specs = [GoalSpec(name=g.name, statement=g.statement) for g in goals_by_id.values()]
 
     req_specs = [
         RequirementSpec(
@@ -355,13 +380,11 @@ def graph_to_snapshot(project_name: str, graph: KnowledgeGraph) -> ProjectSpecif
     ]
 
     constraint_specs = [
-        ConstraintSpec(name=c.name, statement=c.statement)
-        for c in constraints_by_id.values()
+        ConstraintSpec(name=c.name, statement=c.statement) for c in constraints_by_id.values()
     ]
 
     dep_specs = [
-        DependencySpec(name=d.name, description=d.description)
-        for d in deps_by_id.values()
+        DependencySpec(name=d.name, description=d.description) for d in deps_by_id.values()
     ]
 
     return ProjectSpecification(
@@ -372,5 +395,3 @@ def graph_to_snapshot(project_name: str, graph: KnowledgeGraph) -> ProjectSpecif
         constraints=constraint_specs,
         dependencies=dep_specs,
     )
-
-

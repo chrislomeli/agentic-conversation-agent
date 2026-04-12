@@ -7,6 +7,7 @@ ConversationContext protocol that the conversation loop requires.
 
 It owns the domain state and exposes only Findings to the loop.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -20,6 +21,7 @@ from conversation_engine.graph.context import (
 from conversation_engine.models.domain_config import DomainConfig
 from conversation_engine.models.project_spec import ProjectSpecification
 from conversation_engine.models.rule_node import IntegrityRule
+
 # from conversation_engine.models.query_node import GraphQueryPattern
 from conversation_engine.storage.graph import KnowledgeGraph
 from conversation_engine.storage.snapshot_facade import snapshot_to_graph
@@ -45,6 +47,7 @@ def _default_finding_type(rule_id: str) -> str:
 
 
 # ── Concrete context ────────────────────────────────────────────────
+
 
 class ArchitecturalOntologyContext:
     """
@@ -81,15 +84,18 @@ class ArchitecturalOntologyContext:
         to the primary constructor.
         """
         from conversation_engine.storage.snapshot_facade import graph_to_snapshot
+
         spec = graph_to_snapshot("unnamed", graph)
-        return cls(DomainConfig(
-            project_name="unnamed",
-            project_spec=spec,
-            rules=rules,
-            # query_patterns=query_patterns,
-            system_prompt=system_prompt,
-            quiz=quiz,
-        ))
+        return cls(
+            DomainConfig(
+                project_name="unnamed",
+                project_spec=spec,
+                rules=rules,
+                # query_patterns=query_patterns,
+                system_prompt=system_prompt,
+                quiz=quiz,
+            )
+        )
 
     # ── Protocol implementation ─────────────────────────────────────
 
@@ -128,10 +134,7 @@ class ArchitecturalOntologyContext:
         Produce a human-readable summary using architectural language.
         """
         if not findings:
-            return (
-                "All integrity checks pass. "
-                "The knowledge graph looks complete."
-            )
+            return "All integrity checks pass. The knowledge graph looks complete."
 
         lines = [f"Found {len(findings)} issue(s):"]
         for f in findings:

@@ -1,4 +1,5 @@
 """Decorator that validates LangGraph node input against a Pydantic schema."""
+
 import functools
 from typing import Callable, Type, TypeVar
 from pydantic import BaseModel, ValidationError
@@ -30,11 +31,13 @@ def validated_node(schema: Type[T]):
             try:
                 inp = schema.model_validate(state)
             except ValidationError as e:
-                return {"node_result": NodeResult.failure(
-                    code="INVALID_INPUT",
-                    message=f"{schema.__name__} validation failed",
-                    details={"errors": e.errors()},
-                )}
+                return {
+                    "node_result": NodeResult.failure(
+                        code="INVALID_INPUT",
+                        message=f"{schema.__name__} validation failed",
+                        details={"errors": e.errors()},
+                    )
+                }
             return fn(inp, state)
 
         return wrapper

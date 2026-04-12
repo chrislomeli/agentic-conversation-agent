@@ -51,7 +51,7 @@ class RetryMiddleware(NodeMiddleware):
 
     def _backoff_delay(self, attempt: int) -> float:
         """Exponential backoff: base * 2^attempt."""
-        return self._backoff_base * (2 ** attempt)
+        return self._backoff_base * (2**attempt)
 
     def __call__(self, node_name: str, state: Any, next_fn: Callable) -> Any:
         if not self.applies_to(node_name):

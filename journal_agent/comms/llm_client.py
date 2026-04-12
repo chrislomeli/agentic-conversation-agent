@@ -33,6 +33,7 @@ class LLMResponse:
     Unified response format. Regardless of which provider you use,
     you always get back this same structure.
     """
+
     text: str
     model: str
     stop_reason: str
@@ -45,6 +46,7 @@ class LLMClient(ABC):
     Your code calls these methods. The concrete implementations (OpenAIClient,
     AnthropicClient, etc.) handle translating to/from the provider's API.
     """
+
     _model: str
     _client: Any
 
@@ -60,13 +62,13 @@ class LLMClient(ABC):
 # CONCRETE IMPLEMENTATIONS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-class OpenAIClient(LLMClient):
 
+class OpenAIClient(LLMClient):
     def __init__(self, api_key: SecretStr, model: str = "gpt-4o"):
         self._model = model
         from langchain_openai import ChatOpenAI
-        llm = ChatOpenAI(model=model, temperature=0,
-                         api_key=api_key)
+
+        llm = ChatOpenAI(model=model, temperature=0, api_key=api_key)
         self._client = llm
 
 
@@ -82,11 +84,9 @@ class AnthropicClient(LLMClient):
     def __init__(self, api_key: SecretStr, model: str = "claude-haiku-4-5"):
         self._model = model
         from langchain_anthropic import ChatAnthropic
+
         a = api_key.get_secret_value()
-        llm = ChatAnthropic(model_name=model,
-                            api_key=a,
-                            temperature=0
-                            )
+        llm = ChatAnthropic(model_name=model, api_key=a, temperature=0)
         self._client = llm
 
 
@@ -103,11 +103,8 @@ class OllamaClient(LLMClient):
         self._model = model
         # Initialize the model (ensure Ollama is running locally)
         from langchain_ollama import ChatOllama
-        llm = ChatOllama(
-            model=model,
-            temperature=0,
-            base_url=base_url
-        )
+
+        llm = ChatOllama(model=model, temperature=0, base_url=base_url)
         self._client = llm
 
 
@@ -115,11 +112,12 @@ class OllamaClient(LLMClient):
 # FACTORY FUNCTION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def create_llm_client(
-        provider: LLMProvider,
-        api_key: SecretStr,
-        model: str,
-        base_url: Optional[str] = None,
+    provider: LLMProvider,
+    api_key: SecretStr,
+    model: str,
+    base_url: Optional[str] = None,
 ) -> LLMClient:
     """
     Create the right LLM client based on the provider.

@@ -10,6 +10,7 @@ Covers:
 - Broken middleware DOES propagate
 - InstrumentedGraph works as drop-in for StateGraph
 """
+
 import pytest
 from typing import Any, TypedDict
 from langgraph.graph import START, END
@@ -27,6 +28,7 @@ from conversation_engine.infrastructure.interceptors import (
 
 # ── Test state ──────────────────────────────────────────────────────
 
+
 class SimpleState(TypedDict):
     value: int
     log: list
@@ -41,6 +43,7 @@ def failing_node(state: SimpleState) -> dict:
 
 
 # ── Recording interceptor ──────────────────────────────────────────
+
 
 class RecordingInterceptor(Interceptor):
     """Records all hook calls for assertions."""
@@ -73,6 +76,7 @@ class BrokenInterceptor(Interceptor):
 
 # ── Recording middleware ───────────────────────────────────────────
 
+
 class AddTagMiddleware(Middleware):
     """Adds a tag to every result dict."""
 
@@ -91,8 +95,8 @@ class BrokenMiddleware(Middleware):
 
 # ── Tests ───────────────────────────────────────────────────────────
 
-class TestInstrumentedGraph:
 
+class TestInstrumentedGraph:
     def test_basic_graph_without_interceptors(self):
         """InstrumentedGraph works as drop-in for StateGraph."""
         g = InstrumentedGraph(SimpleState)
@@ -178,7 +182,6 @@ class TestInstrumentedGraph:
 
 
 class TestMetricsInterceptor:
-
     def test_collects_metrics(self):
         mi = MetricsInterceptor()
         g = InstrumentedGraph(SimpleState, interceptors=[mi])

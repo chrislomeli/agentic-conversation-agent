@@ -1,4 +1,5 @@
 """Generic error-handler node for LangGraph graphs."""
+
 import logging
 
 from conversation_engine.infrastructure.node_validation.result_schema import NodeResult

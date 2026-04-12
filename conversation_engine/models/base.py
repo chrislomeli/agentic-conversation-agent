@@ -1,6 +1,7 @@
 """
 Base models for nodes and edges in the knowledge graph.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -11,6 +12,7 @@ from pydantic import BaseModel, Field
 
 class NodeType(str, Enum):
     """Enum for all node types in the knowledge graph."""
+
     PROJECT = "project"
     FEATURE = "feature"
     GOAL = "goal"
@@ -29,7 +31,6 @@ class NodeType(str, Enum):
     RULE = "rule"
     QUIZ = "quiz"
     QUERY_PATTERN = "query_pattern"
-
 
 
 EdgeType = Literal[
@@ -58,30 +59,32 @@ EdgeType = Literal[
 ]
 
 
-
-
 class BaseNode(BaseModel):
     """
     Base class for all knowledge graph nodes.
-    
+
     All nodes have an ID, name, and type. Subclasses add domain-specific fields.
     IDs are immutable; content fields can be updated.
     """
+
     node_type: NodeType = Field(..., description="Type of this node")
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique identifier for this node")
-    name: str = Field(default_factory=lambda: "missing_name",  description="Human-readable name")
-    
+    id: str = Field(
+        default_factory=lambda: str(uuid.uuid4()), description="Unique identifier for this node"
+    )
+    name: str = Field(default_factory=lambda: "missing_name", description="Human-readable name")
+
     model_config = {"frozen": False}
 
 
 class BaseEdge(BaseModel):
     """
     Base class for all knowledge graph edges.
-    
+
     Edges represent typed relationships between nodes.
     """
+
     edge_type: EdgeType = Field(..., description="Type of relationship")
     source_id: str = Field(..., description="Source node ID")
     target_id: str = Field(..., description="Target node ID")
-    
+
     model_config = {"frozen": True}

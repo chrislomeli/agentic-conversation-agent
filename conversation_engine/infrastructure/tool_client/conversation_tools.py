@@ -22,8 +22,10 @@ from commons.tool_client import ToolSpec
 
 # ── ask_human ─────────────────────────────────────────────────────────
 
+
 class AskHumanInput(BaseModel):
     """Input for the ask_human tool."""
+
     message: str = Field(description="The message to present to the human.")
     options: Optional[List[str]] = Field(
         default=None,
@@ -33,6 +35,7 @@ class AskHumanInput(BaseModel):
 
 class AskHumanOutput(BaseModel):
     """Output from the ask_human tool."""
+
     response: str = Field(description="The human's response text.")
     skipped: bool = Field(
         default=False,
@@ -52,10 +55,12 @@ def make_ask_human_tool(human_callable) -> ToolSpec:
     from commons.human import HumanRequest
 
     def handler(input_: AskHumanInput) -> AskHumanOutput:
-        response = human_callable(HumanRequest(
-            prompt=input_.message,
-            options=input_.options,
-        ))
+        response = human_callable(
+            HumanRequest(
+                prompt=input_.message,
+                options=input_.options,
+            )
+        )
         return AskHumanOutput(
             response=response.content,
             skipped=response.skipped,
@@ -76,8 +81,10 @@ def make_ask_human_tool(human_callable) -> ToolSpec:
 
 # ── revalidate ────────────────────────────────────────────────────────
 
+
 class RevalidateInput(BaseModel):
     """Input for the revalidate tool."""
+
     reason: str = Field(
         description="Why you are re-running validation (e.g. 'human reported changes').",
     )
@@ -85,6 +92,7 @@ class RevalidateInput(BaseModel):
 
 class RevalidateOutput(BaseModel):
     """Output from the revalidate tool."""
+
     total_findings: int = Field(description="Total number of findings after re-validation.")
     open_findings: int = Field(description="Number of unresolved findings.")
     resolved_findings: int = Field(description="Number of resolved findings.")
@@ -131,8 +139,10 @@ def make_revalidate_tool(context, get_findings: Callable) -> ToolSpec:
 
 # ── mark_complete ─────────────────────────────────────────────────────
 
+
 class MarkCompleteInput(BaseModel):
     """Input for the mark_complete tool."""
+
     reason: str = Field(
         description="Why the conversation is complete (e.g. 'all findings resolved').",
     )
@@ -140,6 +150,7 @@ class MarkCompleteInput(BaseModel):
 
 class MarkCompleteOutput(BaseModel):
     """Output from the mark_complete tool."""
+
     acknowledged: bool = Field(
         default=True,
         description="Always true — confirms the completion was recorded.",

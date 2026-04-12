@@ -27,6 +27,7 @@ Infrastructure:
   breaker, config) are injected via node_middleware, not baked into topology
 - Pre-flight LLM validation is a first-class node, not imperative build code
 """
+
 from __future__ import annotations
 
 import logging
@@ -50,6 +51,7 @@ MAX_TURNS = 5
 
 
 # ── Routers ──────────────────────────────────────────────────────────
+
 
 def route_after_resolve_domain(
     state: ConversationState,
@@ -102,6 +104,7 @@ def route_after_converse(state: ConversationState) -> Literal["validate", "__end
 
 
 # ── Builder ──────────────────────────────────────────────────────────
+
 
 def build_conversation_graph(
     *,

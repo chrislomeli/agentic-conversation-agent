@@ -26,6 +26,7 @@ class LLMRequest:
     and optional structured context.  The LLM implementation decides
     how to format these for its specific backend.
     """
+
     system_prompt: str
     user_message: str
     context: Dict[str, Any] = field(default_factory=dict)
@@ -42,6 +43,7 @@ class LLMResponse:
     Always contains the raw text.  Optionally contains parsed
     structured data if the LLM was asked for JSON output.
     """
+
     content: str
     structured: Optional[Dict[str, Any]] = None
     model: str = ""

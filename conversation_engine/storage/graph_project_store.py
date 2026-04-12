@@ -15,6 +15,7 @@ Usage::
     store.save(DomainConfig(project_name="acme", project_spec=spec, rules=rules))
     cfg = store.load("acme")
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, List, Optional
@@ -27,10 +28,8 @@ if TYPE_CHECKING:
     from conversation_engine.models.domain_config import DomainConfig
 
 
-
-
-
 # ── Graph implementation ─────────────────────────────────────────
+
 
 class GraphProjectStore(ProjectStore):
     """
@@ -41,9 +40,8 @@ class GraphProjectStore(ProjectStore):
     caller's objects do not silently alter stored data.
     """
 
-    def __init__( self, graph: GraphAccessLayer ) -> None:
+    def __init__(self, graph: GraphAccessLayer) -> None:
         self._graph_access_layer = graph
-
 
     def save(self, config: DomainConfig) -> None:
         if not config.project_name:

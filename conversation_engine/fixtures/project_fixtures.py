@@ -8,6 +8,7 @@ Design notes:
   - Steps are work items (coarse-grained, status-tracked), not file paths.
   - include_steps=True adds the current state of known work items.
 """
+
 from __future__ import annotations
 
 import json
@@ -302,8 +303,7 @@ def conversation_engine_meta_spec(
                 status="done",
                 percentage=100,
                 description=(
-                    "ReAct agent loop, typed tool envelope, transport-agnostic "
-                    "ToolClient contract."
+                    "ReAct agent loop, typed tool envelope, transport-agnostic ToolClient contract."
                 ),
             ),
             # ── In Progress ─────────────────────────────────────────────────
@@ -467,8 +467,7 @@ META_QUIZ: list[FactualQuiz] = [
         id="meta-quiz-model",
         name="Data Model Quiz",
         question=(
-            "What are the three layers of the project data model, "
-            "and which one carries status?"
+            "What are the three layers of the project data model, and which one carries status?"
         ),
         expected_answer="goal, requirement, step, status",
         weight=1.5,
@@ -499,10 +498,7 @@ META_QUIZ: list[FactualQuiz] = [
     FactualQuiz(
         id="meta-quiz-constraint",
         name="LLM Constraint Quiz",
-        question=(
-            "What does the LLM see — the KnowledgeGraph or the "
-            "ProjectSpecification?  Why?"
-        ),
+        question=("What does the LLM see — the KnowledgeGraph or the ProjectSpecification?  Why?"),
         expected_answer="ProjectSpecification, no graph, no IDs",
         weight=1.0,
         min_score=0.5,
@@ -519,6 +515,7 @@ META_QUIZ: list[FactualQuiz] = [
 
 
 # ── Project-specific integrity rules ─────────────────────────────────
+
 
 def meta_rules() -> list[IntegrityRule]:
     """Integrity rules for the dogfood project."""
@@ -549,6 +546,7 @@ def meta_rules() -> list[IntegrityRule]:
 
 
 # ── Full DomainConfig for the dogfood project ────────────────────────
+
 
 def conversation_engine_meta_config(
     *,

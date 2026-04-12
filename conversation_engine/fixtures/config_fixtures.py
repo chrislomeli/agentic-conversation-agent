@@ -7,6 +7,7 @@ Provides reusable factories for:
 - ConversationState dicts with sensible defaults
 - ArchitecturalOntologyContext from various graph shapes
 """
+
 from __future__ import annotations
 
 from typing import List, Optional
@@ -22,6 +23,7 @@ from conversation_engine.storage.snapshot_facade import graph_to_snapshot
 
 
 # ── Rule factories ───────────────────────────────────────────────────
+
 
 def goal_req_rule() -> IntegrityRule:
     """Every goal must have ≥1 SATISFIED_BY → requirement."""
@@ -60,6 +62,7 @@ def standard_rules() -> List[IntegrityRule]:
 
 # ── DomainConfig factories ───────────────────────────────────────────
 
+
 def sample_config(
     project_name: str = "test-project",
     graph: Optional[KnowledgeGraph] = None,
@@ -78,6 +81,7 @@ def sample_config(
         if graph is None:
             from conversation_engine.models import Goal, Requirement
             from conversation_engine.models.base import BaseEdge
+
             g = KnowledgeGraph()
             g.add_node(Goal(id="g1", name="Goal 1", statement="A goal"))
             g.add_node(Requirement(id="r1", name="Req 1"))
@@ -106,6 +110,7 @@ def partial_config(
         if graph is None:
             from conversation_engine.models import Goal, Requirement
             from conversation_engine.models.base import BaseEdge
+
             g = KnowledgeGraph()
             g.add_node(Goal(id="g1", name="Goal 1", statement="A goal"))
             g.add_node(Requirement(id="r1", name="Req 1"))
@@ -123,6 +128,7 @@ def partial_config(
 
 # ── Context factories ────────────────────────────────────────────────
 
+
 def make_context(
     graph: KnowledgeGraph,
     rules: Optional[List[IntegrityRule]] = None,
@@ -139,6 +145,7 @@ def make_context(
 
 
 # ── State factories ──────────────────────────────────────────────────
+
 
 def minimal_state(**overrides) -> ConversationState:
     """Build a minimal ConversationState dict with sensible defaults."""

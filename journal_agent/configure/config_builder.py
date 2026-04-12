@@ -16,19 +16,31 @@ from typing import Dict
 
 from settings import get_settings, Settings, LLMLabel, LLMModel, LLMProvider
 
-models: Dict[LLMLabel, LLMModel|None] = {
+models: Dict[LLMLabel, LLMModel | None] = {
     # OpenAI models
-    LLMLabel.GPT_MINI: LLMModel(key_label="openai_api_key", provider=LLMProvider.OPENAI, model="gpt-4o-mini"),
-    LLMLabel.GPT_NANO: LLMModel(key_label="openai_api_key", provider=LLMProvider.OPENAI, model="gpt-4o-mini"),
+    LLMLabel.GPT_MINI: LLMModel(
+        key_label="openai_api_key", provider=LLMProvider.OPENAI, model="gpt-4o-mini"
+    ),
+    LLMLabel.GPT_NANO: LLMModel(
+        key_label="openai_api_key", provider=LLMProvider.OPENAI, model="gpt-4o-mini"
+    ),
     LLMLabel.GPT: LLMModel(key_label="openai_api_key", provider=LLMProvider.OPENAI, model="gpt-4o"),
     # Anthropic models
-    LLMLabel.CLAUDE_SONNET: LLMModel(key_label="anthropic_api_key", provider=LLMProvider.ANTHROPIC, model="claude-sonnet-4-6"),
-    LLMLabel.CLAUDE_OPUS: LLMModel(key_label="anthropic_api_key", provider=LLMProvider.ANTHROPIC, model="claude-opus-4-6"),
-    LLMLabel.HAIKU: LLMModel(key_label="anthropic_api_key", provider=LLMProvider.ANTHROPIC, model="claude-haiku-4-5"),
+    LLMLabel.CLAUDE_SONNET: LLMModel(
+        key_label="anthropic_api_key", provider=LLMProvider.ANTHROPIC, model="claude-sonnet-4-6"
+    ),
+    LLMLabel.CLAUDE_OPUS: LLMModel(
+        key_label="anthropic_api_key", provider=LLMProvider.ANTHROPIC, model="claude-opus-4-6"
+    ),
+    LLMLabel.HAIKU: LLMModel(
+        key_label="anthropic_api_key", provider=LLMProvider.ANTHROPIC, model="claude-haiku-4-5"
+    ),
     # Ollama models (local development)
-    LLMLabel.OLLAMA_LLAMA3: LLMModel(key_label="ollama_base_url", provider=LLMProvider.OLLAMA, model="llama3.2:latest"),
+    LLMLabel.OLLAMA_LLAMA3: LLMModel(
+        key_label="ollama_base_url", provider=LLMProvider.OLLAMA, model="llama3.2:latest"
+    ),
     # Stub (no LLM)
-    LLMLabel.STUB: None
+    LLMLabel.STUB: None,
 }
 
 
@@ -49,6 +61,7 @@ def _redacted_settings_json(settings: Settings) -> str:
     if isinstance(llm_model, dict) and "api_key" in llm_model:
         llm_model["api_key"] = _mask_secret(llm_model.get("api_key") or "")
     import json
+
     return json.dumps(payload, indent=2)
 
 
@@ -57,8 +70,9 @@ def _redacted_settings_json(settings: Settings) -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 literals = {
     "AI_ENV_FILE": "/Users/chrislomeli/Source/SECRETS/.env",
-    "USE_MODEL": LLMLabel.OLLAMA_LLAMA3
+    "USE_MODEL": LLMLabel.OLLAMA_LLAMA3,
 }
+
 
 def configure_environment() -> Settings:
     """
@@ -71,7 +85,6 @@ def configure_environment() -> Settings:
     connection = models.get(literals["USE_MODEL"], models[LLMLabel.GPT_MINI])
     settings.llm_model = connection
     settings.llm_source = connection.provider if connection else LLMProvider.STUB
-
 
     # Set up Python logging so we can see what's happening
     logging.basicConfig(
@@ -86,5 +99,3 @@ def configure_environment() -> Settings:
     # Print what we're using (redacted)
     print(_redacted_settings_json(settings))
     return settings
-
-

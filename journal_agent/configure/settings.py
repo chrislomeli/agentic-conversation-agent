@@ -16,6 +16,7 @@ class LLMProvider(Enum):
     ANTHROPIC = "ANTHROPIC"
     OLLAMA = "OLLAMA"
 
+
 class LLMLabel(Enum):
     GPT_MINI = "gpt-mini"
     GPT_NANO = "gpt-nano"
@@ -25,6 +26,7 @@ class LLMLabel(Enum):
     HAIKU = "haiku"
     OLLAMA_LLAMA3 = "ollama-llama2"
     STUB = "STUB"
+
 
 @dataclasses.dataclass
 class LLMModel:
@@ -62,6 +64,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
+
 @lru_cache
 def get_settings() -> Settings:
     """
@@ -72,5 +75,3 @@ def get_settings() -> Settings:
     so a fresh Settings object is created.
     """
     return Settings()
-
-

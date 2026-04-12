@@ -7,6 +7,7 @@ Covers:
 - call_llm_stub: no findings, with findings
 - Protocol runtime checking
 """
+
 import pytest
 
 from conversation_engine.infrastructure.llm import (
@@ -19,8 +20,8 @@ from conversation_engine.infrastructure.llm import (
 
 # ── LLMRequest / LLMResponse ───────────────────────────────────────
 
-class TestLLMRequest:
 
+class TestLLMRequest:
     def test_creation(self):
         req = LLMRequest(
             system_prompt="You are a test assistant.",
@@ -46,7 +47,6 @@ class TestLLMRequest:
 
 
 class TestLLMResponse:
-
     def test_success(self):
         resp = LLMResponse(
             content="All good.",
@@ -74,8 +74,8 @@ class TestLLMResponse:
 
 # ── call_llm_stub ──────────────────────────────────────────────────
 
-class TestCallLLMStub:
 
+class TestCallLLMStub:
     def test_no_findings(self):
         req = LLMRequest(
             system_prompt="You are a validator.",
@@ -111,6 +111,7 @@ class TestCallLLMStub:
 
     def test_custom_callable_satisfies_protocol(self):
         """Any callable with the right signature satisfies CallLLM."""
+
         def my_llm(request: LLMRequest) -> LLMResponse:
             return LLMResponse(content="custom", model="test")
 

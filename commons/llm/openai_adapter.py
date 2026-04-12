@@ -10,6 +10,7 @@ Usage:
 
 The returned callable satisfies CallLLM: (LLMRequest) -> LLMResponse.
 """
+
 from __future__ import annotations
 
 import os

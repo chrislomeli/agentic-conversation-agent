@@ -61,10 +61,12 @@ class ValidationMiddleware(NodeMiddleware):
                 node_name,
                 e.error_count(),
             )
-            return {"node_result": NodeResult.failure(
-                code="INVALID_INPUT",
-                message=f"{schema.__name__} validation failed for node '{node_name}'",
-                details={"errors": e.errors()},
-            )}
+            return {
+                "node_result": NodeResult.failure(
+                    code="INVALID_INPUT",
+                    message=f"{schema.__name__} validation failed for node '{node_name}'",
+                    details={"errors": e.errors()},
+                )
+            }
 
         return next_fn(state)

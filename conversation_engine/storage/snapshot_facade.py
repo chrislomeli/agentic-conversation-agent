@@ -15,6 +15,7 @@ Edge wiring rules (source --EDGE_TYPE--> target):
     Step        --BLOCKED_BY-->    Step
     Constraint  --CONSTRAINS-->    (any node, not wired automatically)
 """
+
 from __future__ import annotations
 
 from typing import Dict, List, Optional
@@ -46,6 +47,7 @@ def _slugify(prefix: str, name: str) -> str:
 
 
 # ── Snapshot → KnowledgeGraph ──────────────────────────────────────
+
 
 class SnapshotConversionError(Exception):
     """Raised when a snapshot contains invalid references."""
@@ -79,12 +81,14 @@ def snapshot_to_graph(snapshot: ProjectSpecification) -> KnowledgeGraph:
     for spec in snapshot.requirements:
         nid = _slugify("req", spec.name)
         req_ids[spec.name] = nid
-        graph.add_node(Requirement(
-            id=nid,
-            name=spec.name,
-            requirement_type=spec.requirement_type,
-            description=spec.description,
-        ))
+        graph.add_node(
+            Requirement(
+                id=nid,
+                name=spec.name,
+                requirement_type=spec.requirement_type,
+                description=spec.description,
+            )
+        )
         # Wire: Goal --SATISFIED_BY--> Requirement
         if spec.goal_ref:
             goal_id = goal_ids.get(spec.goal_ref)
@@ -93,34 +97,40 @@ def snapshot_to_graph(snapshot: ProjectSpecification) -> KnowledgeGraph:
                     f"Requirement '{spec.name}' references unknown goal '{spec.goal_ref}'. "
                     f"Known goals: {sorted(goal_ids)}"
                 )
-            graph.add_edge(BaseEdge(
-                edge_type="SATISFIED_BY",
-                source_id=goal_id,
-                target_id=nid,
-            ))
+            graph.add_edge(
+                BaseEdge(
+                    edge_type="SATISFIED_BY",
+                    source_id=goal_id,
+                    target_id=nid,
+                )
+            )
 
     # ── Dependencies (added before steps so refs resolve) ─────
     for spec in snapshot.dependencies:
         nid = _slugify("dep", spec.name)
         dep_ids[spec.name] = nid
-        graph.add_node(Dependency(
-            id=nid,
-            name=spec.name,
-            description=spec.description,
-        ))
+        graph.add_node(
+            Dependency(
+                id=nid,
+                name=spec.name,
+                description=spec.description,
+            )
+        )
 
     # ── Steps (→ Requirement via REALIZED_BY, → Dependency via DEPENDS_ON, → Step via BLOCKED_BY)
     for spec in snapshot.steps:
         nid = _slugify("step", spec.name)
         step_ids[spec.name] = nid
-        graph.add_node(Step(
-            id=nid,
-            name=spec.name,
-            description=spec.description,
-            status=spec.status,
-            percentage=spec.percentage,
-            has_no_dependencies=spec.has_no_dependencies,
-        ))
+        graph.add_node(
+            Step(
+                id=nid,
+                name=spec.name,
+                description=spec.description,
+                status=spec.status,
+                percentage=spec.percentage,
+                has_no_dependencies=spec.has_no_dependencies,
+            )
+        )
         for ref in spec.requirement_refs:
             req_id = req_ids.get(ref)
             if req_id is None:
@@ -128,11 +138,13 @@ def snapshot_to_graph(snapshot: ProjectSpecification) -> KnowledgeGraph:
                     f"Step '{spec.name}' references unknown requirement '{ref}'. "
                     f"Known requirements: {sorted(req_ids)}"
                 )
-            graph.add_edge(BaseEdge(
-                edge_type="REALIZED_BY",
-                source_id=req_id,
-                target_id=nid,
-            ))
+            graph.add_edge(
+                BaseEdge(
+                    edge_type="REALIZED_BY",
+                    source_id=req_id,
+                    target_id=nid,
+                )
+            )
         for ref in spec.dependency_refs:
             dep_id = dep_ids.get(ref)
             if dep_id is None:
@@ -140,11 +152,13 @@ def snapshot_to_graph(snapshot: ProjectSpecification) -> KnowledgeGraph:
                     f"Step '{spec.name}' references unknown dependency '{ref}'. "
                     f"Known dependencies: {sorted(dep_ids)}"
                 )
-            graph.add_edge(BaseEdge(
-                edge_type="DEPENDS_ON",
-                source_id=nid,
-                target_id=dep_id,
-            ))
+            graph.add_edge(
+                BaseEdge(
+                    edge_type="DEPENDS_ON",
+                    source_id=nid,
+                    target_id=dep_id,
+                )
+            )
 
     # Wire BLOCKED_BY edges (second pass — all step IDs must exist first)
     for spec in snapshot.steps:
@@ -156,11 +170,13 @@ def snapshot_to_graph(snapshot: ProjectSpecification) -> KnowledgeGraph:
                     f"Step '{spec.name}' references unknown blocker step '{ref}'. "
                     f"Known steps: {sorted(step_ids)}"
                 )
-            graph.add_edge(BaseEdge(
-                edge_type="BLOCKED_BY",
-                source_id=src_id,
-                target_id=blocker_id,
-            ))
+            graph.add_edge(
+                BaseEdge(
+                    edge_type="BLOCKED_BY",
+                    source_id=src_id,
+                    target_id=blocker_id,
+                )
+            )
 
     # ── Constraints (standalone — no automatic edges) ──────────────
     for spec in snapshot.constraints:
@@ -171,6 +187,7 @@ def snapshot_to_graph(snapshot: ProjectSpecification) -> KnowledgeGraph:
 
 
 # ── KnowledgeGraph → Snapshot ──────────────────────────────────────
+
 
 def graph_to_snapshot(project_name: str, graph: KnowledgeGraph) -> ProjectSnapshot:
     """
@@ -210,31 +227,22 @@ def graph_to_snapshot(project_name: str, graph: KnowledgeGraph) -> ProjectSnapsh
     step_to_reqs: Dict[str, List[str]] = {}
     for edge in graph.get_edges_by_type("REALIZED_BY"):
         if edge.target_id in steps_by_id and edge.source_id in reqs_by_id:
-            step_to_reqs.setdefault(edge.target_id, []).append(
-                reqs_by_id[edge.source_id].name
-            )
+            step_to_reqs.setdefault(edge.target_id, []).append(reqs_by_id[edge.source_id].name)
 
     # Step → dependency names  (Step --DEPENDS_ON--> Dep)
     step_to_deps: Dict[str, List[str]] = {}
     for edge in graph.get_edges_by_type("DEPENDS_ON"):
         if edge.source_id in steps_by_id and edge.target_id in deps_by_id:
-            step_to_deps.setdefault(edge.source_id, []).append(
-                deps_by_id[edge.target_id].name
-            )
+            step_to_deps.setdefault(edge.source_id, []).append(deps_by_id[edge.target_id].name)
 
     # Step → blocker step names  (Step --BLOCKED_BY--> Step)
     step_to_blockers: Dict[str, List[str]] = {}
     for edge in graph.get_edges_by_type("BLOCKED_BY"):
         if edge.source_id in steps_by_id and edge.target_id in steps_by_id:
-            step_to_blockers.setdefault(edge.source_id, []).append(
-                steps_by_id[edge.target_id].name
-            )
+            step_to_blockers.setdefault(edge.source_id, []).append(steps_by_id[edge.target_id].name)
 
     # ── Assemble specs ─────────────────────────────────────────────
-    goal_specs = [
-        GoalSpec(name=g.name, statement=g.statement)
-        for g in goals_by_id.values()
-    ]
+    goal_specs = [GoalSpec(name=g.name, statement=g.statement) for g in goals_by_id.values()]
 
     req_specs = [
         RequirementSpec(
@@ -261,13 +269,11 @@ def graph_to_snapshot(project_name: str, graph: KnowledgeGraph) -> ProjectSnapsh
     ]
 
     constraint_specs = [
-        ConstraintSpec(name=c.name, statement=c.statement)
-        for c in constraints_by_id.values()
+        ConstraintSpec(name=c.name, statement=c.statement) for c in constraints_by_id.values()
     ]
 
     dep_specs = [
-        DependencySpec(name=d.name, description=d.description)
-        for d in deps_by_id.values()
+        DependencySpec(name=d.name, description=d.description) for d in deps_by_id.values()
     ]
 
     return ProjectSnapshot(

@@ -37,6 +37,7 @@ from conversation_engine.fixtures import (
 
 # ── Node unit tests ─────────────────────────────────────────────────
 
+
 class TestValidateNode:
     """Test the validate node in isolation."""
 
@@ -89,8 +90,10 @@ class TestConverseNode:
         result = converse(state)
 
         assert len(result["messages"]) == 1
-        assert "complete" in result["messages"][0].content.lower() or \
-               "pass" in result["messages"][0].content.lower()
+        assert (
+            "complete" in result["messages"][0].content.lower()
+            or "pass" in result["messages"][0].content.lower()
+        )
 
     def test_with_findings_lists_issues(self):
         """When findings exist, converse summarises them."""
@@ -126,6 +129,7 @@ class TestConverseNode:
 
 
 # ── Router tests ─────────────────────────────────────────────────────
+
 
 class TestRouter:
     """Test route_after_converse logic."""
@@ -181,6 +185,7 @@ class TestRouter:
 
 
 # ── Full graph integration tests ─────────────────────────────────────
+
 
 class TestConversationGraphIntegration:
     """Test the compiled conversation graph end-to-end."""
@@ -261,6 +266,7 @@ class TestConversationGraphIntegration:
 
 
 # ── Domain-agnostic tests ────────────────────────────────────────────
+
 
 class _FakeContext:
     """

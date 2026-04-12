@@ -27,8 +27,9 @@ class QuizQuestion(Protocol):
     Domain implementations can use any class (dataclass, Pydantic model,
     etc.) as long as it has these attributes.
     """
+
     question: str
-    quiz_type: str          # "factual" or "reasoning"
+    quiz_type: str  # "factual" or "reasoning"
     weight: float
     min_score: float
 
@@ -36,6 +37,7 @@ class QuizQuestion(Protocol):
 @dataclass(frozen=True)
 class FactualQuizQuestion:
     """Simple factual quiz question — checks for keyword presence."""
+
     question: str
     expected_answer: str
     quiz_type: Literal["factual"] = "factual"
@@ -46,6 +48,7 @@ class FactualQuizQuestion:
 @dataclass(frozen=True)
 class ReasoningQuizQuestion:
     """Reasoning quiz question — checks for evaluation criteria presence."""
+
     question: str
     evaluation_criteria: str
     quiz_type: Literal["reasoning"] = "reasoning"

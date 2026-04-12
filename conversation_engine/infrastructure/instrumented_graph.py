@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 # -- Legacy ABCs (deprecated, kept for transition) --------------------
 # These will be removed once all code migrates to NodeMiddleware.
 
+
 class Interceptor(ABC):
     """DEPRECATED: Use NodeMiddleware instead."""
 
@@ -54,6 +55,7 @@ class Middleware(ABC):
 
 
 # -- InstrumentedGraph ------------------------------------------------
+
 
 class InstrumentedGraph(StateGraph):
     """
@@ -133,6 +135,7 @@ class InstrumentedGraph(StateGraph):
                     # Innermost: call the actual node function, forwarding kwargs (e.g. config)
                     def leaf(s: Any) -> Any:
                         return fn(s, **kwargs)
+
                     return leaf
 
                 mw = mw_list[index]
@@ -161,7 +164,9 @@ class InstrumentedGraph(StateGraph):
                 try:
                     ic.before(node_name, state)
                 except Exception:
-                    logger.exception("Interceptor %s.before() failed for node '%s'", type(ic).__name__, node_name)
+                    logger.exception(
+                        "Interceptor %s.before() failed for node '%s'", type(ic).__name__, node_name
+                    )
 
             try:
                 result = fn(state, **kwargs)
@@ -170,14 +175,20 @@ class InstrumentedGraph(StateGraph):
                     try:
                         ic.on_error(node_name, state, exc)
                     except Exception:
-                        logger.exception("Interceptor %s.on_error() failed for node '%s'", type(ic).__name__, node_name)
+                        logger.exception(
+                            "Interceptor %s.on_error() failed for node '%s'",
+                            type(ic).__name__,
+                            node_name,
+                        )
                 raise
 
             for ic in interceptors:
                 try:
                     ic.after(node_name, state, result)
                 except Exception:
-                    logger.exception("Interceptor %s.after() failed for node '%s'", type(ic).__name__, node_name)
+                    logger.exception(
+                        "Interceptor %s.after() failed for node '%s'", type(ic).__name__, node_name
+                    )
 
             for mw in middleware:
                 result = mw.transform(node_name, state, result)

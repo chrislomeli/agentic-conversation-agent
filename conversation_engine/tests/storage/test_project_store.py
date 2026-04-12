@@ -6,6 +6,7 @@ Coverage:
 - InMemoryProjectStore: save, load, delete, list, exists, upsert, empty name
 - ArchitecturalOntologyContext.from_config: round-trip from DomainConfig
 """
+
 from __future__ import annotations
 
 import pytest
@@ -18,6 +19,7 @@ from conversation_engine.storage.project_store import (
 )
 from conversation_engine.storage.graph import KnowledgeGraph
 from conversation_engine.models.rule_node import IntegrityRule
+
 # from conversation_engine.models.query_node import GraphQueryPattern
 from conversation_engine.models.validation_quiz import ValidationQuiz, FactualQuiz
 from conversation_engine.graph.architectural_context import (
@@ -33,6 +35,7 @@ from conversation_engine.storage.snapshot_facade import graph_to_snapshot
 
 
 # ── Helpers ──────────────────────────────────────────────────────────
+
 
 def _sample_graph() -> KnowledgeGraph:
     g = KnowledgeGraph()
@@ -92,8 +95,8 @@ def _full_config(**overrides) -> DomainConfig:
 #  DomainConfig Tests
 # ═════════════════════════════════════════════════════════════════════
 
-class TestDomainConfig:
 
+class TestDomainConfig:
     def test_create_full_config(self):
         cfg = _full_config()
         assert cfg.project_name == "test-project"
@@ -130,8 +133,8 @@ class TestDomainConfig:
 #  InMemoryProjectStore Tests
 # ═════════════════════════════════════════════════════════════════════
 
-class TestInMemoryProjectStore:
 
+class TestInMemoryProjectStore:
     def test_is_project_store(self):
         store = InMemoryProjectStore()
         assert isinstance(store, ProjectStore)
@@ -227,8 +230,8 @@ class TestInMemoryProjectStore:
 #  ArchitecturalOntologyContext(DomainConfig) Tests
 # ═════════════════════════════════════════════════════════════════════
 
-class TestArchitecturalContextFromConfig:
 
+class TestArchitecturalContextFromConfig:
     def test_from_full_config(self):
         cfg = _full_config()
         ctx = ArchitecturalOntologyContext(cfg)
@@ -282,8 +285,8 @@ class TestArchitecturalContextFromConfig:
 #  End-to-end: Store → Load → Context
 # ═════════════════════════════════════════════════════════════════════
 
-class TestStoreToContext:
 
+class TestStoreToContext:
     def test_save_load_and_build_context(self):
         store = InMemoryProjectStore()
         store.save(_full_config())

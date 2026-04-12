@@ -73,20 +73,15 @@ on what changes would resolve the integrity violations.
 # ── Quiz questions ──────────────────────────────────────────────────
 
 ARCHITECTURAL_QUIZ: list[FactualQuiz] = [
-
     # Q1: Node types
     FactualQuiz(
         id="quiz-node-types",
         name="Node Types Quiz",
-        question=(
-            "What are the main node types in the knowledge graph? "
-            "List as many as you can."
-        ),
+        question=("What are the main node types in the knowledge graph? List as many as you can."),
         expected_answer="goal, requirement, step, dependency, feature",
         weight=1.0,
         min_score=0.5,
     ),
-
     # Q2: Edge types and traceability
     FactualQuiz(
         id="quiz-edge-traceability",
@@ -99,33 +94,24 @@ ARCHITECTURAL_QUIZ: list[FactualQuiz] = [
         weight=1.5,
         min_score=0.5,
     ),
-
     # Q3: Integrity rules
     FactualQuiz(
         id="quiz-integrity-rules",
         name="Integrity Rules Quiz",
-        question=(
-            "What are the integrity rules? What happens when a goal "
-            "has no requirements?"
-        ),
+        question=("What are the integrity rules? What happens when a goal has no requirements?"),
         expected_answer="goal, requirement, violation, finding",
         weight=1.5,
         min_score=0.5,
     ),
-
     # Q4: Findings and severity
     FactualQuiz(
         id="quiz-findings",
         name="Findings and Severity Quiz",
-        question=(
-            "What is a 'finding' in this system? What information "
-            "does a finding contain?"
-        ),
+        question=("What is a 'finding' in this system? What information does a finding contain?"),
         expected_answer="severity, subject, message",
         weight=1.0,
         min_score=0.5,
     ),
-
     # Q5: Role understanding
     FactualQuiz(
         id="quiz-role",
@@ -138,7 +124,6 @@ ARCHITECTURAL_QUIZ: list[FactualQuiz] = [
         weight=1.5,
         min_score=0.5,
     ),
-
     # Q6: Prioritization
     FactualQuiz(
         id="quiz-prioritization",
@@ -151,15 +136,11 @@ ARCHITECTURAL_QUIZ: list[FactualQuiz] = [
         weight=0.5,
         min_score=0.5,
     ),
-
     # Q7: Edge case — no findings
     FactualQuiz(
         id="quiz-no-findings",
         name="No Findings Quiz",
-        question=(
-            "What should you tell the user if the validation pass "
-            "produces zero findings?"
-        ),
+        question=("What should you tell the user if the validation pass produces zero findings?"),
         expected_answer="complete, pass",
         weight=0.5,
         min_score=0.5,

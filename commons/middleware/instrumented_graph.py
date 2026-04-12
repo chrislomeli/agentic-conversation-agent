@@ -84,6 +84,7 @@ class InstrumentedGraph(StateGraph):
                     # Innermost: call the actual node function, forwarding kwargs (e.g. config)
                     def leaf(s: Any) -> Any:
                         return fn(s, **kwargs)
+
                     return leaf
 
                 mw = mw_list[index]

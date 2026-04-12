@@ -9,6 +9,7 @@ Covers:
 - Architectural quiz with a mock LLM that echoes the system prompt
 - Architectural quiz with a clueless LLM that fails
 """
+
 import pytest
 
 from conversation_engine.infrastructure.llm.protocols import (
@@ -32,8 +33,8 @@ from conversation_engine.infrastructure.llm.architectural_quiz import (
 
 # ── Scoring tests ──────────────────────────────────────────────────
 
-class TestScoreResponse:
 
+class TestScoreResponse:
     def test_all_concepts_found(self):
         quiz = FactualQuiz(
             question="What colors?",
@@ -139,6 +140,7 @@ class TestScoreResponse:
 
 # ── Mock LLMs ──────────────────────────────────────────────────────
 
+
 def _smart_llm(request: LLMRequest) -> LLMResponse:
     """An LLM that echoes the system prompt back — guaranteed to contain all concepts."""
     return LLMResponse(
@@ -184,8 +186,8 @@ def _partial_llm(request: LLMRequest) -> LLMResponse:
 
 # ── Validator tests ────────────────────────────────────────────────
 
-class TestLLMValidator:
 
+class TestLLMValidator:
     def _simple_quiz(self) -> list[FactualQuiz]:
         return [
             FactualQuiz(
@@ -310,8 +312,8 @@ class TestLLMValidator:
 
 # ── Architectural quiz tests ───────────────────────────────────────
 
-class TestArchitecturalQuiz:
 
+class TestArchitecturalQuiz:
     def test_smart_llm_passes_architectural_quiz(self):
         """An LLM that echoes the system prompt should pass the arch quiz."""
         validator = LLMValidator(
@@ -357,12 +359,12 @@ class TestArchitecturalQuiz:
         all_required = set()
         for q in ARCHITECTURAL_QUIZ:
             # For FactualQuiz, check expected_answer
-            if hasattr(q, 'expected_answer'):
-                concepts = [c.strip().lower() for c in q.expected_answer.split(',')]
+            if hasattr(q, "expected_answer"):
+                concepts = [c.strip().lower() for c in q.expected_answer.split(",")]
                 all_required.update(concepts)
             # For ReasoningQuiz, check evaluation_criteria (if any exist)
-            elif hasattr(q, 'evaluation_criteria'):
-                concepts = [c.strip().lower() for c in q.evaluation_criteria.split(',')]
+            elif hasattr(q, "evaluation_criteria"):
+                concepts = [c.strip().lower() for c in q.evaluation_criteria.split(",")]
                 all_required.update(concepts)
 
         # Must test for core node types
@@ -386,8 +388,8 @@ class TestArchitecturalQuiz:
 
 # ── Report formatting tests ────────────────────────────────────────
 
-class TestQuizReportSummary:
 
+class TestQuizReportSummary:
     def test_passing_report(self):
         report = LLMValidatorReport(
             results=[

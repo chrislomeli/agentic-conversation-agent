@@ -4,6 +4,7 @@ Assessment output models for AI findings.
 These models define the structured output format for AI assessments
 of the knowledge graph.
 """
+
 from __future__ import annotations
 
 from typing import List, Literal, Optional
@@ -29,45 +30,32 @@ Confidence = Literal["low", "medium", "high"]
 class Assessment(BaseModel):
     """
     A structured finding from AI analysis of the knowledge graph.
-    
+
     Assessments identify gaps, inconsistencies, or completeness issues.
     """
+
     id: str = Field(..., description="Unique identifier for this assessment")
-    assessment_type: AssessmentType = Field(
-        ...,
-        description="Type of issue detected"
-    )
+    assessment_type: AssessmentType = Field(..., description="Type of issue detected")
     severity: Severity = Field(..., description="Severity level")
-    
-    subject_ids: List[str] = Field(
-        ...,
-        description="IDs of nodes involved in this finding"
-    )
+
+    subject_ids: List[str] = Field(..., description="IDs of nodes involved in this finding")
     finding: str = Field(..., description="Human-readable finding description")
     evidence: List[str] = Field(
-        default_factory=list,
-        description="Evidence supporting this finding"
+        default_factory=list, description="Evidence supporting this finding"
     )
-    
+
     related_rule_ids: List[str] = Field(
-        default_factory=list,
-        description="IDs of integrity rules that were violated"
+        default_factory=list, description="IDs of integrity rules that were violated"
     )
     suggested_actions: List[str] = Field(
-        default_factory=list,
-        description="Suggested actions to address this finding"
+        default_factory=list, description="Suggested actions to address this finding"
     )
-    
-    confidence: Confidence = Field(
-        ...,
-        description="AI confidence level in this assessment"
-    )
-    
+
+    confidence: Confidence = Field(..., description="AI confidence level in this assessment")
+
     conversation_turn_id: Optional[str] = Field(
-        None,
-        description="ID of the conversation turn that addressed this assessment"
+        None, description="ID of the conversation turn that addressed this assessment"
     )
     resolved: bool = Field(
-        False,
-        description="Whether this assessment has been resolved in conversation"
+        False, description="Whether this assessment has been resolved in conversation"
     )

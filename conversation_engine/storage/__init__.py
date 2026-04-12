@@ -8,6 +8,7 @@ Provides in-memory graph storage with proper graph semantics:
 - Index-backed lookups
 - Project-level CRUD for domain configurations
 """
+
 from conversation_engine.storage.graph import KnowledgeGraph
 from conversation_engine.storage.queries import GraphQueries
 from conversation_engine.storage.project_store import (

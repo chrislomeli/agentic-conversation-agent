@@ -48,14 +48,16 @@ def specs_to_langchain_tools(client: ToolClient) -> list[dict[str, Any]]:
     catalog = client.list_tools()
     tools = []
     for entry in catalog:
-        tools.append({
-            "type": "function",
-            "function": {
-                "name": entry["name"],
-                "description": entry.get("description", ""),
-                "parameters": entry.get("inputSchema", {}),
-            },
-        })
+        tools.append(
+            {
+                "type": "function",
+                "function": {
+                    "name": entry["name"],
+                    "description": entry.get("description", ""),
+                    "parameters": entry.get("inputSchema", {}),
+                },
+            }
+        )
     return tools
 
 
@@ -88,6 +90,7 @@ def execute_tool_call(
     # Return structured JSON if available, otherwise text content
     if envelope.structured:
         import json
+
         return json.dumps(envelope.structured)
 
     if envelope.content:

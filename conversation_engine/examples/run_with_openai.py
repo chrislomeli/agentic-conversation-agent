@@ -19,6 +19,7 @@ Usage:
     # Or use a specific model
     OPENAI_MODEL=gpt-4o python examples/run_with_openai.py
 """
+
 from __future__ import annotations
 
 import os
@@ -53,6 +54,7 @@ from conversation_engine.infrastructure.middleware import (
 
 
 # ── 1. Build domain context ─────────────────────────────────────────
+
 
 def build_context() -> ArchitecturalOntologyContext:
     """Create an architectural context with a graph that has integrity gaps."""
@@ -94,6 +96,7 @@ def build_context() -> ArchitecturalOntologyContext:
 
 # ── 2. Create LLM ───────────────────────────────────────────────────
 
+
 def create_llm():
     """Create an OpenAI-backed LLM callable."""
     model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
@@ -104,6 +107,7 @@ def create_llm():
 
 
 # ── 3. Build and run graph ──────────────────────────────────────────
+
 
 def run_graph(ctx, llm):
     """Build the graph with middleware and invoke it."""
@@ -131,6 +135,7 @@ def run_graph(ctx, llm):
 
 # ── 4. Print results ────────────────────────────────────────────────
 
+
 def print_results(result, metrics):
     """Display the outcome."""
 
@@ -152,7 +157,7 @@ def print_results(result, metrics):
     print(f"\n  AI messages: {len(ai_messages)}")
     for i, msg in enumerate(ai_messages):
         preview = msg.content[:200] + "..." if len(msg.content) > 200 else msg.content
-        print(f"\n  --- Message {i+1} ---")
+        print(f"\n  --- Message {i + 1} ---")
         print(f"  {preview}")
 
     # Metrics
@@ -160,12 +165,15 @@ def print_results(result, metrics):
     print(f"\n  Node execution counts:")
     for node_name, data in sorted(snap.items()):
         avg_ms = data["avg_duration"] * 1000
-        print(f"    {node_name}: {data['call_count']}x, "
-              f"avg {avg_ms:.0f}ms, "
-              f"errors: {data['error_count']}")
+        print(
+            f"    {node_name}: {data['call_count']}x, "
+            f"avg {avg_ms:.0f}ms, "
+            f"errors: {data['error_count']}"
+        )
 
 
 # ── Main ─────────────────────────────────────────────────────────────
+
 
 def main():
     print("=" * 60)
