@@ -3,32 +3,56 @@
 import logging
 from typing import Literal, Callable
 
-from langchain_core.language_models import BaseChatModel
-from langgraph.graph import END, START, StateGraph
+from langchain_core.messages import HumanMessage, AIMessage
+from langgraph.graph import START, StateGraph
 
 from journal_agent.storage import SessionStore
+from journal_agent.comms.human_chat import get_human_input
+from journal_agent.comms.llm_client import LLMClient
+from journal_agent.model.storage import Role
 
 logger = logging.getLogger(__name__)
 
 # ── Graph builder ─────────────────────────────────────────────────────────────
 
-from .state import JournalState, STATUS_ERROR, STATUS_COMPLETED
+from .state import JournalState, STATUS_ERROR, STATUS_COMPLETED, STATUS_PROCESSING
 
 
 def _make_get_ai_response(
-        llm: BaseChatModel) -> Callable[..., dict]:
-    def get_ai_response(state: JournalState) -> dict:
-        print(llm.get_name())
-        return {}
+        llm: LLMClient,
+        session_store: SessionStore ) -> Callable[..., dict]:
 
+    def get_ai_response(state: JournalState) -> dict:
+        messages = state["messages"]  # full history
+        response = llm.chat(messages)  # model answers using context
+        session_store.cache_turn(
+            session_id=state["session_id"],
+            role=Role.AI,
+            content=response.content,
+        )
+        return {
+            "messages": [AIMessage(content=response.content)],
+            "status": STATUS_PROCESSING,
+        }
     return get_ai_response
 
 
 def _make_get_user_input(
         session_store: SessionStore )-> Callable[..., dict]:
     def get_user_input(state: JournalState) -> dict:
-        print(session_store.get_last_session_id())
-        return {}
+
+        # Prompt user for input
+        user_input = get_human_input()
+        if user_input == "/quit":
+            return {"status": STATUS_COMPLETED}
+
+        # add input to session store
+        session_store.cache_turn(session_id=state["session_id"], role=Role.HUMAN, content=user_input)
+
+        # update status to processing
+        return {
+            "messages": [HumanMessage(content=user_input)],
+            "status": STATUS_PROCESSING}
 
     return get_user_input
 
@@ -73,7 +97,7 @@ def route_on_save_turn(state: JournalState) -> Literal["get_user_input", "__end_
 
 
 def build_journal_graph(
-        llm: BaseChatModel,
+        llm: LLMClient,
         session_store: SessionStore,
 ):
     """

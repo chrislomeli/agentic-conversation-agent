@@ -14,5 +14,7 @@ class Turn(BaseModel):
     session_id: str
     role: Role
     content: str
+    metadata: dict | None = None
     timestamp: datetime = Field(default_factory=datetime.now)
+
 
