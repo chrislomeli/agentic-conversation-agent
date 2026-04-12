@@ -6,9 +6,9 @@ Reusable human protocols have moved to ``commons.human``.
 
 from commons.human import (
     CallHuman,
+    ConsoleHuman,
     HumanRequest,
     HumanResponse,
-    ConsoleHuman,
     MockHuman,
 )
 

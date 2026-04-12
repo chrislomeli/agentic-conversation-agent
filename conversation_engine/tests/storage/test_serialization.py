@@ -11,20 +11,9 @@ Coverage:
 from __future__ import annotations
 
 import json
+
 import pytest
 
-from conversation_engine.models.domain_config import DomainConfig
-from conversation_engine.models.project_spec import ProjectSpecification
-from conversation_engine.storage.graph import KnowledgeGraph
-from conversation_engine.storage.file_project_store import FileProjectStore
-from conversation_engine.storage.snapshot_facade import graph_to_snapshot
-from conversation_engine.models.rule_node import IntegrityRule
-
-# from conversation_engine.models.query_node import (
-#     GraphQueryPattern,
-#     EdgeCheck,
-# )
-from conversation_engine.models.validation_quiz import FactualQuiz
 from conversation_engine.graph.architectural_context import (
     ArchitecturalOntologyContext,
 )
@@ -34,7 +23,18 @@ from conversation_engine.models import (
     Step,
 )
 from conversation_engine.models.base import BaseEdge
+from conversation_engine.models.domain_config import DomainConfig
+from conversation_engine.models.project_spec import ProjectSpecification
+from conversation_engine.models.rule_node import IntegrityRule
 
+# from conversation_engine.models.query_node import (
+#     GraphQueryPattern,
+#     EdgeCheck,
+# )
+from conversation_engine.models.validation_quiz import FactualQuiz
+from conversation_engine.storage.file_project_store import FileProjectStore
+from conversation_engine.storage.graph import KnowledgeGraph
+from conversation_engine.storage.snapshot_facade import graph_to_snapshot
 
 # ── Helpers ──────────────────────────────────────────────────────────
 

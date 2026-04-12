@@ -11,31 +11,28 @@ It owns the domain state and exposes only Findings to the loop.
 from __future__ import annotations
 
 import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from conversation_engine.graph.context import (
-    ConversationContext,
     Finding,
     ValidationResult,
 )
+from conversation_engine.infrastructure.llm.architectural_quiz import (
+    ARCHITECTURAL_QUIZ,
+    ARCHITECTURAL_SYSTEM_PROMPT,
+)
 from conversation_engine.models.domain_config import DomainConfig
-from conversation_engine.models.project_spec import ProjectSpecification
 from conversation_engine.models.rule_node import IntegrityRule
+from conversation_engine.models.validation_quiz import ValidationQuiz
 
 # from conversation_engine.models.query_node import GraphQueryPattern
 from conversation_engine.storage.graph import KnowledgeGraph
 from conversation_engine.storage.snapshot_facade import snapshot_to_graph
 from conversation_engine.validation.evaluator import RuleEvaluator
-from conversation_engine.models.validation_quiz import ValidationQuiz
-from conversation_engine.infrastructure.llm.architectural_quiz import (
-    ARCHITECTURAL_SYSTEM_PROMPT,
-    ARCHITECTURAL_QUIZ,
-)
-
 
 # ── Mapping helpers ─────────────────────────────────────────────────
 
-_RULE_ID_TO_FINDING_TYPE: Dict[str, str] = {
+_RULE_ID_TO_FINDING_TYPE: dict[str, str] = {
     "rule-goal-req": "missing_goal_coverage",
     "rule-req-step": "missing_requirement_realization",
     "rule-step-dep": "missing_step_dependencies",
@@ -72,11 +69,11 @@ class ArchitecturalOntologyContext:
     def from_spec_parts(
         cls,
         graph: KnowledgeGraph,
-        rules: List[IntegrityRule],
+        rules: list[IntegrityRule],
         # query_patterns: List[GraphQueryPattern] | None = None,
-        system_prompt: Optional[str] = None,
-        quiz: Optional[List[ValidationQuiz]] = None,
-    ) -> "ArchitecturalOntologyContext":
+        system_prompt: str | None = None,
+        quiz: list[ValidationQuiz] | None = None,
+    ) -> ArchitecturalOntologyContext:
         """
         Convenience factory for callers that don't have a DomainConfig yet.
 
@@ -99,7 +96,7 @@ class ArchitecturalOntologyContext:
 
     # ── Protocol implementation ─────────────────────────────────────
 
-    def validate(self, prior_findings: List[Finding]) -> ValidationResult:
+    def validate(self, prior_findings: list[Finding]) -> ValidationResult:
         """
         Run RuleEvaluator against the graph and return Findings.
 
@@ -113,7 +110,7 @@ class ArchitecturalOntologyContext:
         resolved = [f for f in prior_findings if f.resolved]
 
         # Convert violations → domain-agnostic Findings
-        new_findings: List[Finding] = []
+        new_findings: list[Finding] = []
         for v in violations:
             new_findings.append(
                 Finding(
@@ -129,7 +126,7 @@ class ArchitecturalOntologyContext:
 
         return ValidationResult(findings=resolved + new_findings)
 
-    def format_finding_summary(self, findings: List[Finding]) -> str:
+    def format_finding_summary(self, findings: list[Finding]) -> str:
         """
         Produce a human-readable summary using architectural language.
         """
@@ -141,7 +138,7 @@ class ArchitecturalOntologyContext:
             lines.append(f"  [{f.severity}] {f.message}")
         return "\n".join(lines)
 
-    def get_domain_state(self) -> Dict[str, Any]:
+    def get_domain_state(self) -> dict[str, Any]:
         """
         Return a snapshot of the domain state for checkpointing.
         """
@@ -158,7 +155,7 @@ class ArchitecturalOntologyContext:
         return self._graph
 
     @property
-    def rules(self) -> List[IntegrityRule]:
+    def rules(self) -> list[IntegrityRule]:
         return self._rules
 
     # @property
@@ -170,7 +167,7 @@ class ArchitecturalOntologyContext:
         return self._config.system_prompt or ARCHITECTURAL_SYSTEM_PROMPT
 
     @property
-    def preflight_quiz(self) -> List[ValidationQuiz]:
+    def preflight_quiz(self) -> list[ValidationQuiz]:
         if self._config.quiz is not None:
             return list(self._config.quiz)
         return list(ARCHITECTURAL_QUIZ)

@@ -1,10 +1,9 @@
-from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, SystemMessage
+from journal_agent.model.turn import Role, Turn
+from journal_agent.storage.storage import SessionDatabase
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 
-from journal_agent.model.storage import Turn, Role
-from .storage import SessionDatabase
 
-
-def to_messages(turns: list[Turn]) -> list[BaseMessage] | None:
+def to_messages(turns: list[Turn]) -> list[BaseMessage]:
     messages: list[BaseMessage] = []
     for value in turns:
         if value.role == Role.HUMAN:
@@ -27,7 +26,7 @@ class SessionStore:
             Turn(session_id=session_id, role=role, content=content, metadata=metadata)
         )
 
-    def retrieve_context(self, criteria: str = None) -> list[BaseMessage] | None:
+    def retrieve_context(self, criteria: str | None = None) -> list[BaseMessage] | None:
         messages: list[BaseMessage] | None = None
 
         if (latest_session_id := self._session_store.get_last_session_id()) is not None:

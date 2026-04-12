@@ -56,3 +56,8 @@ packages = ["commons", "conversation_engine"]
 testpaths = ["conversation_engine/tests"]
 python_files = ["test_*.py"]
 asyncio_mode = "auto"
+
+[dependency-groups]
+dev = [
+    "pylint>=4.0.5",
+]

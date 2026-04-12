@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Callable, Optional, Set
+from collections.abc import Callable
+from typing import Any
 
 from commons.middleware.base import NodeMiddleware
 
@@ -22,7 +23,7 @@ class LoggingMiddleware(NodeMiddleware):
     def __init__(
         self,
         *,
-        nodes: Optional[Set[str]] = None,
+        nodes: set[str] | None = None,
         level: int = logging.INFO,
     ) -> None:
         super().__init__(nodes=nodes)

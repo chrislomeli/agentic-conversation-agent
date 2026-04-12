@@ -14,7 +14,7 @@ Design principles:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 
 @dataclass(frozen=True)
@@ -27,8 +27,8 @@ class HumanRequest:
     """
 
     prompt: str
-    context: Dict[str, Any] = field(default_factory=dict)
-    options: Optional[List[str]] = None  # optional multiple-choice
+    context: dict[str, Any] = field(default_factory=dict)
+    options: list[str] | None = None  # optional multiple-choice
     allow_skip: bool = True  # human can skip / say nothing
 
 
@@ -43,7 +43,7 @@ class HumanResponse:
 
     content: str
     skipped: bool = False
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @runtime_checkable

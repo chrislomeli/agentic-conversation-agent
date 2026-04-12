@@ -17,10 +17,9 @@ Design principles:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Literal, Protocol, runtime_checkable
+from typing import Any, Literal, Protocol, runtime_checkable
 
 from conversation_engine.models.validation_quiz import ValidationQuiz
-
 
 # ── Domain-agnostic types ───────────────────────────────────────────
 # These are the only types the conversation loop sees.
@@ -41,10 +40,10 @@ class Finding:
     id: str
     finding_type: str
     severity: Severity
-    subject_ids: List[str]
+    subject_ids: list[str]
     message: str
-    evidence: List[str] = field(default_factory=list)
-    related_rule_ids: List[str] = field(default_factory=list)
+    evidence: list[str] = field(default_factory=list)
+    related_rule_ids: list[str] = field(default_factory=list)
     resolved: bool = False
     conversation_turn_id: str | None = None
 
@@ -58,8 +57,8 @@ class ValidationResult:
     loop has a single, consistent snapshot.
     """
 
-    findings: List[Finding]
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    findings: list[Finding]
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # ── Protocol ────────────────────────────────────────────────────────
@@ -75,7 +74,7 @@ class ConversationContext(Protocol):
     loop.
     """
 
-    def validate(self, prior_findings: List[Finding]) -> ValidationResult:
+    def validate(self, prior_findings: list[Finding]) -> ValidationResult:
         """
         Run domain-specific validation and return findings.
 
@@ -92,7 +91,7 @@ class ConversationContext(Protocol):
         """
         ...
 
-    def format_finding_summary(self, findings: List[Finding]) -> str:
+    def format_finding_summary(self, findings: list[Finding]) -> str:
         """
         Produce a human-readable summary of the given findings.
 
@@ -109,7 +108,7 @@ class ConversationContext(Protocol):
         """
         ...
 
-    def get_domain_state(self) -> Dict[str, Any]:
+    def get_domain_state(self) -> dict[str, Any]:
         """
         Return an opaque snapshot of domain state for checkpointing.
 
@@ -130,7 +129,7 @@ class ConversationContext(Protocol):
         ...
 
     @property
-    def preflight_quiz(self) -> List[ValidationQuiz]:
+    def preflight_quiz(self) -> list[ValidationQuiz]:
         """
         Quiz questions for pre-run LLM validation.
 

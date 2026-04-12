@@ -5,9 +5,9 @@ These fixtures create graphs with specific characteristics for testing
 AI reasoning components.
 """
 
-from conversation_engine.storage import KnowledgeGraph
 from conversation_engine.models import Goal, Requirement, Step
 from conversation_engine.models.base import BaseEdge
+from conversation_engine.storage import KnowledgeGraph
 
 
 def create_minimal_graph() -> KnowledgeGraph:

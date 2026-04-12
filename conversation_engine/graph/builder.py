@@ -31,12 +31,13 @@ Infrastructure:
 from __future__ import annotations
 
 import logging
-from typing import Literal, Optional, Sequence
+from collections.abc import Sequence
+from typing import Literal
 
-from langgraph.graph import START, END
+from langgraph.graph import START
 
+from conversation_engine.graph.nodes import converse, preflight, resolve_domain, validate
 from conversation_engine.graph.state import ConversationState
-from conversation_engine.graph.nodes import resolve_domain, preflight, validate, converse
 from conversation_engine.infrastructure.instrumented_graph import (
     InstrumentedGraph,
     Interceptor,

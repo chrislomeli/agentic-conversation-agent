@@ -6,8 +6,6 @@ Provides canned responses so tests don't block on input().
 
 from __future__ import annotations
 
-from typing import List, Optional
-
 from commons.human.protocols import (
     HumanRequest,
     HumanResponse,
@@ -31,13 +29,13 @@ class MockHuman:
 
     def __init__(
         self,
-        responses: Optional[List[str]] = None,
-        fallback: Optional[str] = None,
+        responses: list[str] | None = None,
+        fallback: str | None = None,
     ):
         self._responses = list(responses or [])
         self._fallback = fallback
         self._call_count = 0
-        self._requests: List[HumanRequest] = []
+        self._requests: list[HumanRequest] = []
 
     def __call__(self, request: HumanRequest) -> HumanResponse:
         self._requests.append(request)
@@ -57,6 +55,6 @@ class MockHuman:
         return self._call_count
 
     @property
-    def requests(self) -> List[HumanRequest]:
+    def requests(self) -> list[HumanRequest]:
         """All requests received, in order.  Useful for test assertions."""
         return list(self._requests)

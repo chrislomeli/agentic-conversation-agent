@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 from conversation_engine.storage.project_store import ProjectStore
 
@@ -48,7 +48,7 @@ class FileProjectStore(ProjectStore):
         path = self._path_for(config.project_name)
         path.write_text(json.dumps(config.to_dict(), indent=2), encoding="utf-8")
 
-    def load(self, project_name: str) -> Optional[DomainConfig]:
+    def load(self, project_name: str) -> DomainConfig | None:
         from conversation_engine.models.domain_config import DomainConfig as _DC
 
         path = self._path_for(project_name)
@@ -64,7 +64,7 @@ class FileProjectStore(ProjectStore):
             return True
         return False
 
-    def list_projects(self) -> List[str]:
+    def list_projects(self) -> list[str]:
         return sorted(p.stem for p in self._base_dir.glob("*.json"))
 
     def exists(self, project_name: str) -> bool:

@@ -7,11 +7,11 @@ of the knowledge graph.
 
 from __future__ import annotations
 
-from typing import List, Literal, Optional
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from conversation_engine.models.rule_node import Severity
-
 
 AssessmentType = Literal[
     "missing_goal_coverage",
@@ -38,22 +38,22 @@ class Assessment(BaseModel):
     assessment_type: AssessmentType = Field(..., description="Type of issue detected")
     severity: Severity = Field(..., description="Severity level")
 
-    subject_ids: List[str] = Field(..., description="IDs of nodes involved in this finding")
+    subject_ids: list[str] = Field(..., description="IDs of nodes involved in this finding")
     finding: str = Field(..., description="Human-readable finding description")
-    evidence: List[str] = Field(
+    evidence: list[str] = Field(
         default_factory=list, description="Evidence supporting this finding"
     )
 
-    related_rule_ids: List[str] = Field(
+    related_rule_ids: list[str] = Field(
         default_factory=list, description="IDs of integrity rules that were violated"
     )
-    suggested_actions: List[str] = Field(
+    suggested_actions: list[str] = Field(
         default_factory=list, description="Suggested actions to address this finding"
     )
 
     confidence: Confidence = Field(..., description="AI confidence level in this assessment")
 
-    conversation_turn_id: Optional[str] = Field(
+    conversation_turn_id: str | None = Field(
         None, description="ID of the conversation turn that addressed this assessment"
     )
     resolved: bool = Field(

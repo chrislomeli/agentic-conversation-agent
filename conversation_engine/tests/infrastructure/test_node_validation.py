@@ -7,17 +7,13 @@ Covers:
 - handle_error node: reads NodeResult and sets status
 """
 
-import pytest
-from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from conversation_engine.infrastructure.node_validation import (
-    NodeError,
     NodeResult,
-    validated_node,
     handle_error,
+    validated_node,
 )
-
 
 # ── NodeResult ──────────────────────────────────────────────────────
 

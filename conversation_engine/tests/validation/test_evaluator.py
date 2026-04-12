@@ -5,17 +5,17 @@ Validates that integrity rules are correctly evaluated against graph state.
 Also validates that the evaluator accepts ProjectSpecification directly.
 """
 
+from conversation_engine.fixtures import (
+    create_graph_complete,
+    create_graph_partial_coverage,
+    create_graph_with_gaps,
+)
 from conversation_engine.models import Goal, Requirement, Step
 from conversation_engine.models.base import BaseEdge
-from conversation_engine.models.project_spec import ProjectSpecification, GoalSpec, RequirementSpec
+from conversation_engine.models.project_spec import GoalSpec, ProjectSpecification, RequirementSpec
 from conversation_engine.models.rule_node import IntegrityRule
 from conversation_engine.storage import KnowledgeGraph
 from conversation_engine.validation import RuleEvaluator
-from conversation_engine.fixtures import (
-    create_graph_with_gaps,
-    create_graph_complete,
-    create_graph_partial_coverage,
-)
 
 
 class TestRuleEvaluatorBasics:

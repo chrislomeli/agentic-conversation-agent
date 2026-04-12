@@ -1,22 +1,24 @@
 import logging
-from typing import Literal, Callable
+from collections.abc import Callable
 from functools import wraps
 from time import perf_counter
 
-from langchain_core.messages import HumanMessage, AIMessage
-from langgraph.graph import START, StateGraph
-
-from journal_agent.storage import SessionStore
 from journal_agent.comms.human_chat import get_human_input
 from journal_agent.comms.llm_client import LLMClient
-from journal_agent.model.storage import Role
+from journal_agent.graph.state import (
+    STATUS_COMPLETED,
+    STATUS_ERROR,
+    STATUS_PROCESSING,
+    JournalState,
+)
+from journal_agent.model.turn import Role
+from journal_agent.storage.api import SessionStore
+from langchain_core.messages import AIMessage, HumanMessage
+from langgraph.graph import END, START, StateGraph
 
 logger = logging.getLogger(__name__)
 
 # ── Graph builder ─────────────────────────────────────────────────────────────
-
-from .state import JournalState, STATUS_ERROR, STATUS_COMPLETED, STATUS_PROCESSING
-
 
 def node_trace(node_name: str | None = None):
     def decorator(func: Callable[..., dict]) -> Callable[..., dict]:
@@ -83,7 +85,8 @@ def _make_get_user_input(session_store: SessionStore) -> Callable[..., dict]:
                 "session_messages": [HumanMessage(content=user_input)],
                 "status": STATUS_PROCESSING,
             }
-
+        except KeyboardInterrupt:
+            return {"status": STATUS_COMPLETED}
         except Exception as e:
             logger.exception("Failed to read user input")
             return {
@@ -139,49 +142,37 @@ def _make_save_turn(session_store: SessionStore) -> Callable[..., dict]:
     return save_turn
 
 
-def route_on_user_input(state: JournalState) -> Literal["get_ai_response", "save_turn", "__end__"]:
+def route_on_user_input(state: JournalState) -> str:
     if state["status"] == STATUS_ERROR:
         logger.warning(
             "Routing to end after user input error (session_id=%s, error_message=%s)",
             state.get("session_id", "unknown"),
             state.get("error_message"),
         )
-        return "__end__"
+        return END
     elif state["status"] == STATUS_COMPLETED:
         return "save_turn"
     return "get_ai_response"
 
 
-def route_on_ai_response(state: JournalState) -> Literal["save_turn", "__end__"]:
+def route_on_ai_response(state: JournalState) -> str:
     if state["status"] == STATUS_ERROR:
         logger.warning(
             "Routing to end after AI response error (session_id=%s, error_message=%s)",
             state.get("session_id", "unknown"),
             state.get("error_message"),
         )
-        return "__end__"
+        return END
 
-    return "save_turn"
-
-
-def route_on_save_turn(state: JournalState) -> Literal["get_user_input", "__end__"]:
-    if state["status"] == STATUS_ERROR:
-        logger.warning(
-            "Routing to end after save_turn error (session_id=%s, error_message=%s)",
-            state.get("session_id", "unknown"),
-            state.get("error_message"),
-        )
-        return "__end__"
-    elif state["status"] == STATUS_COMPLETED:
-        return "__end__"
     return "get_user_input"
+
 
 
 def build_journal_graph(
     llm: LLMClient,
     session_store: SessionStore,
 ):
-    """ """
+    """Build and compile the journal conversation graph."""
     # noinspection PyTypeChecker
     builder = StateGraph(JournalState)  # no_qa
 
@@ -192,6 +183,6 @@ def build_journal_graph(
     builder.add_edge(START, "get_user_input")
     builder.add_conditional_edges("get_user_input", route_on_user_input)
     builder.add_conditional_edges("get_ai_response", route_on_ai_response)
-    builder.add_conditional_edges("save_turn", route_on_save_turn)
+    builder.add_edge("save_turn", END)
     compiled = builder.compile()
     return compiled

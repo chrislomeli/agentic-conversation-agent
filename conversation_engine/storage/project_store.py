@@ -19,7 +19,7 @@ Usage::
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from conversation_engine.models.domain_config import DomainConfig
@@ -53,7 +53,7 @@ class ProjectStore(ABC):
         ...
 
     @abstractmethod
-    def load(self, project_name: str) -> Optional[DomainConfig]:
+    def load(self, project_name: str) -> DomainConfig | None:
         """
         Load a domain configuration by project name.
 
@@ -80,7 +80,7 @@ class ProjectStore(ABC):
         ...
 
     @abstractmethod
-    def list_projects(self) -> List[str]:
+    def list_projects(self) -> list[str]:
         """
         Return the names of all stored projects.
 
@@ -116,14 +116,14 @@ class InMemoryProjectStore(ProjectStore):
     """
 
     def __init__(self) -> None:
-        self._store: Dict[str, DomainConfig] = {}
+        self._store: dict[str, DomainConfig] = {}
 
     def save(self, config: DomainConfig) -> None:
         if not config.project_name:
             raise ValueError("DomainConfig.project_name must not be empty")
         self._store[config.project_name] = config
 
-    def load(self, project_name: str) -> Optional[DomainConfig]:
+    def load(self, project_name: str) -> DomainConfig | None:
         return self._store.get(project_name)
 
     def delete(self, project_name: str) -> bool:
@@ -132,7 +132,7 @@ class InMemoryProjectStore(ProjectStore):
             return True
         return False
 
-    def list_projects(self) -> List[str]:
+    def list_projects(self) -> list[str]:
         return list(self._store.keys())
 
     def exists(self, project_name: str) -> bool:

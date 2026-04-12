@@ -5,16 +5,16 @@ Reusable middleware has moved to ``commons.middleware``.
 """
 
 from commons.middleware import (
-    NodeMiddleware,
+    CircuitBreakerMiddleware,
+    ConfigMiddleware,
+    ErrorHandlingMiddleware,
+    InstrumentedGraph,
     LoggingMiddleware,
     MetricsMiddleware,
     NodeMetrics,
-    ValidationMiddleware,
-    ErrorHandlingMiddleware,
+    NodeMiddleware,
     RetryMiddleware,
-    CircuitBreakerMiddleware,
-    ConfigMiddleware,
-    InstrumentedGraph,
+    ValidationMiddleware,
 )
 
 __all__ = [

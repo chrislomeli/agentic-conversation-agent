@@ -16,10 +16,9 @@ Design principles:
 
 from __future__ import annotations
 
-from typing import List, Literal, Optional
+from typing import Literal
 
 from pydantic import BaseModel, Field
-
 
 # ── Individual spec models ─────────────────────────────────────────
 
@@ -36,10 +35,10 @@ class RequirementSpec(BaseModel):
 
     name: str = Field(..., description="Human-readable requirement name")
     goal_ref: str = Field(..., description="Name of the goal this requirement satisfies")
-    requirement_type: Optional[Literal["functional", "non_functional", "constraint"]] = Field(
+    requirement_type: Literal["functional", "non_functional", "constraint"] | None = Field(
         None, description="Type of requirement"
     )
-    description: Optional[str] = Field(None, description="Detailed description")
+    description: str | None = Field(None, description="Detailed description")
 
 
 StepStatus = Literal["pending", "in_progress", "done", "blocked"]
@@ -49,15 +48,15 @@ class StepSpec(BaseModel):
     """A concrete work item that realises a requirement."""
 
     name: str = Field(..., description="Human-readable step name")
-    requirement_refs: List[str] = Field(
+    requirement_refs: list[str] = Field(
         default_factory=list,
         description="Names of requirements this step realises",
     )
-    dependency_refs: List[str] = Field(
+    dependency_refs: list[str] = Field(
         default_factory=list,
         description="Names of dependencies this step depends on",
     )
-    blocker_refs: List[str] = Field(
+    blocker_refs: list[str] = Field(
         default_factory=list,
         description="Names of other steps that block this step",
     )
@@ -75,7 +74,7 @@ class StepSpec(BaseModel):
         False,
         description="Explicitly marks that this step has no external dependencies",
     )
-    description: Optional[str] = Field(
+    description: str | None = Field(
         None, description="Description of what this step accomplishes"
     )
 
@@ -95,7 +94,7 @@ class DependencySpec(BaseModel):
     """An external system, library, or service."""
 
     name: str = Field(..., description="Human-readable dependency name")
-    description: Optional[str] = Field(None, description="Description of the dependency")
+    description: str | None = Field(None, description="Description of the dependency")
 
 
 # ── Top-level specification ───────────────────────────────────────
@@ -111,21 +110,21 @@ class ProjectSpecification(BaseModel):
     """
 
     project_name: str = Field(..., description="Unique project identifier")
-    description: Optional[str] = Field(
+    description: str | None = Field(
         None,
         description="Brief description of what this project is and what problem it solves",
     )
-    goals: List[GoalSpec] = Field(default_factory=list, description="Project goals")
-    requirements: List[RequirementSpec] = Field(
+    goals: list[GoalSpec] = Field(default_factory=list, description="Project goals")
+    requirements: list[RequirementSpec] = Field(
         default_factory=list, description="Requirements linked to goals"
     )
-    steps: List[StepSpec] = Field(
+    steps: list[StepSpec] = Field(
         default_factory=list, description="Steps (work items) linked to requirements"
     )
-    constraints: List[ConstraintSpec] = Field(
+    constraints: list[ConstraintSpec] = Field(
         default_factory=list, description="System constraints"
     )
-    dependencies: List[DependencySpec] = Field(
+    dependencies: list[DependencySpec] = Field(
         default_factory=list, description="External dependencies"
     )
 

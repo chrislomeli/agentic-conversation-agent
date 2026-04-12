@@ -10,7 +10,8 @@ If validation fails, returns a NodeResult.failure without calling the node.
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Dict, Optional, Set, Type
+from collections.abc import Callable
+from typing import Any
 
 from pydantic import BaseModel, ValidationError
 
@@ -38,9 +39,9 @@ class ValidationMiddleware(NodeMiddleware):
 
     def __init__(
         self,
-        schemas: Dict[str, Type[BaseModel]],
+        schemas: dict[str, type[BaseModel]],
         *,
-        nodes: Optional[Set[str]] = None,
+        nodes: set[str] | None = None,
     ) -> None:
         super().__init__(nodes=nodes)
         self._schemas = schemas

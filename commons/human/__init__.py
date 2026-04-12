@@ -13,13 +13,13 @@ MockHuman       Deterministic stub for testing.
 Swap in any callable that matches the Protocol signature.
 """
 
+from commons.human.console import ConsoleHuman
+from commons.human.mock import MockHuman
 from commons.human.protocols import (
     CallHuman,
     HumanRequest,
     HumanResponse,
 )
-from commons.human.console import ConsoleHuman
-from commons.human.mock import MockHuman
 
 __all__ = [
     "CallHuman",

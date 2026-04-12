@@ -10,26 +10,23 @@ Covers:
 - Architectural quiz with a clueless LLM that fails
 """
 
-import pytest
 
+from conversation_engine.infrastructure.llm.architectural_quiz import (
+    ARCHITECTURAL_QUIZ,
+    ARCHITECTURAL_SYSTEM_PROMPT,
+)
 from conversation_engine.infrastructure.llm.protocols import (
-    CallLLM,
     LLMRequest,
     LLMResponse,
 )
 from conversation_engine.infrastructure.llm.validator import (
+    FactualQuiz,
     LLMValidator,
     LLMValidatorReport,
-    FactualQuiz,
     QuizResult,
     _score_response,
     quiz_report_summary,
 )
-from conversation_engine.infrastructure.llm.architectural_quiz import (
-    ARCHITECTURAL_SYSTEM_PROMPT,
-    ARCHITECTURAL_QUIZ,
-)
-
 
 # ── Scoring tests ──────────────────────────────────────────────────
 

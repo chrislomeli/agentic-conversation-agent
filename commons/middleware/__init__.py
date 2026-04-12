@@ -20,6 +20,18 @@ applies to all nodes.
 from commons.middleware.base import (
     NodeMiddleware,
 )
+from commons.middleware.circuit_breaker_mw import (
+    CircuitBreakerMiddleware,
+)
+from commons.middleware.config_mw import (
+    ConfigMiddleware,
+)
+from commons.middleware.error_handling_mw import (
+    ErrorHandlingMiddleware,
+)
+from commons.middleware.instrumented_graph import (
+    InstrumentedGraph,
+)
 from commons.middleware.logging_mw import (
     LoggingMiddleware,
 )
@@ -27,23 +39,11 @@ from commons.middleware.metrics_mw import (
     MetricsMiddleware,
     NodeMetrics,
 )
-from commons.middleware.validation_mw import (
-    ValidationMiddleware,
-)
-from commons.middleware.error_handling_mw import (
-    ErrorHandlingMiddleware,
-)
 from commons.middleware.retry_mw import (
     RetryMiddleware,
 )
-from commons.middleware.circuit_breaker_mw import (
-    CircuitBreakerMiddleware,
-)
-from commons.middleware.config_mw import (
-    ConfigMiddleware,
-)
-from commons.middleware.instrumented_graph import (
-    InstrumentedGraph,
+from commons.middleware.validation_mw import (
+    ValidationMiddleware,
 )
 
 __all__ = [

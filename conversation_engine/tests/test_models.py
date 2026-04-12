@@ -8,13 +8,13 @@ import pytest
 from pydantic import ValidationError
 
 from conversation_engine.models import (
-    Goal,
-    Requirement,
-    Step,
-    IntegrityRule,
     # GraphQueryPattern,
     Assessment,
+    Goal,
     GoalRequirementTrace,
+    IntegrityRule,
+    Requirement,
+    Step,
 )
 
 

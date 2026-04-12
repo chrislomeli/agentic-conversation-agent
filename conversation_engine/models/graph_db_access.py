@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from abc import abstractmethod, ABC
-from typing import List
+from abc import ABC, abstractmethod
 
 from conversation_engine.storage.graph import KnowledgeGraph
-
 
 # from conversation_engine.models.query_node import GraphQueryPattern
 
@@ -24,7 +22,7 @@ class GraphAccessLayer(ABC):
         """ """
 
     @abstractmethod
-    def list_projects(self) -> List[str]:
+    def list_projects(self) -> list[str]:
         """ """
 
     @abstractmethod

@@ -17,24 +17,21 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
 from conversation_engine.graph.context import ConversationContext, Finding
 from conversation_engine.graph.state import ConversationState
-from conversation_engine.infrastructure.llm import (
-    CallLLM,
-    LLMRequest,
-    LLMResponse,
-    LLMValidator,
-    LLMValidatorReport,
-    quiz_report_summary,
-)
 from conversation_engine.infrastructure.human import (
     CallHuman,
     HumanRequest,
-    HumanResponse,
+)
+from conversation_engine.infrastructure.llm import (
+    CallLLM,
+    LLMRequest,
+    LLMValidator,
+    quiz_report_summary,
 )
 from conversation_engine.infrastructure.tool_client import (
     ToolClient,
@@ -48,7 +45,7 @@ logger = logging.getLogger(__name__)
 # ── preflight ────────────────────────────────────────────────────────
 
 
-def preflight(state: ConversationState) -> Dict[str, Any]:
+def preflight(state: ConversationState) -> dict[str, Any]:
     """
     Run pre-flight LLM validation on the first turn only.
 
@@ -63,7 +60,7 @@ def preflight(state: ConversationState) -> Dict[str, Any]:
         return {}
 
     ctx: ConversationContext = state["context"]
-    llm: Optional[CallLLM] = state.get("llm")
+    llm: CallLLM | None = state.get("llm")
     quiz = ctx.preflight_quiz
 
     # Skip if no LLM or no quiz configured
@@ -104,7 +101,7 @@ def preflight(state: ConversationState) -> Dict[str, Any]:
 # ── validate ─────────────────────────────────────────────────────────
 
 
-def validate(state: ConversationState) -> Dict[str, Any]:
+def validate(state: ConversationState) -> dict[str, Any]:
     """
     Delegate validation to the injected ConversationContext.
 
@@ -128,7 +125,7 @@ def validate(state: ConversationState) -> Dict[str, Any]:
 MAX_AGENT_STEPS = 10  # safety limit on tool-call iterations per turn
 
 
-def _build_findings_context(findings: List[Finding]) -> str:
+def _build_findings_context(findings: list[Finding]) -> str:
     """Format open findings as text for the LLM prompt."""
     if not findings:
         return "No open findings — all integrity checks pass."
@@ -138,7 +135,7 @@ def _build_findings_context(findings: List[Finding]) -> str:
     return "\n".join(lines)
 
 
-def _converse_simple(state: ConversationState) -> Dict[str, Any]:
+def _converse_simple(state: ConversationState) -> dict[str, Any]:
     """
     Simple converse fallback — no tool_client, no agent loop.
 
@@ -147,8 +144,8 @@ def _converse_simple(state: ConversationState) -> Dict[str, Any]:
     """
     ctx: ConversationContext = state["context"]
     open_findings = [f for f in state.get("findings", []) if not f.resolved]
-    llm: Optional[CallLLM] = state.get("llm")
-    human: Optional[CallHuman] = state.get("human")
+    llm: CallLLM | None = state.get("llm")
+    human: CallHuman | None = state.get("human")
     messages = state.get("messages", [])
     current_turn = state.get("current_turn", 0)
 
@@ -187,7 +184,7 @@ def _converse_simple(state: ConversationState) -> Dict[str, Any]:
     else:
         ai_text = ctx.format_finding_summary(open_findings)
 
-    new_messages: List = [AIMessage(content=ai_text)]
+    new_messages: list = [AIMessage(content=ai_text)]
 
     if human:
         human_response = human(
@@ -205,7 +202,7 @@ def _converse_simple(state: ConversationState) -> Dict[str, Any]:
     }
 
 
-def _converse_agent(state: ConversationState) -> Dict[str, Any]:
+def _converse_agent(state: ConversationState) -> dict[str, Any]:
     """
     ReAct agent loop — LLM decides which tools to call.
 
@@ -221,9 +218,8 @@ def _converse_agent(state: ConversationState) -> Dict[str, Any]:
     open_findings = [f for f in state.get("findings", []) if not f.resolved]
     tool_client: ToolClient = state["tool_client"]
     current_turn = state.get("current_turn", 0)
-    new_messages: List = []
-    status_update: Optional[str] = None
-    findings_update = None
+    new_messages: list = []
+    status_update: str | None = None
 
     # Build the ChatOpenAI model with tools bound
     # We access the underlying ChatOpenAI from the adapter
@@ -244,7 +240,6 @@ def _converse_agent(state: ConversationState) -> Dict[str, Any]:
     llm_with_tools = chat_model.bind_tools(tool_schemas)
 
     # Build initial messages for the LLM
-    from langchain_core.messages import SystemMessage
 
     findings_context = _build_findings_context(open_findings)
 
@@ -336,7 +331,7 @@ def _converse_agent(state: ConversationState) -> Dict[str, Any]:
         logger.warning("Agent hit MAX_AGENT_STEPS (%d) — forcing turn end", MAX_AGENT_STEPS)
 
     # ── Build state update ────────────────────────────────────────
-    update: Dict[str, Any] = {
+    update: dict[str, Any] = {
         "messages": new_messages,
         "current_turn": current_turn + 1,
     }
@@ -346,7 +341,7 @@ def _converse_agent(state: ConversationState) -> Dict[str, Any]:
     return update
 
 
-def converse(state: ConversationState) -> Dict[str, Any]:
+def converse(state: ConversationState) -> dict[str, Any]:
     """
     Collaborative AI/human exchange — dispatches to agent or simple mode.
 
@@ -366,7 +361,7 @@ def converse(state: ConversationState) -> Dict[str, Any]:
 # ── resolve_domain ──────────────────────────────────────────────────
 
 
-def resolve_domain(state: ConversationState) -> Dict[str, Any]:
+def resolve_domain(state: ConversationState) -> dict[str, Any]:
     """
     Resolve the DomainConfig into a ready-to-use ConversationContext.
 
@@ -411,7 +406,7 @@ def resolve_domain(state: ConversationState) -> Dict[str, Any]:
             }
 
     # ── Scenario 3: ask the human for a project name ─────────────
-    human: Optional[CallHuman] = state.get("human")
+    human: CallHuman | None = state.get("human")
     if human and not project_name:
         response = human(
             HumanRequest(

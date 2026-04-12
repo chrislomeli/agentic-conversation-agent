@@ -8,11 +8,10 @@ These tests validate graph analysis patterns:
 - Coverage analysis
 """
 
-import pytest
 
 from conversation_engine.models import Goal, Requirement, Step
 from conversation_engine.models.base import BaseEdge
-from conversation_engine.storage import KnowledgeGraph, GraphQueries
+from conversation_engine.storage import GraphQueries, KnowledgeGraph
 
 
 class TestNeighborQueries:

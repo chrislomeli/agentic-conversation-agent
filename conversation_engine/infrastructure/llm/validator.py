@@ -35,15 +35,14 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from conversation_engine.infrastructure.llm.protocols import (
     CallLLM,
     LLMRequest,
     LLMResponse,
 )
-from conversation_engine.models.validation_quiz import ValidationQuiz, FactualQuiz
-
+from conversation_engine.models.validation_quiz import ValidationQuiz
 
 # ── Per-question result ─────────────────────────────────────────────
 
@@ -54,9 +53,9 @@ class QuizResult:
 
     question: str
     response: str
-    found_concepts: List[str]
-    missing_concepts: List[str]
-    prohibited_found: List[str]
+    found_concepts: list[str]
+    missing_concepts: list[str]
+    prohibited_found: list[str]
     score: float  # 0.0–1.0
     passed: bool
     weight: float
@@ -69,12 +68,12 @@ class QuizResult:
 class LLMValidatorReport:
     """Full report from a pre-run validation run."""
 
-    results: List[QuizResult]
+    results: list[QuizResult]
     weighted_score: float  # 0.0–1.0
     passed: bool
     pass_threshold: float
-    llm_responses: List[LLMResponse] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    llm_responses: list[LLMResponse] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # ── Scoring logic ───────────────────────────────────────────────────
@@ -168,7 +167,7 @@ class LLMValidator:
         self,
         llm: CallLLM,
         system_prompt: str,
-        quiz: List[ValidationQuiz],
+        quiz: list[ValidationQuiz],
         pass_threshold: float = 0.7,
     ) -> None:
         self._llm = llm
@@ -183,8 +182,8 @@ class LLMValidator:
         Each question is sent as a separate LLM call with the same
         system prompt, simulating how the loop would interact.
         """
-        results: List[QuizResult] = []
-        responses: List[LLMResponse] = []
+        results: list[QuizResult] = []
+        responses: list[LLMResponse] = []
 
         for q in self._quiz:
             request = LLMRequest(

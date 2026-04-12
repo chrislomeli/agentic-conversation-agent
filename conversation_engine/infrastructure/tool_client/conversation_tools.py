@@ -13,12 +13,10 @@ Handlers are created at runtime with closures over the injected dependencies
 
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional
-
-from pydantic import BaseModel, Field
+from collections.abc import Callable
 
 from commons.tool_client import ToolSpec
-
+from pydantic import BaseModel, Field
 
 # ── ask_human ─────────────────────────────────────────────────────────
 
@@ -27,7 +25,7 @@ class AskHumanInput(BaseModel):
     """Input for the ask_human tool."""
 
     message: str = Field(description="The message to present to the human.")
-    options: Optional[List[str]] = Field(
+    options: list[str] | None = Field(
         default=None,
         description="Optional multiple-choice options for the human.",
     )

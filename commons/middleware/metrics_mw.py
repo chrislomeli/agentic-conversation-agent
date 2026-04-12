@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Set
+from typing import Any
 
 from commons.middleware.base import NodeMiddleware
 
@@ -28,7 +29,7 @@ class MetricsMiddleware(NodeMiddleware):
     .metrics dict or .snapshot() for a JSON-safe copy.
     """
 
-    def __init__(self, *, nodes: Optional[Set[str]] = None) -> None:
+    def __init__(self, *, nodes: set[str] | None = None) -> None:
         super().__init__(nodes=nodes)
         self._lock = threading.Lock()
         self.metrics: dict[str, NodeMetrics] = {}

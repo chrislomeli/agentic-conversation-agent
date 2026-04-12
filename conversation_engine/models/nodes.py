@@ -6,11 +6,11 @@ Each node type represents a specific kind of architectural knowledge.
 
 from __future__ import annotations
 
-from typing import Dict, List, Literal, Optional
+from typing import Literal
+
 from pydantic import Field
 
 from conversation_engine.models.base import BaseNode, NodeType
-
 
 """
     project_node = Project(
@@ -28,8 +28,8 @@ class Project(BaseNode):
     """
 
     node_type: NodeType = Field(NodeType.PROJECT, description="Type of this node")
-    system_prompt: Optional[str] = Field(None, description="top level project node")
-    metadata: Optional[str] = Field(None, description="top level project node")
+    system_prompt: str | None = Field(None, description="top level project node")
+    metadata: str | None = Field(None, description="top level project node")
 
 
 class Feature(BaseNode):
@@ -68,8 +68,8 @@ class Requirement(BaseNode):
     """
 
     node_type: NodeType = Field(NodeType.REQUIREMENT, description="Type of this node")
-    requirement_type: Optional[RequirementType] = Field(None, description="Type of requirement")
-    description: Optional[str] = Field(None, description="Detailed description of the requirement")
+    requirement_type: RequirementType | None = Field(None, description="Type of requirement")
+    description: str | None = Field(None, description="Detailed description of the requirement")
 
 
 class Capability(BaseNode):
@@ -78,7 +78,7 @@ class Capability(BaseNode):
     """
 
     node_type: NodeType = Field(NodeType.CAPABILITY, description="Type of this node")
-    description: Optional[str] = Field(
+    description: str | None = Field(
         None, description="Description of what the capability enables"
     )
 
@@ -89,7 +89,7 @@ class UseCase(BaseNode):
     """
 
     node_type: NodeType = Field(NodeType.USE_CASE, description="Type of this node")
-    description: Optional[str] = Field(None, description="Description of the use case")
+    description: str | None = Field(None, description="Description of the use case")
 
 
 class Scenario(BaseNode):
@@ -98,7 +98,7 @@ class Scenario(BaseNode):
     """
 
     node_type: NodeType = Field(NodeType.SCENARIO, description="Type of this node")
-    description: Optional[str] = Field(None, description="Description of the scenario")
+    description: str | None = Field(None, description="Description of the scenario")
 
 
 class DesignArtifact(BaseNode):
@@ -117,7 +117,7 @@ class Decision(BaseNode):
 
     node_type: NodeType = Field(NodeType.DECISION, description="Type of this node")
     statement: str = Field(..., description="The decision that was made")
-    rationale: Optional[str] = Field(None, description="Why this decision was made")
+    rationale: str | None = Field(None, description="Why this decision was made")
 
 
 class Constraint(BaseNode):
@@ -135,7 +135,7 @@ class Component(BaseNode):
     """
 
     node_type: NodeType = Field(NodeType.COMPONENT, description="Type of this node")
-    description: Optional[str] = Field(None, description="Description of the component's purpose")
+    description: str | None = Field(None, description="Description of the component's purpose")
     has_no_dependencies: bool = Field(
         False, description="Explicitly marks that this component has no dependencies"
     )
@@ -153,7 +153,7 @@ class Step(BaseNode):
     """
 
     node_type: NodeType = Field(NodeType.STEP, description="Type of this node")
-    description: Optional[str] = Field(
+    description: str | None = Field(
         None, description="Description of what this step accomplishes"
     )
     status: StepStatus = Field("pending", description="Current status of this step")
@@ -163,7 +163,7 @@ class Step(BaseNode):
         ge=0,
         le=100,
     )
-    blocker_refs: List[str] = Field(
+    blocker_refs: list[str] = Field(
         default_factory=list, description="Names of other steps that block this step"
     )
     has_no_dependencies: bool = Field(
@@ -177,7 +177,7 @@ class Dependency(BaseNode):
     """
 
     node_type: NodeType = Field(NodeType.DEPENDENCY, description="Type of this node")
-    description: Optional[str] = Field(None, description="Description of the dependency")
+    description: str | None = Field(None, description="Description of the dependency")
 
 
 class DocumentationArtifact(BaseNode):
@@ -186,4 +186,4 @@ class DocumentationArtifact(BaseNode):
     """
 
     node_type: NodeType = Field(NodeType.DOCUMENTATION_ARTIFACT, description="Type of this node")
-    description: Optional[str] = Field(None, description="Description of the documentation")
+    description: str | None = Field(None, description="Description of the documentation")

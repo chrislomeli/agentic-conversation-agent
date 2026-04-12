@@ -7,8 +7,8 @@ Reusable node validation has moved to ``commons.node_validation``.
 from commons.node_validation import (
     NodeError,
     NodeResult,
-    validated_node,
     handle_error,
+    validated_node,
 )
 
 __all__ = [

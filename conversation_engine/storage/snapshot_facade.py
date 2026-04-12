@@ -18,26 +18,24 @@ Edge wiring rules (source --EDGE_TYPE--> target):
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
 from conversation_engine.models.base import BaseEdge
 from conversation_engine.models.nodes import (
+    Constraint,
+    Dependency,
     Goal,
     Requirement,
     Step,
-    Constraint,
-    Dependency,
 )
-from conversation_engine.storage.graph import KnowledgeGraph
 from conversation_engine.models.project_spec import (
-    ProjectSpecification,
-    ProjectSnapshot,  # backwards-compatible alias
-    GoalSpec,
-    RequirementSpec,
-    StepSpec,
     ConstraintSpec,
     DependencySpec,
+    GoalSpec,
+    ProjectSnapshot,  # backwards-compatible alias
+    ProjectSpecification,
+    RequirementSpec,
+    StepSpec,
 )
+from conversation_engine.storage.graph import KnowledgeGraph
 
 
 def _slugify(prefix: str, name: str) -> str:
@@ -66,10 +64,10 @@ def snapshot_to_graph(snapshot: ProjectSpecification) -> KnowledgeGraph:
     graph = KnowledgeGraph()
 
     # ── Name → ID registries (built as nodes are added) ────────────
-    goal_ids: Dict[str, str] = {}
-    req_ids: Dict[str, str] = {}
-    step_ids: Dict[str, str] = {}
-    dep_ids: Dict[str, str] = {}
+    goal_ids: dict[str, str] = {}
+    req_ids: dict[str, str] = {}
+    step_ids: dict[str, str] = {}
+    dep_ids: dict[str, str] = {}
 
     # ── Goals ──────────────────────────────────────────────────────
     for spec in snapshot.goals:
@@ -198,11 +196,11 @@ def graph_to_snapshot(project_name: str, graph: KnowledgeGraph) -> ProjectSnapsh
     with future node types the snapshot doesn't yet model).
     """
     # ── Collect nodes by type ──────────────────────────────────────
-    goals_by_id: Dict[str, Goal] = {}
-    reqs_by_id: Dict[str, Requirement] = {}
-    steps_by_id: Dict[str, Step] = {}
-    deps_by_id: Dict[str, Dependency] = {}
-    constraints_by_id: Dict[str, Constraint] = {}
+    goals_by_id: dict[str, Goal] = {}
+    reqs_by_id: dict[str, Requirement] = {}
+    steps_by_id: dict[str, Step] = {}
+    deps_by_id: dict[str, Dependency] = {}
+    constraints_by_id: dict[str, Constraint] = {}
 
     for node in graph.get_all_nodes():
         if isinstance(node, Goal):
@@ -218,25 +216,25 @@ def graph_to_snapshot(project_name: str, graph: KnowledgeGraph) -> ProjectSnapsh
 
     # ── Build reverse lookups from edges ───────────────────────────
     # Requirement → goal name  (Goal --SATISFIED_BY--> Req)
-    req_to_goal: Dict[str, str] = {}
+    req_to_goal: dict[str, str] = {}
     for edge in graph.get_edges_by_type("SATISFIED_BY"):
         if edge.target_id in reqs_by_id and edge.source_id in goals_by_id:
             req_to_goal[edge.target_id] = goals_by_id[edge.source_id].name
 
     # Step → requirement names  (Req --REALIZED_BY--> Step)
-    step_to_reqs: Dict[str, List[str]] = {}
+    step_to_reqs: dict[str, list[str]] = {}
     for edge in graph.get_edges_by_type("REALIZED_BY"):
         if edge.target_id in steps_by_id and edge.source_id in reqs_by_id:
             step_to_reqs.setdefault(edge.target_id, []).append(reqs_by_id[edge.source_id].name)
 
     # Step → dependency names  (Step --DEPENDS_ON--> Dep)
-    step_to_deps: Dict[str, List[str]] = {}
+    step_to_deps: dict[str, list[str]] = {}
     for edge in graph.get_edges_by_type("DEPENDS_ON"):
         if edge.source_id in steps_by_id and edge.target_id in deps_by_id:
             step_to_deps.setdefault(edge.source_id, []).append(deps_by_id[edge.target_id].name)
 
     # Step → blocker step names  (Step --BLOCKED_BY--> Step)
-    step_to_blockers: Dict[str, List[str]] = {}
+    step_to_blockers: dict[str, list[str]] = {}
     for edge in graph.get_edges_by_type("BLOCKED_BY"):
         if edge.source_id in steps_by_id and edge.target_id in steps_by_id:
             step_to_blockers.setdefault(edge.source_id, []).append(steps_by_id[edge.target_id].name)

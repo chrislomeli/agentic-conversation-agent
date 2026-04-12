@@ -5,12 +5,13 @@ Base models for nodes and edges in the knowledge graph.
 from __future__ import annotations
 
 import uuid
-from enum import Enum
+from enum import StrEnum
 from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
-class NodeType(str, Enum):
+class NodeType(StrEnum):
     """Enum for all node types in the knowledge graph."""
 
     PROJECT = "project"

@@ -14,7 +14,7 @@ Design principles:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 
 @dataclass(frozen=True)
@@ -29,10 +29,10 @@ class LLMRequest:
 
     system_prompt: str
     user_message: str
-    context: Dict[str, Any] = field(default_factory=dict)
+    context: dict[str, Any] = field(default_factory=dict)
     temperature: float = 0.2
-    max_tokens: Optional[int] = None
-    response_format: Optional[str] = None  # "json", "text", or None
+    max_tokens: int | None = None
+    response_format: str | None = None  # "json", "text", or None
 
 
 @dataclass(frozen=True)
@@ -45,11 +45,11 @@ class LLMResponse:
     """
 
     content: str
-    structured: Optional[Dict[str, Any]] = None
+    structured: dict[str, Any] | None = None
     model: str = ""
-    usage: Dict[str, int] = field(default_factory=dict)  # prompt_tokens, completion_tokens, etc.
+    usage: dict[str, int] = field(default_factory=dict)  # prompt_tokens, completion_tokens, etc.
     success: bool = True
-    error: Optional[str] = None
+    error: str | None = None
 
 
 @runtime_checkable

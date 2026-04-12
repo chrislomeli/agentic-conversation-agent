@@ -23,12 +23,13 @@ Usage::
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
+
+from conversation_engine.models.project_spec import ProjectSpecification
 
 # from conversation_engine.models.query_node import GraphQueryPattern
 from conversation_engine.models.rule_node import IntegrityRule
-from conversation_engine.models.validation_quiz import ValidationQuiz, FactualQuiz, ReasoningQuiz
-from conversation_engine.models.project_spec import ProjectSpecification
+from conversation_engine.models.validation_quiz import FactualQuiz, ReasoningQuiz, ValidationQuiz
 
 
 @dataclass(frozen=True)
@@ -51,11 +52,11 @@ class ControlSet:
     """
 
     project_name: str
-    rules: Optional[List[IntegrityRule]] = None
-    quiz: Optional[List[ValidationQuiz]] = None
+    rules: list[IntegrityRule] | None = None
+    quiz: list[ValidationQuiz] | None = None
     # query_patterns: Optional[List[GraphQueryPattern]] = None
-    system_prompt: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    system_prompt: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -78,16 +79,16 @@ class DomainConfig:
     """
 
     project_name: str
-    project_spec: Optional[ProjectSpecification] = None
-    rules: Optional[List[IntegrityRule]] = None
-    quiz: Optional[List[ValidationQuiz]] = None
+    project_spec: ProjectSpecification | None = None
+    rules: list[IntegrityRule] | None = None
+    quiz: list[ValidationQuiz] | None = None
     # query_patterns: Optional[List[GraphQueryPattern]] = None
-    system_prompt: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    system_prompt: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     # # ── Convenience Methods ────────────────────────────────────────────
 
-    def with_project_name(self, project_name: str) -> "DomainConfig":
+    def with_project_name(self, project_name: str) -> DomainConfig:
         """Return a new DomainConfig with the project_name changed."""
         return DomainConfig(
             project_name=project_name,
@@ -101,7 +102,7 @@ class DomainConfig:
 
     # ── Serialisation ────────────────────────────────────────────────
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Serialise the full domain config to a JSON-safe dict.
 
@@ -124,7 +125,7 @@ class DomainConfig:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "DomainConfig":
+    def from_dict(cls, data: dict[str, Any]) -> DomainConfig:
         """
         Reconstruct a DomainConfig from the dict produced by ``to_dict()``.
         """
@@ -157,7 +158,7 @@ class DomainConfig:
 # ── ValidationQuiz dict helpers (dataclass, not Pydantic) ────────────
 
 
-def _quiz_to_dict(q: ValidationQuiz) -> Dict[str, Any]:
+def _quiz_to_dict(q: ValidationQuiz) -> dict[str, Any]:
     base_dict = {
         "id": q.id,
         "name": q.name,
@@ -175,7 +176,7 @@ def _quiz_to_dict(q: ValidationQuiz) -> Dict[str, Any]:
     return base_dict
 
 
-def _quiz_from_dict(d: Dict[str, Any]) -> ValidationQuiz:
+def _quiz_from_dict(d: dict[str, Any]) -> ValidationQuiz:
     quiz_type = d.get("quiz_type", "factual")  # Default to factual for backward compatibility
 
     base_kwargs = {

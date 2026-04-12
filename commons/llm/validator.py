@@ -29,8 +29,9 @@ Usage:
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any
 
 from commons.llm.protocols import (
     CallLLM,
@@ -38,7 +39,6 @@ from commons.llm.protocols import (
     LLMResponse,
 )
 from commons.llm.quiz import QuizQuestion
-
 
 # ── Per-question result ─────────────────────────────────────────────
 
@@ -49,9 +49,9 @@ class QuizResult:
 
     question: str
     response: str
-    found_concepts: List[str]
-    missing_concepts: List[str]
-    prohibited_found: List[str]
+    found_concepts: list[str]
+    missing_concepts: list[str]
+    prohibited_found: list[str]
     score: float  # 0.0–1.0
     passed: bool
     weight: float
@@ -64,18 +64,18 @@ class QuizResult:
 class LLMValidatorReport:
     """Full report from a pre-run validation run."""
 
-    results: List[QuizResult]
+    results: list[QuizResult]
     weighted_score: float  # 0.0–1.0
     passed: bool
     pass_threshold: float
-    llm_responses: List[LLMResponse] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    llm_responses: list[LLMResponse] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # ── Scoring logic ───────────────────────────────────────────────────
 
 
-def _get_required_concepts(quiz: QuizQuestion) -> List[str]:
+def _get_required_concepts(quiz: QuizQuestion) -> list[str]:
     """Extract required concepts from a quiz question, regardless of type."""
     if quiz.quiz_type == "factual":
         raw = getattr(quiz, "expected_answer", "")
@@ -171,8 +171,8 @@ class LLMValidator:
         Each question is sent as a separate LLM call with the same
         system prompt, simulating how the loop would interact.
         """
-        results: List[QuizResult] = []
-        responses: List[LLMResponse] = []
+        results: list[QuizResult] = []
+        responses: list[LLMResponse] = []
 
         for q in self._quiz:
             request = LLMRequest(

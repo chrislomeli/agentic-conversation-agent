@@ -6,10 +6,11 @@ These models define machine-readable constraints that the knowledge graph must s
 
 from __future__ import annotations
 
-from typing import List, Literal, Optional
-from pydantic import BaseModel, Field
+from typing import Literal
 
-from conversation_engine.models.base import EdgeType, NodeType, BaseNode
+from pydantic import Field
+
+from conversation_engine.models.base import BaseNode, NodeType
 
 RuleType = Literal[
     "minimum_outgoing_edge_count",
@@ -34,14 +35,14 @@ class IntegrityRule(BaseNode):
     applies_to_node_type: NodeType = Field(..., description="The node type this rule applies to")
     rule_type: RuleType = Field(..., description="Type of validation check")
 
-    target_node_types: List[NodeType] = Field(
+    target_node_types: list[NodeType] = Field(
         ..., description="Valid target node types for the edge"
     )
 
-    minimum_count: Optional[int] = Field(
+    minimum_count: int | None = Field(
         None, description="Minimum number of edges required (for minimum_* rules)"
     )
-    exact_count: Optional[int] = Field(
+    exact_count: int | None = Field(
         None, description="Exact number of edges required (for exact_* rules)"
     )
     allow_explicit_none_flag: bool = Field(

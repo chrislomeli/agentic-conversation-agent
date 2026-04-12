@@ -14,10 +14,9 @@ The returned callable satisfies CallLLM: (LLMRequest) -> LLMResponse.
 from __future__ import annotations
 
 import os
-from typing import Optional
 
+from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import SystemMessage, HumanMessage
 
 from conversation_engine.infrastructure.llm.protocols import LLMRequest, LLMResponse
 
@@ -25,10 +24,10 @@ from conversation_engine.infrastructure.llm.protocols import LLMRequest, LLMResp
 def make_openai_llm(
     *,
     model: str = "gpt-4o-mini",
-    api_key: Optional[str] = None,
-    temperature: Optional[float] = None,
-    max_tokens: Optional[int] = None,
-) -> "OpenAICallLLM":
+    api_key: str | None = None,
+    temperature: float | None = None,
+    max_tokens: int | None = None,
+) -> OpenAICallLLM:
     """
     Factory that returns a CallLLM-compatible callable backed by OpenAI.
 

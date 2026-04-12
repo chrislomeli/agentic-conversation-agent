@@ -12,8 +12,8 @@ Design notes:
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 from conversation_engine.models.domain_config import DomainConfig
 from conversation_engine.models.project_spec import (

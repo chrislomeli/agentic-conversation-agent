@@ -19,28 +19,26 @@ from __future__ import annotations
 
 import json
 import uuid
-from typing import Dict, List, Optional
 
 from conversation_engine.models.base import BaseEdge, EdgeType, NodeType
 from conversation_engine.models.domain_config import DomainConfig
 from conversation_engine.models.nodes import (
-    Goal,
-    Requirement,
-    Step,
     Constraint,
     Dependency,
+    Goal,
     Project,
+    Requirement,
+    Step,
 )
-from conversation_engine.storage.graph import KnowledgeGraph
 from conversation_engine.models.project_spec import (
-    ProjectSpecification,
-    ProjectSpecification,  # backwards-compatible alias
-    GoalSpec,
-    RequirementSpec,
-    StepSpec,
     ConstraintSpec,
     DependencySpec,
+    GoalSpec,
+    ProjectSpecification,  # backwards-compatible alias
+    RequirementSpec,
+    StepSpec,
 )
+from conversation_engine.storage.graph import KnowledgeGraph
 
 
 # todo deprecate this
@@ -80,10 +78,10 @@ def project_to_graph(project: DomainConfig) -> KnowledgeGraph:
     graph.add_node(project_node)
 
     # ── Name → ID registries (built as nodes are added) ────────────
-    goal_ids: Dict[str, str] = {}
-    req_ids: Dict[str, str] = {}
-    step_ids: Dict[str, str] = {}
-    dep_ids: Dict[str, str] = {}
+    goal_ids: dict[str, str] = {}
+    req_ids: dict[str, str] = {}
+    step_ids: dict[str, str] = {}
+    dep_ids: dict[str, str] = {}
 
     # ── rules ──────────────────────────────────────────────────────
     for spec in project.rules or []:
@@ -102,9 +100,8 @@ def project_to_graph(project: DomainConfig) -> KnowledgeGraph:
     # ── Quiz ──────────────────────────────────────────────────────
     for spec in project.quiz or []:
         quiz_type = spec.quiz_type
-        edge_type = "HAS_FACTUAL_QUIZ"
         if quiz_type.startswith("reason"):
-            edge_type = "HAS_REASONING_QUIZ"
+            pass
         nid = _create_id(quiz_type)
         # Create a copy with the new ID
         quiz_with_id = spec.model_copy(update={"id": nid})
@@ -281,10 +278,10 @@ def graph_to_domain_config(graph: KnowledgeGraph) -> DomainConfig:
     project_name = project_node.name
 
     # ── Extract quiz nodes ──────────────────────────────────────────────
-    quiz_nodes: List[ValidationQuiz] = graph.get_nodes_by_type(NodeType.QUIZ)  # type: ignore
+    quiz_nodes: list[ValidationQuiz] = graph.get_nodes_by_type(NodeType.QUIZ)  # type: ignore
 
     # ── Extract rule nodes ──────────────────────────────────────────────
-    rule_nodes: List[IntegrityRule] = graph.get_nodes_by_type(NodeType.RULE)  # type: ignore
+    rule_nodes: list[IntegrityRule] = graph.get_nodes_by_type(NodeType.RULE)  # type: ignore
 
     # ── Get ProjectSpecification using existing logic ───────────────────
     project_specification = graph_to_snapshot(project_node.name, graph)
@@ -318,11 +315,11 @@ def graph_to_snapshot(project_name: str, graph: KnowledgeGraph) -> ProjectSpecif
     with future node types the snapshot doesn't yet model).
     """
     # ── Collect nodes by type ──────────────────────────────────────
-    goals_by_id: Dict[str, Goal] = {}
-    reqs_by_id: Dict[str, Requirement] = {}
-    steps_by_id: Dict[str, Step] = {}
-    deps_by_id: Dict[str, Dependency] = {}
-    constraints_by_id: Dict[str, Constraint] = {}
+    goals_by_id: dict[str, Goal] = {}
+    reqs_by_id: dict[str, Requirement] = {}
+    steps_by_id: dict[str, Step] = {}
+    deps_by_id: dict[str, Dependency] = {}
+    constraints_by_id: dict[str, Constraint] = {}
 
     for node in graph.get_all_nodes():
         if isinstance(node, Goal):
@@ -338,19 +335,19 @@ def graph_to_snapshot(project_name: str, graph: KnowledgeGraph) -> ProjectSpecif
 
     # ── Build reverse lookups from edges ───────────────────────────
     # Requirement → goal name  (Goal --SATISFIED_BY--> Req)
-    req_to_goal: Dict[str, str] = {}
+    req_to_goal: dict[str, str] = {}
     for edge in graph.get_edges_by_type("SATISFIED_BY"):
         if edge.target_id in reqs_by_id and edge.source_id in goals_by_id:
             req_to_goal[edge.target_id] = goals_by_id[edge.source_id].name
 
     # Step → requirement names  (Req --REALIZED_BY--> Step)
-    step_to_reqs: Dict[str, List[str]] = {}
+    step_to_reqs: dict[str, list[str]] = {}
     for edge in graph.get_edges_by_type("REALIZED_BY"):
         if edge.target_id in steps_by_id and edge.source_id in reqs_by_id:
             step_to_reqs.setdefault(edge.target_id, []).append(reqs_by_id[edge.source_id].name)
 
     # Step → dependency names  (Step --DEPENDS_ON--> Dep)
-    step_to_deps: Dict[str, List[str]] = {}
+    step_to_deps: dict[str, list[str]] = {}
     for edge in graph.get_edges_by_type("DEPENDS_ON"):
         if edge.source_id in steps_by_id and edge.target_id in deps_by_id:
             step_to_deps.setdefault(edge.source_id, []).append(deps_by_id[edge.target_id].name)

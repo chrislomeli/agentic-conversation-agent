@@ -18,11 +18,11 @@ Usage::
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
-from conversation_engine.storage import ProjectStore
-from conversation_engine.storage.project_facade import project_to_graph, graph_to_domain_config
 from conversation_engine.models.graph_db_access import GraphAccessLayer
+from conversation_engine.storage import ProjectStore
+from conversation_engine.storage.project_facade import graph_to_domain_config, project_to_graph
 
 if TYPE_CHECKING:
     from conversation_engine.models.domain_config import DomainConfig
@@ -53,7 +53,7 @@ class GraphProjectStore(ProjectStore):
         # save the graph
         self._graph_access_layer.save_graph(config.project_name, project_graph)
 
-    def load(self, project_name: str) -> Optional[DomainConfig]:
+    def load(self, project_name: str) -> DomainConfig | None:
         graph = self._graph_access_layer.get_graph(project_name)
         if graph is None:
             return None
@@ -62,7 +62,7 @@ class GraphProjectStore(ProjectStore):
     def delete(self, project_name: str) -> bool:
         return self._graph_access_layer.delete_graph(project_name)
 
-    def list_projects(self) -> List[str]:
+    def list_projects(self) -> list[str]:
         return self._graph_access_layer.list_projects()
 
     def exists(self, project_name: str) -> bool:

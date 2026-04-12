@@ -6,15 +6,15 @@ node_validation — Structured result envelope + input validation for LangGraph 
 - handle_error — generic error-handler node that reads NodeResult and marks failure
 """
 
+from commons.node_validation.handle_error import (
+    handle_error,
+)
 from commons.node_validation.result_schema import (
     NodeError,
     NodeResult,
 )
 from commons.node_validation.validator_decorator import (
     validated_node,
-)
-from commons.node_validation.handle_error import (
-    handle_error,
 )
 
 __all__ = [

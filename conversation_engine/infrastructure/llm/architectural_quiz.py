@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from conversation_engine.models.validation_quiz import FactualQuiz
 
-
 # ── System prompt ───────────────────────────────────────────────────
 
 ARCHITECTURAL_SYSTEM_PROMPT = """\

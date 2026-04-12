@@ -16,6 +16,10 @@ Infrastructure is injected at build time:
 - Error handling via ErrorHandlingMiddleware
 """
 
+from conversation_engine.graph.architectural_context import (
+    ArchitecturalOntologyContext,
+)
+from conversation_engine.graph.builder import build_conversation_graph
 from conversation_engine.graph.context import (
     ConversationContext,
     Finding,
@@ -25,10 +29,6 @@ from conversation_engine.graph.state import (
     ConversationInput,
     ConversationOutput,
     ConversationState,
-)
-from conversation_engine.graph.builder import build_conversation_graph
-from conversation_engine.graph.architectural_context import (
-    ArchitecturalOntologyContext,
 )
 from conversation_engine.models.domain_config import DomainConfig
 

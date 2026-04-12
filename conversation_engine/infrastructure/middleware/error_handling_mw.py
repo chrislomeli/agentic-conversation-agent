@@ -13,7 +13,8 @@ Two modes of error catching:
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Optional, Set
+from collections.abc import Callable
+from typing import Any
 
 from conversation_engine.infrastructure.middleware.base import NodeMiddleware
 from conversation_engine.infrastructure.node_validation.result_schema import NodeResult
@@ -46,7 +47,7 @@ class ErrorHandlingMiddleware(NodeMiddleware):
     def __init__(
         self,
         *,
-        nodes: Optional[Set[str]] = None,
+        nodes: set[str] | None = None,
         swallow_exceptions: bool = True,
     ) -> None:
         super().__init__(nodes=nodes)

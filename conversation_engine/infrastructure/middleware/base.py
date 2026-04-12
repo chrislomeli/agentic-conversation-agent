@@ -20,7 +20,8 @@ The signature:
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Callable, FrozenSet, Optional, Set
+from collections.abc import Callable
+from typing import Any
 
 
 class NodeMiddleware(ABC):
@@ -37,8 +38,8 @@ class NodeMiddleware(ABC):
         If None, it activates for all nodes.
     """
 
-    def __init__(self, *, nodes: Optional[Set[str]] = None) -> None:
-        self._nodes: Optional[FrozenSet[str]] = frozenset(nodes) if nodes else None
+    def __init__(self, *, nodes: set[str] | None = None) -> None:
+        self._nodes: frozenset[str] | None = frozenset(nodes) if nodes else None
 
     def applies_to(self, node_name: str) -> bool:
         """Return True if this middleware should activate for the given node."""

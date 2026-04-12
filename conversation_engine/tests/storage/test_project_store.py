@@ -11,28 +11,27 @@ from __future__ import annotations
 
 import pytest
 
-from conversation_engine.models.domain_config import DomainConfig
-from conversation_engine.models.project_spec import ProjectSpecification, GoalSpec, RequirementSpec
-from conversation_engine.storage.project_store import (
-    InMemoryProjectStore,
-    ProjectStore,
-)
-from conversation_engine.storage.graph import KnowledgeGraph
-from conversation_engine.models.rule_node import IntegrityRule
-
-# from conversation_engine.models.query_node import GraphQueryPattern
-from conversation_engine.models.validation_quiz import ValidationQuiz, FactualQuiz
 from conversation_engine.graph.architectural_context import (
     ArchitecturalOntologyContext,
 )
 from conversation_engine.infrastructure.llm.architectural_quiz import (
-    ARCHITECTURAL_SYSTEM_PROMPT,
     ARCHITECTURAL_QUIZ,
+    ARCHITECTURAL_SYSTEM_PROMPT,
 )
 from conversation_engine.models import Goal, Requirement
 from conversation_engine.models.base import BaseEdge
-from conversation_engine.storage.snapshot_facade import graph_to_snapshot
+from conversation_engine.models.domain_config import DomainConfig
+from conversation_engine.models.project_spec import ProjectSpecification
+from conversation_engine.models.rule_node import IntegrityRule
 
+# from conversation_engine.models.query_node import GraphQueryPattern
+from conversation_engine.models.validation_quiz import FactualQuiz
+from conversation_engine.storage.graph import KnowledgeGraph
+from conversation_engine.storage.project_store import (
+    InMemoryProjectStore,
+    ProjectStore,
+)
+from conversation_engine.storage.snapshot_facade import graph_to_snapshot
 
 # ── Helpers ──────────────────────────────────────────────────────────
 

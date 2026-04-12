@@ -14,24 +14,22 @@ Methods:
 
 from __future__ import annotations
 
-from enum import Enum
-from typing import Literal, Optional
-
-from pydantic import BaseModel, Field
+from enum import StrEnum
 
 from commons.tool_client import ToolSpec
+from pydantic import BaseModel, Field
+
+from conversation_engine.models.domain_config import DomainConfig
 from conversation_engine.storage import ProjectStore
 from conversation_engine.storage.snapshot import ProjectSnapshot
-from conversation_engine.models.domain_config import DomainConfig
 from conversation_engine.storage.snapshot_facade import (
-    snapshot_to_graph,
-    graph_to_snapshot,
     SnapshotConversionError,
+    snapshot_to_graph,
 )
 
 
 # ── I/O models ─────────────────────────────────────────────────────
-class CRUDMethod(str, Enum):
+class CRUDMethod(StrEnum):
     CREATE = "CREATE"
     READ = "READ"
     UPDATE = "UPDATE"
@@ -51,14 +49,14 @@ class ProjectGraphInput(BaseModel):
             "DELETE to remove a project."
         ),
     )
-    key: Optional[str] = Field(
+    key: str | None = Field(
         None,
         description=(
             "Project name — required for READ, UPDATE, and DELETE. "
             "For CREATE, the project name is taken from the payload."
         ),
     )
-    payload: Optional[ProjectSnapshot] = Field(
+    payload: ProjectSnapshot | None = Field(
         None,
         description=(
             "The project data — required for CREATE and UPDATE. Omit for READ and DELETE."
@@ -71,7 +69,7 @@ class ProjectGraphOutput(BaseModel):
 
     success: bool = Field(..., description="Whether the operation succeeded")
     message: str = Field(default="", description="Human-readable status message")
-    payload: Optional[ProjectSnapshot] = Field(
+    payload: ProjectSnapshot | None = Field(
         None,
         description="The project data — returned by READ and UPDATE, None for CREATE and DELETE.",
     )

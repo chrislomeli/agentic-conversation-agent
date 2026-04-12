@@ -12,21 +12,18 @@ Coverage:
 
 from __future__ import annotations
 
-import pytest
-
-from conversation_engine.graph.nodes import resolve_domain
-from conversation_engine.graph.builder import route_after_resolve_domain
+from conversation_engine.fixtures import (
+    minimal_state,
+    partial_config,
+    sample_config,
+)
 from conversation_engine.graph.architectural_context import (
     ArchitecturalOntologyContext,
 )
-from conversation_engine.storage.project_store import InMemoryProjectStore
+from conversation_engine.graph.builder import route_after_resolve_domain
+from conversation_engine.graph.nodes import resolve_domain
 from conversation_engine.infrastructure.human import MockHuman
-from conversation_engine.fixtures import (
-    sample_config,
-    partial_config,
-    minimal_state,
-)
-
+from conversation_engine.storage.project_store import InMemoryProjectStore
 
 # ═════════════════════════════════════════════════════════════════════
 #  resolve_domain node

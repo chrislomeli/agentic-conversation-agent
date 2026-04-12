@@ -1,7 +1,9 @@
 """Decorator that validates LangGraph node input against a Pydantic schema."""
 
 import functools
-from typing import Callable, Type, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
+
 from pydantic import BaseModel, ValidationError
 
 from conversation_engine.infrastructure.node_validation.result_schema import NodeResult
@@ -9,7 +11,7 @@ from conversation_engine.infrastructure.node_validation.result_schema import Nod
 T = TypeVar("T", bound=BaseModel)
 
 
-def validated_node(schema: Type[T]):
+def validated_node(schema: type[T]):
     """
     Decorator that:
       1. Validates state against the node's input schema

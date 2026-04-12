@@ -11,9 +11,10 @@ Covers:
 - InstrumentedGraph works as drop-in for StateGraph
 """
 
-import pytest
 from typing import Any, TypedDict
-from langgraph.graph import START, END
+
+import pytest
+from langgraph.graph import END, START
 
 from conversation_engine.infrastructure.instrumented_graph import (
     InstrumentedGraph,
@@ -21,10 +22,8 @@ from conversation_engine.infrastructure.instrumented_graph import (
     Middleware,
 )
 from conversation_engine.infrastructure.interceptors import (
-    LoggingInterceptor,
     MetricsInterceptor,
 )
-
 
 # ── Test state ──────────────────────────────────────────────────────
 

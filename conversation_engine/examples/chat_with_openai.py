@@ -28,9 +28,6 @@ import sys
 from pathlib import Path
 
 from conversation_engine.graph import ConversationState
-from conversation_engine.infrastructure.llm.architectural_quiz import ARCHITECTURAL_QUIZ
-from conversation_engine.models import Goal, Requirement, BaseEdge
-from conversation_engine.storage import KnowledgeGraph
 from conversation_engine.storage.snapshot_facade import graph_to_snapshot
 
 # ── Setup path ────────────────────────────────────────────────────────
@@ -47,23 +44,23 @@ if _env_file.exists():
             if key and key not in os.environ:
                 os.environ[key] = value
 
-from conversation_engine.graph.builder import build_conversation_graph
+from conversation_engine.fixtures import create_graph_complete
 from conversation_engine.graph.architectural_context import ArchitecturalOntologyContext
-from conversation_engine.models.domain_config import DomainConfig
-from conversation_engine.models.rule_node import IntegrityRule
-from conversation_engine.fixtures import create_graph_with_gaps, create_graph_complete
-from conversation_engine.infrastructure.llm import make_openai_llm
+from conversation_engine.graph.builder import build_conversation_graph
 from conversation_engine.infrastructure.human import ConsoleHuman
-from conversation_engine.infrastructure.tool_client import (
-    ToolRegistry,
-    LocalToolClient,
-    make_ask_human_tool,
-    make_revalidate_tool,
-    make_mark_complete_tool,
-)
+from conversation_engine.infrastructure.llm import make_openai_llm
 from conversation_engine.infrastructure.middleware import (
     MetricsMiddleware,
 )
+from conversation_engine.infrastructure.tool_client import (
+    LocalToolClient,
+    ToolRegistry,
+    make_ask_human_tool,
+    make_mark_complete_tool,
+    make_revalidate_tool,
+)
+from conversation_engine.models.domain_config import DomainConfig
+from conversation_engine.models.rule_node import IntegrityRule
 
 # def _sample_config() -> DomainConfig:
 #     g = KnowledgeGraph()
@@ -228,9 +225,9 @@ def main():
         "preflight_passed": False,
     }
 
-    print(f"\n  Running preflight validation...")
-    print(f"  Topology: preflight → validate → converse(agent) → route")
-    print(f"  (The AI decides when to talk to you via the ask_human tool)\n")
+    print("\n  Running preflight validation...")
+    print("  Topology: preflight → validate → converse(agent) → route")
+    print("  (The AI decides when to talk to you via the ask_human tool)\n")
     print("-" * 60)
 
     # ── Run the graph ─────────────────────────────────────────────
@@ -249,7 +246,7 @@ def main():
     print(f"  Open findings: {len(open_findings)}")
 
     snap = metrics.snapshot()
-    print(f"\n  Node metrics:")
+    print("\n  Node metrics:")
     for node_name, data in sorted(snap.items()):
         avg_ms = data["avg_duration"] * 1000
         print(f"    {node_name}: {data['call_count']}x, avg {avg_ms:.0f}ms")

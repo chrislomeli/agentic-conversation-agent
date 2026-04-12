@@ -14,38 +14,36 @@ from __future__ import annotations
 
 import pytest
 
+from conversation_engine.infrastructure.tool_client.project_graph_tools import (
+    ProjectGraphInput,
+    make_project_spec_tool,
+)
 from conversation_engine.models.base import BaseEdge
+from conversation_engine.models.domain_config import DomainConfig
 from conversation_engine.models.nodes import (
+    Constraint,
+    Dependency,
     Goal,
     Requirement,
     Step,
-    Constraint,
-    Dependency,
 )
+from conversation_engine.models.rule_node import IntegrityRule
 from conversation_engine.storage.graph import KnowledgeGraph
 from conversation_engine.storage.project_store import InMemoryProjectStore
 from conversation_engine.storage.snapshot import (
-    ProjectSnapshot,
-    GoalSpec,
-    RequirementSpec,
-    StepSpec,
     ConstraintSpec,
     DependencySpec,
+    GoalSpec,
+    ProjectSnapshot,
+    RequirementSpec,
+    StepSpec,
 )
 from conversation_engine.storage.snapshot_facade import (
-    snapshot_to_graph,
-    graph_to_snapshot,
     SnapshotConversionError,
     _slugify,
+    graph_to_snapshot,
+    snapshot_to_graph,
 )
-from conversation_engine.infrastructure.tool_client.project_graph_tools import (
-    ProjectGraphInput,
-    ProjectGraphOutput,
-    make_project_spec_tool,
-)
-from conversation_engine.models.domain_config import DomainConfig
-from conversation_engine.models.rule_node import IntegrityRule
-
 
 # ── Helpers ────────────────────────────────────────────────────────
 
@@ -546,8 +544,8 @@ class TestProjectSpecTool:
     def test_tool_works_with_local_tool_client(self):
         """Integration: tool works through LocalToolClient envelope."""
         from conversation_engine.infrastructure.tool_client import (
-            ToolRegistry,
             LocalToolClient,
+            ToolRegistry,
         )
 
         store = InMemoryProjectStore()

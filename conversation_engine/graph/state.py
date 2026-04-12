@@ -16,19 +16,18 @@ Design principles:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Literal, Optional
-from typing_extensions import Annotated, TypedDict
+from typing import Annotated, Any, Literal
 
-from langgraph.graph.message import add_messages
 from langchain_core.messages import BaseMessage
+from langgraph.graph.message import add_messages
+from typing_extensions import TypedDict
 
 from conversation_engine.graph.context import ConversationContext, Finding
-from conversation_engine.infrastructure.node_validation import NodeResult
-from conversation_engine.infrastructure.llm import CallLLM
 from conversation_engine.infrastructure.human import CallHuman
+from conversation_engine.infrastructure.llm import CallLLM
+from conversation_engine.infrastructure.node_validation import NodeResult
 from conversation_engine.infrastructure.tool_client import ToolClient
 from conversation_engine.storage.project_store import ProjectStore
-
 
 # ── Subgraph contract ────────────────────────────────────────────────
 
@@ -43,8 +42,8 @@ class ConversationInput(TypedDict):
 class ConversationOutput(TypedDict):
     """What the subgraph returns at exit."""
 
-    findings: List[Finding]
-    domain_state: Dict[str, Any]
+    findings: list[Finding]
+    domain_state: dict[str, Any]
     session_summary: str
     exit_reason: Literal["complete", "hand_off", "error", "max_turns"]
 
@@ -54,32 +53,32 @@ class ConversationOutput(TypedDict):
 
 class ConversationState(TypedDict):
     # Injected domain context — set by resolve_domain, read by all downstream nodes
-    context: Optional[ConversationContext]
+    context: ConversationContext | None
     session_id: str
 
     # Domain resolution inputs — resolve_domain uses these to build context
-    project_name: Optional[str]
-    project_store: Optional[ProjectStore]
+    project_name: str | None
+    project_store: ProjectStore | None
 
     # Injected LLM callable — optional, nodes fall back to stub if absent
-    llm: Optional[CallLLM]
+    llm: CallLLM | None
 
     # Injected human surface — optional, nodes skip human interaction if absent
-    human: Optional[CallHuman]
+    human: CallHuman | None
 
     # Injected tool client — optional, converse node uses it for ReAct agent loop
-    tool_client: Optional[ToolClient]
+    tool_client: ToolClient | None
 
     # Built during conversation (domain-agnostic)
-    findings: List[Finding]
-    messages: Annotated[List[BaseMessage], add_messages]
+    findings: list[Finding]
+    messages: Annotated[list[BaseMessage], add_messages]
     current_turn: int
 
     # Control flow
     status: Literal["running", "interrupted", "complete", "hand_off", "error"]
 
     # Node validation — populated by validated_node decorator or nodes directly
-    node_result: Optional[NodeResult]
+    node_result: NodeResult | None
 
     # Pre-flight LLM validation — set to True after first successful pass
     preflight_passed: bool

@@ -18,21 +18,21 @@ QuizQuestion        Domain-agnostic quiz question protocol.
 Swap in any callable that matches the Protocol signature.
 """
 
+from commons.llm.openai_adapter import (
+    OpenAICallLLM,
+    make_openai_llm,
+)
 from commons.llm.protocols import (
     CallLLM,
     LLMRequest,
     LLMResponse,
 )
-from commons.llm.stub import call_llm_stub
-from commons.llm.openai_adapter import (
-    make_openai_llm,
-    OpenAICallLLM,
-)
 from commons.llm.quiz import (
-    QuizQuestion,
     FactualQuizQuestion,
+    QuizQuestion,
     ReasoningQuizQuestion,
 )
+from commons.llm.stub import call_llm_stub
 from commons.llm.validator import (
     LLMValidator,
     LLMValidatorReport,

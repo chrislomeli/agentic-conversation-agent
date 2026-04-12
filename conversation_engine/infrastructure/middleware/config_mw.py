@@ -11,7 +11,8 @@ Stub implementation: ready for real config sources (files, env, remote).
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable, Dict, Optional, Set
+from collections.abc import Callable
+from typing import Any
 
 from conversation_engine.infrastructure.middleware.base import NodeMiddleware
 
@@ -35,10 +36,10 @@ class ConfigMiddleware(NodeMiddleware):
 
     def __init__(
         self,
-        config: Dict[str, Dict[str, Any]],
+        config: dict[str, dict[str, Any]],
         *,
         config_key: str = "_node_config",
-        nodes: Optional[Set[str]] = None,
+        nodes: set[str] | None = None,
     ) -> None:
         super().__init__(nodes=nodes)
         self._config = config

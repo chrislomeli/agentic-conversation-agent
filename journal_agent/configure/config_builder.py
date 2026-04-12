@@ -12,11 +12,16 @@ the settings load without errors.
 
 import logging
 import os
-from typing import Dict
 
-from settings import get_settings, Settings, LLMLabel, LLMModel, LLMProvider
+from journal_agent.configure.settings import (
+    LLMLabel,
+    LLMModel,
+    LLMProvider,
+    Settings,
+    get_settings,
+)
 
-models: Dict[LLMLabel, LLMModel | None] = {
+models: dict[LLMLabel, LLMModel | None] = {
     # OpenAI models
     LLMLabel.GPT_MINI: LLMModel(
         key_label="openai_api_key", provider=LLMProvider.OPENAI, model="gpt-4o-mini"

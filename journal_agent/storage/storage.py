@@ -2,9 +2,9 @@ import dataclasses
 import json
 from abc import ABC, abstractmethod
 from pathlib import Path
-from langchain_core.messages import BaseMessage
 
-from journal_agent.model.storage import Turn
+from journal_agent.model.turn import Turn
+from langchain_core.messages import BaseMessage
 
 
 @dataclasses.dataclass
@@ -23,10 +23,7 @@ class DataStore(ABC):
         pass
 
 
-@dataclasses.dataclass
 class SessionDatabase(DataStore):
-    _path: Path
-
     def __init__(self):
         path_name = "data/sessions"  # this is just placeholder internal access - no one else needs to know or set this
         self._path = Path(path_name)
@@ -57,9 +54,9 @@ class SessionDatabase(DataStore):
         file = self._path / f"{session_id}.jsonl"
 
         # Append line by line
-        with file.open(mode="a", encoding="utf-8") as file:
+        with file.open(mode="a", encoding="utf-8") as f:
             for t in turn:
-                file.write(f"{t.model_dump_json()}\n")  # Manually add newline characters
+                f.write(f"{t.model_dump_json()}\n")  # Manually add newline characters
 
     def load_session(self, session_id: str) -> list[Turn] | None:
         file = self._path / f"{session_id}.jsonl"

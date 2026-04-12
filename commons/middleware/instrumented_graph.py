@@ -20,7 +20,8 @@ from __future__ import annotations
 
 import functools
 import logging
-from typing import Any, Callable, Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
 
 from langgraph.graph import StateGraph
 

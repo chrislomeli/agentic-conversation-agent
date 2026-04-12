@@ -7,7 +7,6 @@ These models capture the explicit traceability chains:
 
 from __future__ import annotations
 
-from typing import List
 from pydantic import BaseModel, Field
 
 
@@ -17,7 +16,7 @@ class GoalRequirementTrace(BaseModel):
     """
 
     goal_id: str = Field(..., description="Goal identifier")
-    requirement_ids: List[str] = Field(
+    requirement_ids: list[str] = Field(
         default_factory=list, description="List of requirement IDs that satisfy this goal"
     )
 
@@ -28,7 +27,7 @@ class RequirementStepTrace(BaseModel):
     """
 
     requirement_id: str = Field(..., description="Requirement identifier")
-    step_ids: List[str] = Field(
+    step_ids: list[str] = Field(
         default_factory=list, description="List of step IDs that realize this requirement"
     )
 
@@ -39,7 +38,7 @@ class StepDependencyTrace(BaseModel):
     """
 
     step_id: str = Field(..., description="Step identifier")
-    dependency_ids: List[str] = Field(
+    dependency_ids: list[str] = Field(
         default_factory=list,
         description="List of dependency IDs (external systems, libraries, etc.)",
     )

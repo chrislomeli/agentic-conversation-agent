@@ -4,7 +4,6 @@ import dataclasses
 import os
 from enum import Enum
 from functools import lru_cache
-from typing import Optional
 
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -24,7 +23,7 @@ class LLMLabel(Enum):
     CLAUDE_SONNET = "claude-sonnet"
     CLAUDE_OPUS = "claude-opus"
     HAIKU = "haiku"
-    OLLAMA_LLAMA3 = "ollama-llama2"
+    OLLAMA_LLAMA3 = "ollama-llama3"
     STUB = "STUB"
 
 
@@ -33,19 +32,19 @@ class LLMModel:
     model: str
     key_label: str
     provider: LLMProvider
-    api_key: Optional[SecretStr] = None
+    api_key: SecretStr | None = None
 
 
 class Settings(BaseSettings):
     # ── LLM credentials ───────────────────────────────────────────────────────
     llm_source: LLMProvider = LLMProvider.STUB
-    llm_model: Optional[LLMModel] = None
-    anthropic_api_key: SecretStr = ""
-    openai_api_key: SecretStr = ""
+    llm_model: LLMModel | None = None
+    anthropic_api_key: SecretStr | None = None
+    openai_api_key: SecretStr | None = None
     ollama_base_url: str = "http://localhost:11434"
 
     @property
-    def selected_model(self) -> Optional[LLMModel]:
+    def selected_model(self) -> LLMModel | None:
         if self.llm_model is None:
             return None
         connection = dataclasses.replace(self.llm_model)

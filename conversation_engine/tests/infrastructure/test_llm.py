@@ -17,7 +17,6 @@ from conversation_engine.infrastructure.llm import (
     call_llm_stub,
 )
 
-
 # ── LLMRequest / LLMResponse ───────────────────────────────────────
 
 

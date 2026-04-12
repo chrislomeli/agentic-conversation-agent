@@ -12,9 +12,10 @@ from __future__ import annotations
 import logging
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Optional, Set
+from typing import Any
 
 from commons.middleware.base import NodeMiddleware
 from commons.node_validation.result_schema import NodeResult
@@ -61,7 +62,7 @@ class CircuitBreakerMiddleware(NodeMiddleware):
         failure_threshold: int = 3,
         cooldown_seconds: float = 30.0,
         success_threshold: int = 1,
-        nodes: Optional[Set[str]] = None,
+        nodes: set[str] | None = None,
     ) -> None:
         super().__init__(nodes=nodes)
         self._failure_threshold = failure_threshold
@@ -107,7 +108,7 @@ class CircuitBreakerMiddleware(NodeMiddleware):
         # Execute the node (outside the lock)
         try:
             result = next_fn(state)
-        except Exception as exc:
+        except Exception:
             with self._lock:
                 circuit = self._get_circuit(node_name)
                 circuit.failure_count += 1

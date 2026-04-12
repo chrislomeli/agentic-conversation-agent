@@ -12,32 +12,29 @@ Covers:
 
 import pytest
 
+from conversation_engine.graph.builder import (
+    MAX_TURNS,
+    build_conversation_graph,
+)
 from conversation_engine.graph.context import (
-    ConversationContext,
     Finding,
     ValidationResult,
 )
-from conversation_engine.graph.builder import (
-    build_conversation_graph,
-    MAX_TURNS,
-)
 from conversation_engine.infrastructure.interceptors import (
-    MetricsInterceptor,
     LoggingInterceptor,
-)
-from conversation_engine.infrastructure.middleware import (
-    LoggingMiddleware,
-    MetricsMiddleware,
-    ErrorHandlingMiddleware,
+    MetricsInterceptor,
 )
 from conversation_engine.infrastructure.llm import (
-    CallLLM,
     LLMRequest,
     LLMResponse,
     call_llm_stub,
 )
+from conversation_engine.infrastructure.middleware import (
+    ErrorHandlingMiddleware,
+    LoggingMiddleware,
+    MetricsMiddleware,
+)
 from conversation_engine.models.validation_quiz import FactualQuiz
-
 
 # ── Fake contexts ───────────────────────────────────────────────────
 
@@ -171,7 +168,7 @@ class TestInterceptorsInGraph:
         graph = build_conversation_graph(interceptors=[mi])
         state = _make_state(_CleanContext())
 
-        result = graph.invoke(state)
+        graph.invoke(state)
 
         snap = mi.snapshot()
         assert "preflight" in snap
@@ -186,7 +183,7 @@ class TestInterceptorsInGraph:
         graph = build_conversation_graph(interceptors=[mi])
         state = _make_state(_GappyContext())
 
-        result = graph.invoke(state)
+        graph.invoke(state)
 
         snap = mi.snapshot()
         assert snap["validate"]["call_count"] == MAX_TURNS
@@ -248,7 +245,7 @@ class TestMiddlewareInGraph:
         graph = build_conversation_graph(node_middleware=[mm])
         state = _make_state(_CleanContext())
 
-        result = graph.invoke(state)
+        graph.invoke(state)
 
         snap = mm.snapshot()
         assert "preflight" in snap
@@ -262,7 +259,7 @@ class TestMiddlewareInGraph:
         graph = build_conversation_graph(node_middleware=[mm])
         state = _make_state(_GappyContext())
 
-        result = graph.invoke(state)
+        graph.invoke(state)
 
         snap = mm.snapshot()
         assert snap["validate"]["call_count"] == MAX_TURNS
@@ -392,7 +389,7 @@ class TestPreflightNode:
                 ]
 
         state = _make_state(_GappyWithQuiz(), llm=_smart_llm)
-        result = graph.invoke(state)
+        graph.invoke(state)
 
         # Preflight called once, but validate/converse loop MAX_TURNS
         snap = mm.snapshot()

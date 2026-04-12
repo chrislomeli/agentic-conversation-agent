@@ -5,11 +5,11 @@ Validates that fixtures create graphs with expected characteristics.
 """
 
 from conversation_engine.fixtures import (
-    create_minimal_graph,
-    create_graph_with_gaps,
-    create_graph_with_orphans,
     create_graph_complete,
     create_graph_partial_coverage,
+    create_graph_with_gaps,
+    create_graph_with_orphans,
+    create_minimal_graph,
 )
 from conversation_engine.storage import GraphQueries
 
@@ -92,7 +92,7 @@ class TestGraphWithOrphans:
     def test_has_completely_isolated_nodes(self):
         """Test that some nodes have no edges at all."""
         graph = create_graph_with_orphans()
-        queries = GraphQueries(graph)
+        GraphQueries(graph)
 
         # goal-2 should be completely isolated
         out_degree = graph.get_out_degree("goal-2")

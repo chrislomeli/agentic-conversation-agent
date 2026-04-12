@@ -7,7 +7,6 @@ This is deterministic validation - no AI involved.
 
 from __future__ import annotations
 
-from typing import List, Optional, Union
 from pydantic import BaseModel, Field
 
 from conversation_engine.models.base import BaseNode
@@ -30,7 +29,7 @@ class RuleViolation(BaseModel):
     severity: Severity = Field(..., description="Severity level of the violation")
     message: str = Field(..., description="Human-readable violation message")
 
-    expected_count: Optional[int] = Field(None, description="Expected edge count (for context)")
+    expected_count: int | None = Field(None, description="Expected edge count (for context)")
     actual_count: int = Field(..., description="Actual edge count found")
 
 
@@ -48,13 +47,13 @@ class RuleEvaluator:
     - Clear output: violations are actionable
     """
 
-    def __init__(self, graph_or_spec: Union[KnowledgeGraph, ProjectSpecification]):
+    def __init__(self, graph_or_spec: KnowledgeGraph | ProjectSpecification):
         if isinstance(graph_or_spec, ProjectSpecification):
             self.graph = snapshot_to_graph(graph_or_spec)
         else:
             self.graph = graph_or_spec
 
-    def evaluate_rule(self, rule: IntegrityRule) -> List[RuleViolation]:
+    def evaluate_rule(self, rule: IntegrityRule) -> list[RuleViolation]:
         """
         Evaluate a single rule against the graph.
 
@@ -76,7 +75,7 @@ class RuleEvaluator:
 
         return violations
 
-    def evaluate_all_rules(self, rules: List[IntegrityRule]) -> List[RuleViolation]:
+    def evaluate_all_rules(self, rules: list[IntegrityRule]) -> list[RuleViolation]:
         """
         Evaluate multiple rules against the graph.
 
@@ -95,8 +94,8 @@ class RuleEvaluator:
         return all_violations
 
     def get_violations_by_severity(
-        self, rules: List[IntegrityRule], severity: Severity
-    ) -> List[RuleViolation]:
+        self, rules: list[IntegrityRule], severity: Severity
+    ) -> list[RuleViolation]:
         """
         Get violations of a specific severity level.
 
@@ -111,8 +110,8 @@ class RuleEvaluator:
         return [v for v in all_violations if v.severity == severity]
 
     def get_violations_for_node(
-        self, node_id: str, rules: List[IntegrityRule]
-    ) -> List[RuleViolation]:
+        self, node_id: str, rules: list[IntegrityRule]
+    ) -> list[RuleViolation]:
         """
         Get all violations for a specific node.
 
@@ -130,7 +129,7 @@ class RuleEvaluator:
 
     def _check_node_against_rule(
         self, node: BaseNode, rule: IntegrityRule
-    ) -> Optional[RuleViolation]:
+    ) -> RuleViolation | None:
         """
         Check if a single node violates a rule.
 
@@ -154,7 +153,7 @@ class RuleEvaluator:
 
     def _check_minimum_outgoing(
         self, node: BaseNode, rule: IntegrityRule
-    ) -> Optional[RuleViolation]:
+    ) -> RuleViolation | None:
         """Check minimum outgoing edge count."""
         # Get ALL outgoing edges, not filtered by type
         edges = self.graph.get_outgoing_edges(node.id)
@@ -182,7 +181,7 @@ class RuleEvaluator:
 
     def _check_minimum_outgoing_or_flag(
         self, node: BaseNode, rule: IntegrityRule
-    ) -> Optional[RuleViolation]:
+    ) -> RuleViolation | None:
         """Check minimum outgoing edge count, but allow explicit 'no edges' flag."""
         # Check if node has explicit flag (e.g., Component.has_no_dependencies)
         if rule.allow_explicit_none_flag:
@@ -195,7 +194,7 @@ class RuleEvaluator:
         # Otherwise, check normally
         return self._check_minimum_outgoing(node, rule)
 
-    def _check_exact_outgoing(self, node: BaseNode, rule: IntegrityRule) -> Optional[RuleViolation]:
+    def _check_exact_outgoing(self, node: BaseNode, rule: IntegrityRule) -> RuleViolation | None:
         """Check exact outgoing edge count."""
         # Get ALL outgoing edges, not filtered by type
         edges = self.graph.get_outgoing_edges(node.id)
@@ -223,7 +222,7 @@ class RuleEvaluator:
 
     def _check_minimum_incoming(
         self, node: BaseNode, rule: IntegrityRule
-    ) -> Optional[RuleViolation]:
+    ) -> RuleViolation | None:
         """Check minimum incoming edge count."""
         # Get ALL incoming edges, not filtered by type
         edges = self.graph.get_incoming_edges(node.id)
@@ -249,7 +248,7 @@ class RuleEvaluator:
 
         return None
 
-    def _is_valid_target(self, target_id: str, valid_types: List[str]) -> bool:
+    def _is_valid_target(self, target_id: str, valid_types: list[str]) -> bool:
         """Check if target node is of a valid type."""
         target = self.graph.get_node(target_id)
         if target is None:
@@ -258,7 +257,7 @@ class RuleEvaluator:
         target_type = self.graph._get_node_type(target)
         return target_type in valid_types
 
-    def _is_valid_source(self, source_id: str, valid_types: List[str]) -> bool:
+    def _is_valid_source(self, source_id: str, valid_types: list[str]) -> bool:
         """Check if source node is of a valid type."""
         source = self.graph.get_node(source_id)
         if source is None:

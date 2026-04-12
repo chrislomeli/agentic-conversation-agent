@@ -2,33 +2,6 @@
 Domain models for the Reusable Conversation Engine.
 """
 
-from conversation_engine.models.base import NodeType, EdgeType, BaseNode, BaseEdge
-from conversation_engine.models.nodes import (
-    Feature,
-    Goal,
-    GuidingPrinciple,
-    Requirement,
-    UseCase,
-    Scenario,
-    DesignArtifact,
-    Decision,
-    Constraint,
-    Step,
-    StepStatus,
-    Dependency,
-    DocumentationArtifact,
-)
-from conversation_engine.models.traceability import (
-    GoalRequirementTrace,
-    RequirementStepTrace,
-    StepDependencyTrace,
-)
-from conversation_engine.models.rule_node import (
-    RuleType,
-    Severity,
-    IntegrityRule,
-)
-
 # from conversation_engine.models.query_node import (
 #     QueryIntent,
 #     OutputKind,
@@ -38,8 +11,34 @@ from conversation_engine.models.rule_node import (
 #     GraphQueryPattern,
 # )
 from conversation_engine.models.assessment import (
-    AssessmentType,
     Assessment,
+    AssessmentType,
+)
+from conversation_engine.models.base import BaseEdge, BaseNode, EdgeType, NodeType
+from conversation_engine.models.nodes import (
+    Constraint,
+    Decision,
+    Dependency,
+    DesignArtifact,
+    DocumentationArtifact,
+    Feature,
+    Goal,
+    GuidingPrinciple,
+    Requirement,
+    Scenario,
+    Step,
+    StepStatus,
+    UseCase,
+)
+from conversation_engine.models.rule_node import (
+    IntegrityRule,
+    RuleType,
+    Severity,
+)
+from conversation_engine.models.traceability import (
+    GoalRequirementTrace,
+    RequirementStepTrace,
+    StepDependencyTrace,
 )
 
 # DomainConfig is intentionally NOT imported here to avoid a circular

@@ -10,7 +10,6 @@ Coverage:
 from __future__ import annotations
 
 import json
-from typing import Dict, List
 
 import pytest
 
@@ -18,6 +17,7 @@ from conversation_engine.fixtures import create_graph_complete
 from conversation_engine.models import Goal, Requirement
 from conversation_engine.models.base import BaseEdge, NodeType
 from conversation_engine.models.domain_config import DomainConfig
+from conversation_engine.models.graph_db_access import GraphAccessLayer
 from conversation_engine.models.project_spec import ProjectSpecification
 from conversation_engine.models.rule_node import IntegrityRule
 
@@ -25,18 +25,17 @@ from conversation_engine.models.rule_node import IntegrityRule
 from conversation_engine.models.validation_quiz import FactualQuiz, QuizType, ReasoningQuiz
 from conversation_engine.storage.graph import KnowledgeGraph
 from conversation_engine.storage.graph_project_store import GraphProjectStore
-from conversation_engine.storage.project_facade import project_to_graph, graph_to_domain_config
+from conversation_engine.storage.project_facade import graph_to_domain_config, project_to_graph
 from conversation_engine.storage.project_store import (
     ProjectStore,
 )
 from conversation_engine.storage.snapshot_facade import graph_to_snapshot
-from conversation_engine.models.graph_db_access import GraphAccessLayer
 
 
 # ── Graph Access Layer ─────────────────────────────────────────
 class GraphAccessLayerMock(GraphAccessLayer):
     def __init__(self) -> None:
-        self._store: Dict[str, KnowledgeGraph] = {}
+        self._store: dict[str, KnowledgeGraph] = {}
 
     def save_graph(self, project_name: str, graph: KnowledgeGraph) -> None:
         self._store[project_name] = graph
@@ -50,7 +49,7 @@ class GraphAccessLayerMock(GraphAccessLayer):
             return True
         return False
 
-    def list_projects(self) -> List[str]:
+    def list_projects(self) -> list[str]:
         return list(self._store.keys())
 
     def exists(self, project_name: str) -> bool:
@@ -146,7 +145,7 @@ class TestKnowledgeGraphTransforms:
         project_graph = project_to_graph(config)
 
         spec = config.project_spec
-        c = json.dumps(spec.model_dump())
+        json.dumps(spec.model_dump())
         # todo add better asserts by type
 
         def check_node(node_type: NodeType, expected: int):

@@ -15,27 +15,25 @@ Also covers:
   - InstrumentedGraph: chain building, ordering, composition
 """
 
-import time
-import pytest
-from typing import Any, Optional, TypedDict
-from pydantic import BaseModel
+from typing import TypedDict
 
-from langgraph.graph import START, END
+import pytest
+from langgraph.graph import END, START
+from pydantic import BaseModel
 
 from conversation_engine.infrastructure.instrumented_graph import InstrumentedGraph
 from conversation_engine.infrastructure.middleware.base import NodeMiddleware
-from conversation_engine.infrastructure.middleware.logging_mw import LoggingMiddleware
-from conversation_engine.infrastructure.middleware.metrics_mw import MetricsMiddleware, NodeMetrics
-from conversation_engine.infrastructure.middleware.validation_mw import ValidationMiddleware
-from conversation_engine.infrastructure.middleware.error_handling_mw import ErrorHandlingMiddleware
-from conversation_engine.infrastructure.middleware.retry_mw import RetryMiddleware
 from conversation_engine.infrastructure.middleware.circuit_breaker_mw import (
     CircuitBreakerMiddleware,
     CircuitState,
 )
 from conversation_engine.infrastructure.middleware.config_mw import ConfigMiddleware
+from conversation_engine.infrastructure.middleware.error_handling_mw import ErrorHandlingMiddleware
+from conversation_engine.infrastructure.middleware.logging_mw import LoggingMiddleware
+from conversation_engine.infrastructure.middleware.metrics_mw import MetricsMiddleware
+from conversation_engine.infrastructure.middleware.retry_mw import RetryMiddleware
+from conversation_engine.infrastructure.middleware.validation_mw import ValidationMiddleware
 from conversation_engine.infrastructure.node_validation.result_schema import NodeResult
-
 
 # ── Test fixtures ───────────────────────────────────────────────────
 
@@ -43,7 +41,7 @@ from conversation_engine.infrastructure.node_validation.result_schema import Nod
 class SimpleState(TypedDict):
     value: int
     status: str
-    node_result: Optional[NodeResult]
+    node_result: NodeResult | None
 
 
 def _state(value: int = 0, **extra) -> dict:

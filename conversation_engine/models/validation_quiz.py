@@ -8,15 +8,15 @@ zero infrastructure dependencies.  The infrastructure layer
 
 from __future__ import annotations
 
-from pydantic import Field
-from typing import Literal, Annotated, Union
+from enum import StrEnum
+from typing import Annotated, Literal
 
+from pydantic import Field
 
 from conversation_engine.models import BaseNode, NodeType
-from enum import Enum
 
 
-class QuizType(str, Enum):
+class QuizType(StrEnum):
     REASONING = "reasoning"  # evaluated by LLM judge using rubric
     FACTUAL = "factual"  # evaluated by exact or near-exact match
 
@@ -39,4 +39,4 @@ class FactualQuiz(BaseNode):
     min_score: float = 0.5
 
 
-ValidationQuiz = Annotated[Union[ReasoningQuiz, FactualQuiz], Field(discriminator="quiz_type")]
+ValidationQuiz = Annotated[ReasoningQuiz | FactualQuiz, Field(discriminator="quiz_type")]

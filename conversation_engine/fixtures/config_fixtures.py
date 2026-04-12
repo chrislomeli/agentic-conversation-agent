@@ -10,8 +10,6 @@ Provides reusable factories for:
 
 from __future__ import annotations
 
-from typing import List, Optional
-
 from conversation_engine.graph.architectural_context import ArchitecturalOntologyContext
 from conversation_engine.graph.state import ConversationState
 from conversation_engine.infrastructure.llm.architectural_quiz import ARCHITECTURAL_QUIZ
@@ -20,7 +18,6 @@ from conversation_engine.models.project_spec import ProjectSpecification
 from conversation_engine.models.rule_node import IntegrityRule
 from conversation_engine.storage.graph import KnowledgeGraph
 from conversation_engine.storage.snapshot_facade import graph_to_snapshot
-
 
 # ── Rule factories ───────────────────────────────────────────────────
 
@@ -55,7 +52,7 @@ def req_step_rule() -> IntegrityRule:
     )
 
 
-def standard_rules() -> List[IntegrityRule]:
+def standard_rules() -> list[IntegrityRule]:
     """The standard integrity rules used across tests and examples."""
     return [goal_req_rule(), req_step_rule()]
 
@@ -65,9 +62,9 @@ def standard_rules() -> List[IntegrityRule]:
 
 def sample_config(
     project_name: str = "test-project",
-    graph: Optional[KnowledgeGraph] = None,
-    spec: Optional[ProjectSpecification] = None,
-    rules: Optional[List[IntegrityRule]] = None,
+    graph: KnowledgeGraph | None = None,
+    spec: ProjectSpecification | None = None,
+    rules: list[IntegrityRule] | None = None,
     include_quiz: bool = True,
     system_prompt: str = "Test system prompt.",
 ) -> DomainConfig:
@@ -100,9 +97,9 @@ def sample_config(
 
 def partial_config(
     project_name: str = "test-project",
-    graph: Optional[KnowledgeGraph] = None,
-    spec: Optional[ProjectSpecification] = None,
-    rules: Optional[List[IntegrityRule]] = None,
+    graph: KnowledgeGraph | None = None,
+    spec: ProjectSpecification | None = None,
+    rules: list[IntegrityRule] | None = None,
     system_prompt: str = "Test system prompt.",
 ) -> DomainConfig:
     """DomainConfig without quiz (triggers default ARCHITECTURAL_QUIZ fallback)."""
@@ -131,7 +128,7 @@ def partial_config(
 
 def make_context(
     graph: KnowledgeGraph,
-    rules: Optional[List[IntegrityRule]] = None,
+    rules: list[IntegrityRule] | None = None,
     project_name: str = "test",
 ) -> ArchitecturalOntologyContext:
     """Build an ArchitecturalOntologyContext from a graph and optional rules."""
@@ -170,7 +167,7 @@ def minimal_state(**overrides) -> ConversationState:
 
 def make_state(
     graph: KnowledgeGraph,
-    rules: Optional[List[IntegrityRule]] = None,
+    rules: list[IntegrityRule] | None = None,
 ) -> ConversationState:
     """Build a ConversationState with an ArchitecturalOntologyContext already set."""
     return minimal_state(

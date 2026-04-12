@@ -7,9 +7,7 @@ core graph storage. These operations implement common graph analysis patterns.
 
 from __future__ import annotations
 
-from typing import List, Set, Optional
-
-from conversation_engine.models.base import BaseNode, BaseEdge, NodeType, EdgeType
+from conversation_engine.models.base import BaseNode, EdgeType, NodeType
 from conversation_engine.storage.graph import KnowledgeGraph
 
 
@@ -32,9 +30,9 @@ class GraphQueries:
     def get_neighbors_out(
         self,
         node_id: str,
-        edge_type: Optional[EdgeType] = None,
-        target_type: Optional[NodeType] = None,
-    ) -> List[BaseNode]:
+        edge_type: EdgeType | None = None,
+        target_type: NodeType | None = None,
+    ) -> list[BaseNode]:
         """
         Get all nodes reachable via outgoing edges.
 
@@ -65,9 +63,9 @@ class GraphQueries:
     def get_neighbors_in(
         self,
         node_id: str,
-        edge_type: Optional[EdgeType] = None,
-        source_type: Optional[NodeType] = None,
-    ) -> List[BaseNode]:
+        edge_type: EdgeType | None = None,
+        source_type: NodeType | None = None,
+    ) -> list[BaseNode]:
         """
         Get all nodes that point to this node via incoming edges.
 
@@ -97,7 +95,7 @@ class GraphQueries:
 
     # ── Orphan Detection ─────────────────────────────────────────────
 
-    def find_orphans(self, node_type: NodeType, direction: str = "out") -> List[BaseNode]:
+    def find_orphans(self, node_type: NodeType, direction: str = "out") -> list[BaseNode]:
         """
         Find nodes with no edges in the specified direction.
 
@@ -125,7 +123,7 @@ class GraphQueries:
 
     def find_nodes_missing_edge_type(
         self, node_type: NodeType, edge_type: EdgeType, direction: str = "out"
-    ) -> List[BaseNode]:
+    ) -> list[BaseNode]:
         """
         Find nodes that lack a specific edge type.
 
@@ -158,8 +156,8 @@ class GraphQueries:
     # ── Path Traversal ───────────────────────────────────────────────
 
     def traverse_path(
-        self, start_node_id: str, edge_types: List[EdgeType], max_depth: Optional[int] = None
-    ) -> List[List[BaseNode]]:
+        self, start_node_id: str, edge_types: list[EdgeType], max_depth: int | None = None
+    ) -> list[list[BaseNode]]:
         """
         Traverse a path following a sequence of edge types.
 
@@ -204,8 +202,8 @@ class GraphQueries:
         return paths
 
     def find_reachable_nodes(
-        self, start_node_id: str, edge_types: Optional[List[EdgeType]] = None, max_depth: int = 10
-    ) -> Set[str]:
+        self, start_node_id: str, edge_types: list[EdgeType] | None = None, max_depth: int = 10
+    ) -> set[str]:
         """
         Find all nodes reachable from a starting node.
 

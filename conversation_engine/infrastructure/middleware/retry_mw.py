@@ -10,7 +10,8 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Callable, Optional, Set, Tuple, Type
+from collections.abc import Callable
+from typing import Any
 
 from conversation_engine.infrastructure.middleware.base import NodeMiddleware
 
@@ -40,9 +41,9 @@ class RetryMiddleware(NodeMiddleware):
         self,
         *,
         max_retries: int = 2,
-        retryable_errors: Tuple[Type[Exception], ...] = (Exception,),
+        retryable_errors: tuple[type[Exception], ...] = (Exception,),
         backoff_base: float = 0.1,
-        nodes: Optional[Set[str]] = None,
+        nodes: set[str] | None = None,
     ) -> None:
         super().__init__(nodes=nodes)
         self._max_retries = max_retries
@@ -57,7 +58,7 @@ class RetryMiddleware(NodeMiddleware):
         if not self.applies_to(node_name):
             return next_fn(state)
 
-        last_error: Optional[Exception] = None
+        last_error: Exception | None = None
         for attempt in range(self._max_retries + 1):
             try:
                 return next_fn(state)

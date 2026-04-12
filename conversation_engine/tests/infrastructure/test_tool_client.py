@@ -12,15 +12,12 @@ import pytest
 from pydantic import BaseModel
 
 from conversation_engine.infrastructure.tool_client import (
-    ToolSpec,
+    LocalToolClient,
     ToolRegistry,
     ToolResultEnvelope,
     ToolResultMeta,
-    ToolClient,
-    ToolCallError,
-    LocalToolClient,
+    ToolSpec,
 )
-
 
 # ── Test models ─────────────────────────────────────────────────────
 

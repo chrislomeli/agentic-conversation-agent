@@ -12,28 +12,25 @@ Covers:
 - Domain-agnosticism: fake context proves the loop has no domain imports
 """
 
+from conversation_engine.fixtures import (
+    create_graph_complete,
+    create_graph_with_gaps,
+    create_minimal_graph,
+    goal_req_rule,
+    make_state,
+    req_step_rule,
+)
+from conversation_engine.graph.builder import (
+    MAX_TURNS,
+    build_conversation_graph,
+    route_after_converse,
+)
 from conversation_engine.graph.context import (
     ConversationContext,
     Finding,
     ValidationResult,
 )
-from conversation_engine.graph.nodes import validate, converse
-from conversation_engine.graph.builder import (
-    build_conversation_graph,
-    route_after_converse,
-    MAX_TURNS,
-)
-from conversation_engine.storage.graph import KnowledgeGraph
-from conversation_engine.fixtures import (
-    goal_req_rule,
-    req_step_rule,
-    make_context,
-    make_state,
-    create_graph_with_gaps,
-    create_graph_complete,
-    create_minimal_graph,
-)
-
+from conversation_engine.graph.nodes import converse, validate
 
 # ── Node unit tests ─────────────────────────────────────────────────
 

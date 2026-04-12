@@ -7,36 +7,37 @@ Edges are queryable and indexable, enabling graph traversal and analysis.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Set, Type, TypeVar
 from collections import defaultdict
+from typing import TypeVar
 
-from conversation_engine.models.base import BaseNode, BaseEdge, NodeType, EdgeType
+from conversation_engine.models.base import BaseEdge, BaseNode, EdgeType, NodeType
 from conversation_engine.models.nodes import (
+    Capability,
+    Component,
+    Constraint,
+    Decision,
+    Dependency,
+    DesignArtifact,
+    DocumentationArtifact,
     Feature,
     Goal,
     GuidingPrinciple,
-    Requirement,
-    Capability,
-    UseCase,
-    Scenario,
-    DesignArtifact,
-    Decision,
-    Constraint,
-    Component,
-    Step,
-    Dependency,
-    DocumentationArtifact,
     Project,
+    Requirement,
+    Scenario,
+    Step,
+    UseCase,
 )
 from conversation_engine.models.rule_node import IntegrityRule
 from conversation_engine.models.validation_quiz import ValidationQuiz
+
 # from conversation_engine.models.query_node import GraphQueryPattern
 
 
 T = TypeVar("T", bound=BaseNode)
 
 # Registry maps NodeType enum values → concrete Pydantic classes for deserialisation.
-_NODE_TYPE_REGISTRY: Dict[NodeType, type[BaseNode]] = {
+_NODE_TYPE_REGISTRY: dict[NodeType, type[BaseNode]] = {
     NodeType.FEATURE: Feature,
     NodeType.GOAL: Goal,
     NodeType.GUIDING_PRINCIPLE: GuidingPrinciple,
@@ -75,21 +76,21 @@ class KnowledgeGraph:
 
     def __init__(self):
         # Node storage: id -> node
-        self._nodes: Dict[str, BaseNode] = {}
+        self._nodes: dict[str, BaseNode] = {}
 
         # Edge storage: (source_id, edge_type, target_id) -> edge
         # Using tuple key ensures edge uniqueness
-        self._edges: Dict[tuple[str, EdgeType, str], BaseEdge] = {}
+        self._edges: dict[tuple[str, EdgeType, str], BaseEdge] = {}
 
         # Indexes for efficient queries
         # Outgoing edges: source_id -> list of edges
-        self._outgoing_index: Dict[str, List[BaseEdge]] = defaultdict(list)
+        self._outgoing_index: dict[str, list[BaseEdge]] = defaultdict(list)
 
         # Incoming edges: target_id -> list of edges
-        self._incoming_index: Dict[str, List[BaseEdge]] = defaultdict(list)
+        self._incoming_index: dict[str, list[BaseEdge]] = defaultdict(list)
 
         # Edge type index: edge_type -> list of edges
-        self._edge_type_index: Dict[EdgeType, List[BaseEdge]] = defaultdict(list)
+        self._edge_type_index: dict[EdgeType, list[BaseEdge]] = defaultdict(list)
 
     # ── Node Operations ──────────────────────────────────────────────
 
@@ -106,7 +107,7 @@ class KnowledgeGraph:
         # Simply add/replace the node - no index maintenance needed
         self._nodes[node.id] = node
 
-    def get_node(self, node_id: str) -> Optional[BaseNode]:
+    def get_node(self, node_id: str) -> BaseNode | None:
         """
         Retrieve a node by ID.
 
@@ -118,7 +119,7 @@ class KnowledgeGraph:
         """
         return self._nodes.get(node_id)
 
-    def get_node_typed(self, node_id: str, node_class: Type[T]) -> Optional[T]:
+    def get_node_typed(self, node_id: str, node_class: type[T]) -> T | None:
         """
         Retrieve a node by ID with type checking.
 
@@ -190,7 +191,7 @@ class KnowledgeGraph:
         # Now remove the node
         return self.remove_node(node_id)
 
-    def get_nodes_by_type(self, node_type: NodeType) -> List[BaseNode]:
+    def get_nodes_by_type(self, node_type: NodeType) -> list[BaseNode]:
         """
         Get all nodes of a specific type using enum traversal.
 
@@ -202,7 +203,7 @@ class KnowledgeGraph:
         """
         return [node for node in self._nodes.values() if node.node_type == node_type]
 
-    def get_all_nodes(self) -> List[BaseNode]:
+    def get_all_nodes(self) -> list[BaseNode]:
         """Get all nodes in the graph."""
         return list(self._nodes.values())
 
@@ -240,7 +241,7 @@ class KnowledgeGraph:
         self._incoming_index[edge.target_id].append(edge)
         self._edge_type_index[edge.edge_type].append(edge)
 
-    def get_edge(self, source_id: str, edge_type: EdgeType, target_id: str) -> Optional[BaseEdge]:
+    def get_edge(self, source_id: str, edge_type: EdgeType, target_id: str) -> BaseEdge | None:
         """
         Retrieve a specific edge.
 
@@ -280,8 +281,8 @@ class KnowledgeGraph:
         return True
 
     def get_outgoing_edges(
-        self, source_id: str, edge_type: Optional[EdgeType] = None
-    ) -> List[BaseEdge]:
+        self, source_id: str, edge_type: EdgeType | None = None
+    ) -> list[BaseEdge]:
         """
         Get all outgoing edges from a node.
 
@@ -300,8 +301,8 @@ class KnowledgeGraph:
         return edges
 
     def get_incoming_edges(
-        self, target_id: str, edge_type: Optional[EdgeType] = None
-    ) -> List[BaseEdge]:
+        self, target_id: str, edge_type: EdgeType | None = None
+    ) -> list[BaseEdge]:
         """
         Get all incoming edges to a node.
 
@@ -319,7 +320,7 @@ class KnowledgeGraph:
 
         return edges
 
-    def get_edges_by_type(self, edge_type: EdgeType) -> List[BaseEdge]:
+    def get_edges_by_type(self, edge_type: EdgeType) -> list[BaseEdge]:
         """
         Get all edges of a specific type.
 
@@ -331,13 +332,13 @@ class KnowledgeGraph:
         """
         return list(self._edge_type_index.get(edge_type, []))
 
-    def get_all_edges(self) -> List[BaseEdge]:
+    def get_all_edges(self) -> list[BaseEdge]:
         """Get all edges in the graph."""
         return list(self._edges.values())
 
     # ── Graph Metrics ────────────────────────────────────────────────
 
-    def get_out_degree(self, node_id: str, edge_type: Optional[EdgeType] = None) -> int:
+    def get_out_degree(self, node_id: str, edge_type: EdgeType | None = None) -> int:
         """
         Get the out-degree of a node (number of outgoing edges).
 
@@ -350,7 +351,7 @@ class KnowledgeGraph:
         """
         return len(self.get_outgoing_edges(node_id, edge_type))
 
-    def get_in_degree(self, node_id: str, edge_type: Optional[EdgeType] = None) -> int:
+    def get_in_degree(self, node_id: str, edge_type: EdgeType | None = None) -> int:
         """
         Get the in-degree of a node (number of incoming edges).
 
@@ -395,7 +396,7 @@ class KnowledgeGraph:
         return {"nodes": nodes, "edges": edges}
 
     @classmethod
-    def from_dict(cls, data: dict) -> "KnowledgeGraph":
+    def from_dict(cls, data: dict) -> KnowledgeGraph:
         """
         Reconstruct a KnowledgeGraph from the dict produced by ``to_dict()``.
 

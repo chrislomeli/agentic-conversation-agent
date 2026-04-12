@@ -8,8 +8,9 @@ and can be exported to JSON Schema for MCP compatibility.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Type
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -20,8 +21,8 @@ class ToolSpec:
 
     name: str
     description: str
-    input_model: Type[BaseModel]
-    output_model: Type[BaseModel]
+    input_model: type[BaseModel]
+    output_model: type[BaseModel]
     handler: Callable[[BaseModel], BaseModel]
 
     def input_schema(self) -> dict[str, Any]:
