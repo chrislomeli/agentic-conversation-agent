@@ -249,7 +249,7 @@ graph.add_node(goal)
 graph.add_edge(edge)
 
 # Neo4j (same pattern)
-session.run("CREATE (g:Goal {id: $id, name: $name})", id=goal.session_id, name=goal.name)
+session.run("CREATE (g:Goal {id: $id, name: $name})", id=goal._session_id, name=goal.name)
 session.run("MATCH (g:Goal {id: $src}), (r:Requirement {id: $tgt}) CREATE (g)-[:SATISFIED_BY]->(r)", ...)
 ```
 

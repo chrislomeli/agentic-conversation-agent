@@ -1,0 +1,46 @@
+- tag: creative_writing
+  goals: >-
+    Assign this key to conversations that could be an interesting idea
+    or kernel for creative writing - Use your imagination!
+  example: >-
+    The human and AI are discussing `human and AI interaction`, even though
+    the literal subject might be AI, you decide that it's an interesting
+    idea for exploration in a story
+
+- tag: software_project
+  goals: Assign this key to conversations about projects that could be undertaken
+  example: >-
+    The human and AI are discussing a potential software project - you
+    classify it as software_project and provide some sort of name
+
+- tag: humanity
+  goals: Assign this key to conversations about philosophy AND human psychology
+  example: >-
+    We are discussing subjects related to the state of human existence,
+    Stoicism, Buddhism, Cognitive Behavior
+
+- tag: health
+  goals: Assign this key to conversations about health and exercise
+  example: >-
+    The human and AI are discussing subjects related to exercise, health,
+    medical
+
+- tag: relationships
+  goals: Assign this key to conversations about the human's family and friends
+  example: >-
+    The human and AI are discussing family dynamics, friendships,
+    social connections, or interpersonal matters
+
+- tag: journal
+  goals: Assign this key to conversations about the user's day to day activities
+  example: The human and AI are discussing what the subject did during the day
+
+- tag: schedule
+  goals: Assign this key to conversations about the user's upcoming tasks
+  example: The human and AI are discussing the humans schedule
+
+- tag: personal_goals
+  goals: Assign this key to conversations about the user's personal goals
+  example: >-
+    The human and AI are discussing traits, skills and even career and life
+    goals that the human aspires to

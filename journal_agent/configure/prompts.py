@@ -8,8 +8,44 @@ at graph-build time so the graph code never embeds raw prompt text.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import json
+from dataclasses import asdict
+from pathlib import Path
 
+import yaml
+
+from journal_agent.model.session import (
+    ClassifiedExchange,
+    Exchange,
+    Fragment,
+    Ideation,
+)
+
+# ── Taxonomy (loaded once from YAML) ──────────────────────────────────────
+_TAXONOMY_PATH = Path(__file__).parent / "taxonomy.yaml"
+
+
+def _load_taxonomy() -> list[Ideation]:
+    with open(_TAXONOMY_PATH) as f:
+        raw = yaml.safe_load(f)
+    return [Ideation(**entry) for entry in raw]
+
+
+TAXONOMY: list[Ideation] = _load_taxonomy()
+
+
+def taxonomy_json() -> str:
+    """Serialize the taxonomy for injection into prompts."""
+    return json.dumps([asdict(t) for t in TAXONOMY], indent=2)
+
+
+# ── Schema helpers ─────────────────────────────────────────────────────────
+def _schema_block(model_cls: type) -> str:
+    """Return a compact JSON-Schema representation for a Pydantic model."""
+    return json.dumps(model_cls.model_json_schema(), indent=2)
+
+
+# ── Prompt templates ───────────────────────────────────────────────────────
 PROMPT_TEMPLATES: dict[str, str] = {
     # ── Conversation ──────────────────────────────────────────────────────
     "conversation": (
@@ -20,88 +56,70 @@ PROMPT_TEMPLATES: dict[str, str] = {
     ),
 
     # ── Turn classifier ──────────────────────────────────────────────────
-    "classifier": (
-        "You are a classification engine. "
-        "Given a list of conversation turns, label each turn with ONE or MORE primary "
-        "subjects from the allowed taxonomy and up to THREE theme tags.\n\n"
-        "Respond ONLY with valid JSON matching the schema provided."
-    ),
+    "classifier": f"""
+You are a classification engine.
+
+You will receive a list of conversation exchanges serialized as JSON.
+Each exchange conforms to this schema:
+
+{_schema_block(Exchange)}
+
+Your objective is to classify each exchange according to the Taxonomy
+provided and produce a list of ClassifiedExchange objects.
+
+ClassifiedExchange schema:
+
+{_schema_block(ClassifiedExchange)}
+
+Rules:
+- Copy session_id and exchange_id from the input Exchange.
+- human_summary: transcribe the relevant parts of the human message,
+  or copy it verbatim if it does not need condensing.
+- ai_summary: same treatment for the AI message.
+- tags: assign one or more tags from the Taxonomy. Each tag object has
+  a "tag" field (must be a value from the Taxonomy) and an optional
+  "note" for justification.
+- Read ALL exchanges together before classifying. Context matters —
+  the human may refer to a previous exchange to hint at a category,
+  e.g. "that last subject would be a good creative writing topic".
+""",
 
     # ── Fragment extractor ───────────────────────────────────────────────
-    "extractor": (
-        "You are a knowledge extractor. "
-        "Given a conversation turn and its classification, break it into "
-        "atomic ideas (fragments). For each fragment provide:\n"
-        "  • content  — the idea in one or two sentences\n"
-        "  • summary  — a single-sentence headline\n"
-        "  • tags     — 1-3 short tags\n\n"
-        "Respond ONLY with valid JSON matching the schema provided."
-    ),
+    "extractor": f"""
+You are a knowledge extractor.
+
+You will receive a list of ClassifiedExchange objects serialized as JSON.
+ClassifiedExchange schema:
+
+{_schema_block(ClassifiedExchange)}
+
+Your objective is to produce Fragment records suitable for vector-database
+embedding.  Output schema:
+
+{_schema_block(Fragment)}
+
+Rules:
+- Fragments are NOT necessarily one-to-one with ClassifiedExchange records.
+  Merge or split when it produces better standalone knowledge statements.
+- The "content" field must be a dense, standalone knowledge statement —
+  NOT a transcript summary.
+
+  Bad:  "User asked if AI causes dependency. AI said AI would need to
+         communicate for humans."
+  Good: "AI-induced erosion of human communication would require AI
+         systems capable of communicating on humans' behalf, making
+         inter-AI communication a prerequisite."
+
+  The good version reads like an idea, not a summary of a conversation.
+  Embedders match queries like "does AI weaken human connection?" to
+  prose that states the idea.
+- Copy exchange_ids from all related ClassifiedExchange records.
+- Copy tags from the related ClassifiedExchange records.
+- Use the timestamp from the last related ClassifiedExchange, or the
+  current datetime.
+- Generate a unique UUID for the "id" field.
+""",
 }
-
-
-# ── Taxonomies ────────────────────────────────────────────────────────────
-# Predefined vocabularies that classifier prompts reference.
-# Keep them here so they can be injected into prompts at call-time
-# without hard-coding inside the prompt string itself.
-@dataclass
-class Ideation:
-    key: str
-    goals: str
-    example: str
-    notes: str
-    theme_list: list[str]
-
-
-TAXONOMY : list[Ideation] = [
-    Ideation(
-        key="creative_writing",
-        goals="Assign this key to conversations that could be an interesting idea or kernel for creative writing - Use your imagination! ",
-        example="We could be discussing the subject of human and AI interaction, even though the literal subject might be AI, it might be an interesting idea for exploration in a short story ",
-        notes="Use the following themes if they fit, but add new ones if nothing fits",
-        theme_list=["idea_seed", "concept"]
-        ),
-    Ideation(
-        key="software_project",
-        goals="Assign this key to conversations about projects that could be undertaken",
-        example="We could be discussing a potential software project - we want to classify it as software_project and provide some sort of name",
-        notes="There are no other themes other than a name for the project - if we did not discuss a name, feel free to make one up",
-        theme_list=["<project name>"]
-    ),
-    Ideation(
-        key="humanity",
-        goals="Assign this key to conversations about philosophy AND human psychology",
-        example="We could be discussing subjects related to the state of human existence, Stoicism, Buddhism, Cognitive Behavior ",
-        notes="Use the following themes if they fit, but add your own if nothing fits",
-        theme_list=["philosophy", "psychology"]
-    )
-]
-
-
-
-SUBJECT_TAXONOMY: list[str] = [
-    "creative_writing",
-    "personal_goals",
-    "project_ideas",
-    "philosophy",
-    "science",
-    "technology",
-    "health",
-    "relationships",
-    "career",
-    "other",
-]
-
-THEME_TAXONOMY: list[str] = [
-    "idea_seed",
-    "decision",
-    "question",
-    "reflection",
-    "plan",
-    "emotion",
-    "learning",
-    "observation",
-]
 
 
 def get_prompt(key: str) -> str:

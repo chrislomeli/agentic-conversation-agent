@@ -53,3 +53,5 @@ def node_trace(node_name: str | None = None):
                 raise
 
         return wrapper
+
+    return decorator

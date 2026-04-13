@@ -15,7 +15,7 @@ from journal_agent.graph.state import (
     JournalState,
 )
 from journal_agent.model.session import Role
-from journal_agent.storage.api import SessionStore
+from journal_agent.storage.store import SessionStore
 
 logger = logging.getLogger(__name__)
 

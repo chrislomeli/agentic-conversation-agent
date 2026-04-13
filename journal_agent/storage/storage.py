@@ -4,8 +4,10 @@ import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from journal_agent.model.session import Turn
+from journal_agent.model.session import Turn, Exchange
 from langchain_core.messages import BaseMessage
+
+#from journal_agent.storage.api import Exchange
 
 
 @dataclasses.dataclass
@@ -57,27 +59,27 @@ class SessionDatabase(DataStore):
         except ValueError:
             return None
 
-    def save_session(self, session_id: str, turn: list[Turn]):
+    def save_session(self, session_id: str, exchanges: list[Exchange]):
         if self._path is None:
             raise ValueError("Path name is not set")
 
-        if not turn:
+        if not exchanges:
             return
 
         file = self._path / f"{session_id}.jsonl"
 
         # Append line by line
         with file.open(mode="a", encoding="utf-8") as f:
-            for t in turn:
+            for t in exchanges:
                 f.write(f"{t.model_dump_json()}\n")  # Manually add newline characters
 
-    def load_session(self, session_id: str) -> list[Turn] | None:
+    def load_session(self, session_id: str) -> list[Exchange] | None:
         file = self._path / f"{session_id}.jsonl"
         data = []
         if file.exists():
             with file.open("r") as f:
                 for line in f:
-                    t = Turn.model_validate(json.loads(line.strip()))
+                    t = Exchange.model_validate(json.loads(line.strip()))
                     data.append(t)
 
         return data if len(data) > 0 else None

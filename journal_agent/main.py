@@ -7,7 +7,7 @@ from journal_agent.configure.config_builder import LLM_ROLE_CONFIG, configure_en
 from journal_agent.configure.prompts import get_prompt
 from journal_agent.graph.graph import build_journal_graph
 from journal_agent.graph.state import STATUS_IDLE
-from journal_agent.storage.api import SessionStore
+from journal_agent.storage.store import SessionStore
 from langchain_core.messages import BaseMessage, SystemMessage
 
 
