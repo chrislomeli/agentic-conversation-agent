@@ -34,7 +34,7 @@ def _make_get_user_input(session_store: SessionStore) -> Callable[..., dict]:
                 return {"status": STATUS_COMPLETED}
 
             # add input to session store
-            session_store.cache_turn(
+            session_store.on_human_turn(
                 session_id=state["session_id"], role=Role.HUMAN, content=user_input
             )
 
@@ -55,9 +55,6 @@ def _make_get_user_input(session_store: SessionStore) -> Callable[..., dict]:
     return get_user_input
 
 
-
-
-
 def _make_get_ai_response(llm: LLMClient, session_store: SessionStore) -> Callable[..., dict]:
     @node_trace("get_ai_response")
     def get_ai_response(state: JournalState) -> dict:
@@ -67,7 +64,7 @@ def _make_get_ai_response(llm: LLMClient, session_store: SessionStore) -> Callab
             content = (
                 response.content if isinstance(response.content, str) else str(response.content)
             )
-            session_store.cache_turn(
+            session_store.on_ai_turn(
                 session_id=state["session_id"],
                 role=Role.AI,
                 content=content,

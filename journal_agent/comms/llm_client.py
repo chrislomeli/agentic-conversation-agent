@@ -58,6 +58,10 @@ class LLMClient:
     def chat(self, messages) -> AIMessage:
         return self._client.invoke(messages)
 
+    def structured(self, schema: type):
+        """Return a runnable that outputs instances of *schema*."""
+        return self._client.with_structured_output(schema)
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # FACTORY FUNCTION

@@ -1,6 +1,7 @@
 import json
 import logging
 from collections.abc import Callable
+from dataclasses import asdict
 
 from langchain_core.messages import AIMessage, SystemMessage, HumanMessage
 
@@ -11,7 +12,7 @@ from journal_agent.graph.state import (
     STATUS_ERROR,
     JournalState,
 )
-from journal_agent.model.session import Role
+from journal_agent.model.session import Role, ClassifiedExchange
 from journal_agent.storage.api import SessionStore
 
 logger = logging.getLogger(__name__)
@@ -20,30 +21,21 @@ def _make_turn_classifier(llm: LLMClient, session_store: SessionStore) -> Callab
     @node_trace("turn_classifier")
     def turn_classifier(state: JournalState) -> dict:
         try:
-            # input = all turns from store
+            taxonomy_json = json.dumps([asdict(t) for t in TAXONOMY])
+            system_message = get_prompt("classifier") + "\n\nTaxonomy:\n" + taxonomy_json
+            system = SystemMessage(system_message)
+
             turns = session_store.get_cached_turns()
-            human_prompt = "Please classify these turns using the following Taxonomy : "  + json.dumps(TAXONOMY)
-            system = SystemMessage(get_prompt("classifier"))
+            human_prompt = "\n\n".join([turn.model_dump_json() for turn in turns])
             human = HumanMessage(content=human_prompt)
-            response = llm.chat([system, human])
-            content = (
-                response.content if isinstance(response.content, str) else str(response.content)
-            )
-            session_store.cache_turn(
-                session_id=state["session_id"],
-                role=Role.AI,
-                content=content,
-            )
-            print(content)
-            return {
-                "session_messages": [AIMessage(content=content)],
-                "status": ""
-            }
+
+            structured_llm = llm.structured(list[ClassifiedExchange])
+            exchanges = structured_llm.invoke([system, human])
+
+            return {"classified_exchanges": exchanges}
         except Exception as e:
-            logger.exception("Failed to generate AI response")
+            logger.exception("Failed to classify turns")
             return {
                 "status": STATUS_ERROR,
                 "error_message": str(e),
             }
-
-    return turn_classifier
