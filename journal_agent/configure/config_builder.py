@@ -48,6 +48,14 @@ models: dict[LLMLabel, LLMModel | None] = {
     LLMLabel.STUB: None,
 }
 
+# ── Role → model label mapping ────────────────────────────────────────────
+# Each entry says: "for this role, use this model from the models dict."
+# If a role is absent here it falls back to the default ("conversation").
+LLM_ROLE_CONFIG: dict[str, LLMLabel] = {
+    "conversation": LLMLabel.OLLAMA_LLAMA3,
+    "classifier": LLMLabel.OLLAMA_LLAMA3,
+}
+
 
 def _mask_secret(value: str) -> str:
     if not value:

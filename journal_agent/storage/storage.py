@@ -4,7 +4,7 @@ import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from journal_agent.model.turn import Turn
+from journal_agent.model.session import Turn
 from langchain_core.messages import BaseMessage
 
 

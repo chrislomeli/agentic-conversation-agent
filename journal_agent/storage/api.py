@@ -1,4 +1,4 @@
-from journal_agent.model.turn import Role, Turn
+from journal_agent.model.session import Role, Turn
 from journal_agent.storage.storage import SessionDatabase
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 
@@ -25,6 +25,9 @@ class SessionStore:
         self._turns.append(
             Turn(session_id=session_id, role=role, content=content, metadata=metadata)
         )
+
+    def get_cached_turns(self) -> list[Turn]:
+        return self._turns
 
     def retrieve_context(self, criteria: str | None = None) -> list[BaseMessage] | None:
         messages: list[BaseMessage] | None = None
