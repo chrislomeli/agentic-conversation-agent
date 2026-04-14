@@ -11,7 +11,7 @@ from journal_agent.graph.state import (
     STATUS_ERROR,
     JournalState, STATUS_FRAGMENTS_SAVED, STATUS_EXCHANGES_SAVED, STATUS_TRANSCRIPT_SAVED,
 )
-from journal_agent.model.session import ClassifiedExchange, Fragment
+from journal_agent.model.session import ClassifiedExchange, Fragment, ClassifiedExchangeList, FragmentList
 from journal_agent.storage.exchange_store import TranscriptStore
 from journal_agent.storage.storage import JsonStore
 
@@ -24,14 +24,16 @@ def make_exchange_classifier(llm: LLMClient, session_store: TranscriptStore) -> 
             system_message = get_prompt("classifier") + "\n\nTaxonomy:\n" + taxonomy_json()
             system = SystemMessage(system_message)
 
-            exchanges = session_store.get_cached_transcript()
+
+            exchanges = state["transcript"]
+
             human_prompt = "\n\n".join([turn.model_dump_json() for turn in exchanges])
             human = HumanMessage(content=human_prompt)
 
-            structured_llm = llm.structured(list[ClassifiedExchange])
-            exchanges = structured_llm.invoke([system, human])
+            structured_llm = llm.structured(ClassifiedExchangeList)
+            exchange_list = structured_llm.invoke([system, human])
 
-            return {"classified_exchanges": exchanges}
+            return {"classified_exchanges": exchange_list.exchanges}
         except Exception as e:
             logger.exception("Failed to classify turns")
             return {
@@ -52,13 +54,13 @@ def make_fragment_extractor(llm: LLMClient) -> Callable[..., dict]:
             human_prompt = "\n\n".join([ce.model_dump_json() for ce in classified])
             human = HumanMessage(content=human_prompt)
 
-            structured_llm = llm.structured(list[Fragment])
-            fragments = structured_llm.invoke([system, human])
+            structured_llm = llm.structured(FragmentList)
+            fragment_list = structured_llm.invoke([system, human])
+            #
+            # for f in fragments:
+            #     f.fragment_id = str(uuid.uuid4())
 
-            for f in fragments:
-                f.fragment_id = str(uuid.uuid4())
-
-            return {"fragments": fragments}
+            return {"fragments": fragment_list.exchanges}
         except Exception as e:
             logger.exception("Failed to extract fragments")
             return {

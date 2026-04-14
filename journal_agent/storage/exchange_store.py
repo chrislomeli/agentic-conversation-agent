@@ -37,7 +37,9 @@ class TranscriptStore:
     def on_ai_turn(self, session_id: str, role: Role, content: str) -> Exchange:
         self._current_exchange.session_id = session_id
         self._current_exchange.ai = Turn(session_id=session_id, role=role, content=content)
-        return self._current_exchange
+        response = self._current_exchange
+        self._current_exchange = Exchange()
+        return response
 
     def retrieve_transcript(self, criteria: str | None = None) -> list[BaseMessage] | None:
         _messages: list[BaseMessage] | None = None

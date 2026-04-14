@@ -41,6 +41,9 @@ class Fragment(BaseModel):
     tags: list[Tag]  # tags
     timestamp: datetime
 
+class FragmentList(BaseModel):
+    exchanges: list[Fragment]
+
 
 class Exchange(BaseModel):
     exchange_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -57,3 +60,7 @@ class ClassifiedExchange(BaseModel):
     ai_summary: str  # transcribe the relevant parts of the AI message or copy it if it does not need condensing
     tags: list[Tag]  # from TAXONOMY classify this record using the TAXONOMY provided
     timestamp: datetime  # copied from the Exchange record
+
+class ClassifiedExchangeList(BaseModel):
+    exchanges: list[ClassifiedExchange]
+

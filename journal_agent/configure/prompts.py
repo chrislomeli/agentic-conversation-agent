@@ -19,7 +19,7 @@ from journal_agent.model.session import (
     ClassifiedExchange,
     Exchange,
     Fragment,
-    Ideation,
+    Ideation, ClassifiedExchangeList,
 )
 
 # ── Taxonomy (loaded once from YAML) ──────────────────────────────────────
@@ -52,8 +52,7 @@ PROMPT_TEMPLATES: dict[str, str] = {
     "conversation": (
         "You are a thoughtful journal companion. "
         "Help the user explore their ideas. "
-        "Always answer the question and, when relevant, note which broad "
-        "subject area the conversation touches on."
+        "Always answer the question with your own thoughts - this is a conversation between you and the user. "
     ),
 
     # ── Turn classifier ──────────────────────────────────────────────────
@@ -66,11 +65,13 @@ Each exchange conforms to this schema:
 {_schema_block(Exchange)}
 
 Your objective is to classify each exchange according to the Taxonomy
-provided and produce a list of ClassifiedExchange objects.
+provided and produce a list of ClassifiedExchange objects which can 
 
-ClassifiedExchange schema:
-
+You should create a list of ClassifiedExchange records that reduce the Exchanges to relevant classified records:
 {_schema_block(ClassifiedExchange)}
+
+YYour list of records then goes into a ClassifiedExchangeList object:
+{_schema_block(ClassifiedExchangeList)}
 
 Rules:
 - Copy session_id and exchange_ids from the input Exchanges that you construct this record from.  The session_id should be redundant, but if not take any session_id for now

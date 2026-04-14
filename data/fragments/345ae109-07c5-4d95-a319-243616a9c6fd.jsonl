@@ -1,0 +1,48 @@
+{
+  "fragment_id": "9a4c9e86-f941-4114-9b4a-b97a2dcc80e9",
+  "session_id": "345ae109-07c5-4d95-a319-243616a9c6fd",
+  "content": "Writing fiction can be a thrilling adventure, allowing you to tap into your imagination and create entire worlds. What kind of story are you thinking of writing? Do you have any ideas already brewing in your mind, or do you want to start from scratch?",
+  "exchange_ids": [
+    "ee63837b-f06a-4df0-ab9d-db75cb371a21"
+  ],
+  "tags": [
+    {
+      "tag": "creative_writing",
+      "qualifier": null,
+      "note": null
+    }
+  ],
+  "timestamp": "2026-04-13T23:02:50.833000Z"
+}
+{
+  "fragment_id": "42004624-63c3-45d9-b773-fb6b92c1b626",
+  "session_id": "345ae109-07c5-4d95-a319-243616a9c6fd",
+  "content": "id like to try my hand at writing fiction",
+  "exchange_ids": [
+    "ee63837b-f06a-4df0-ab9d-db75cb371a21"
+  ],
+  "tags": [
+    {
+      "tag": "creative_writing",
+      "qualifier": null,
+      "note": null
+    }
+  ],
+  "timestamp": "2026-04-13T23:02:50.833000Z"
+}
+{
+  "fragment_id": "2ce74be8-bd62-47e6-81c4-8f04acec68b9",
+  "session_id": "345ae109-07c5-4d95-a319-243616a9c6fd",
+  "content": "That's exciting! Writing fiction can be a thrilling adventure, allowing you to tap into your imagination and create entire worlds.",
+  "exchange_ids": [
+    "ee63837b-f06a-4df0-ab9d-db75cb371a21"
+  ],
+  "tags": [
+    {
+      "tag": "creative_writing",
+      "qualifier": null,
+      "note": null
+    }
+  ],
+  "timestamp": "2026-04-13T23:02:50.833000Z"
+}

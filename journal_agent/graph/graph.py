@@ -9,8 +9,7 @@ from journal_agent.comms.llm_client import LLMClient
 from journal_agent.comms.llm_registry import LLMRegistry
 from journal_agent.graph.node_tracer import node_trace
 from journal_agent.graph.nodes.classifier import make_exchange_classifier, make_fragment_extractor
-from journal_agent.graph.nodes.save_data import make_save_transcript, make_save_exchanges, save_fragments, \
-    make_save_fragments
+from journal_agent.graph.nodes.save_data import make_save_transcript, make_save_exchanges, make_save_fragments
 from journal_agent.graph.state import (
     STATUS_COMPLETED,
     STATUS_ERROR,
@@ -75,7 +74,7 @@ def make_get_ai_response(llm: LLMClient, session_store: TranscriptStore) -> Call
             print(content)
             return {
                 "session_messages": [AIMessage(content=content)],
-                "transcript" : exchange,
+                "transcript" : [exchange],
                 "status": STATUS_PROCESSING,
             }
         except Exception as e:
@@ -87,21 +86,21 @@ def make_get_ai_response(llm: LLMClient, session_store: TranscriptStore) -> Call
 
     return get_ai_response
 
-
-def make_save_turn(session_store: TranscriptStore) -> Callable[..., dict]:
-    @node_trace("save_turn")
-    def save_turn(state: JournalState) -> dict:
-        try:
-            session_store.store_cache(state["session_id"])
-            return {}
-        except Exception as e:
-            logger.exception("Failed to save turn information to store")
-            return {
-                "status": STATUS_ERROR,
-                "error_message": str(e),
-            }
-
-    return save_turn
+#
+# def make_save_turn(session_store: TranscriptStore) -> Callable[..., dict]:
+#     @node_trace("save_turn")
+#     def save_turn(state: JournalState) -> dict:
+#         try:
+#             session_store.store_cache(state["session_id"])
+#             return {}
+#         except Exception as e:
+#             logger.exception("Failed to save turn information to store")
+#             return {
+#                 "status": STATUS_ERROR,
+#                 "error_message": str(e),
+#             }
+#
+#     return save_turn
 
 
 def route_on_user_input(state: JournalState) -> str:

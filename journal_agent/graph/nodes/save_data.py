@@ -78,10 +78,10 @@ def make_save_fragments() -> Callable[..., dict]:
             session_id = state["session_id"]
 
             # content
-            content = state["classified_exchanges"]
+            content = state["fragments"]
 
             # storage logic
-            store = JsonStore("exchanges")
+            store = JsonStore("fragments")
 
             # save exchanges
             store.save_session(session_id, content)
