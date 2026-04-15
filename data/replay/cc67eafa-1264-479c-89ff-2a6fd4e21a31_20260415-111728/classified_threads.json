@@ -1,0 +1,54 @@
+[
+  {
+    "thread_name": "inner_vs_outer_worlds_discussion",
+    "exchange_ids": [
+      "ce6becdb-8a11-438a-b4d0-4aad38dfbdb8",
+      "f5696e54-286e-4551-8a4b-e17b22566f9e",
+      "26a20eff-ccc9-4593-99d9-7688b3f7ad5f",
+      "fa4bae62-6381-4a92-9279-d3ad045512c5",
+      "b1c9341e-0f4e-4dee-ae35-144c7f989da9"
+    ],
+    "tags": [
+      {
+        "tag": "humanity",
+        "qualifier": null,
+        "note": "The conversation explores philosophical themes about the nature of human experience, the duality of inner and outer worlds, chaos, and existential choices."
+      }
+    ]
+  },
+  {
+    "thread_name": "agentic_ai_exploration",
+    "exchange_ids": [
+      "da7953ad-cb55-4eb8-878a-5ec7c1646aa1",
+      "dfc84c11-100d-4fb5-a00e-0a016c99588e",
+      "a767a0e1-5792-4809-b300-7f565e6addd8",
+      "cce5afdb-737f-4a01-84f9-df4e2830694b",
+      "c36f35c7-7320-410c-9430-cabd08c0c6ff",
+      "5816b779-409e-4cb8-a586-c2bb50fa40bd"
+    ],
+    "tags": [
+      {
+        "tag": "personal_goals",
+        "qualifier": null,
+        "note": "The human is taking this year to become proficient in agentic AI."
+      },
+      {
+        "tag": "project",
+        "qualifier": "conversation_loop",
+        "note": "The human is working on a project called 'conversation loop' involving AI and journaling."
+      },
+      {
+        "tag": "humanity",
+        "qualifier": null,
+        "note": "The conversation involves philosophical reflections on AI, human experience, and the nature of intelligence."
+      }
+    ]
+  },
+  {
+    "thread_name": "music_theory_keys",
+    "exchange_ids": [
+      "c0590f16-71bf-4230-858a-c0a68a51f043"
+    ],
+    "tags": []
+  }
+]

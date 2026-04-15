@@ -11,6 +11,7 @@ from journal_agent.storage.utils import resolve_project_root
 class VectorStore:
 
     database_name: str = "chroma_db"
+    collection_name = "journal"
     client: chromadb.ClientAPI | None = None
 
     def __init__(self):
@@ -23,11 +24,18 @@ class VectorStore:
         self.client = chromadb.PersistentClient(path=path)
 
         # Create/get the collection (this is your "table")
-        self.collection = self.client.get_or_create_collection(name="fragments")
+        self.collection = self.client.get_or_create_collection(name=self.collection_name)
 
+    def truncate_collection(self):
+        # Delete the collection
+        self.client.delete_collection(name=self.collection_name)
+        # Recreate the collection
+        self.collection = self.client.create_collection(name=self.collection_name)
 
     def rebuild_chroma_from_json(self, full_path: Path):
-        self.collection.delete(where={})
+        # Assuming 'collection' is your collection object
+        self.truncate_collection()
+
         for json_file in full_path.glob("*.json"):
             objects = json.loads(json_file.read_text())
 
@@ -40,7 +48,7 @@ class VectorStore:
             self.collection.add(ids=ids, documents=docs, metadatas=metas)
 
 
-    def search_fragments(self, query_text: str, top_k: int = 3) -> list[Fragment]:
+    def search_fragments(self, query_text: str, max_distance: float = 1.3, top_k: int = 5) -> list[Fragment]:
         _fragments: list[Fragment] = []
         try:
             results = self.collection.query(
@@ -50,6 +58,9 @@ class VectorStore:
             result_set = 0
             rows_count = len(results["ids"][result_set])
             for row in range(rows_count):
+                distance = results["distances"][result_set][row]
+                if distance > max_distance:
+                    continue
                 id = results["ids"][result_set][row]
                 document = results["documents"][result_set][row]
                 metadata = results["metadatas"][result_set][row]
@@ -97,5 +108,5 @@ if __name__ == "__main__":
     v = VectorStore()
     json_folder = resolve_project_root() / "data" / "test"
     v.rebuild_chroma_from_json(json_folder)
-    fragments = v.search_fragments("i want to discuss the inner world concept")
+    fragments = v.search_fragments("i want to discuss music theory")
     print("done")
