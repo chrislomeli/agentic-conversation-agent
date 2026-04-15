@@ -1,11 +1,20 @@
 - tag: creative_writing
   goals: >-
-    Assign this key to conversations that could be an interesting idea
-    or kernel for creative writing - Use your imagination!
+    Assign this key ONLY when the human explicitly treats an idea as a
+    kernel or prompt for creative writing — e.g. they say "that would
+    make a good story", are brainstorming fiction, or are developing
+    characters, plots, or scenes. Do NOT assign this tag for
+    incidental literary references, citations of authors or books used
+    to frame a point in another discussion, or conversations that
+    merely sound literary.
   example: >-
-    The human and AI are discussing `human and AI interaction`, even though
-    the literal subject might be AI, you decide that it's an interesting
-    idea for exploration in a story
+    Good: The human says "the way those two coworkers clash would make
+    an interesting short story" → tag: creative_writing.
+    Bad (do NOT tag as creative_writing): The human references Asimov's
+    Susan Calvin to illustrate a point about AI-as-collaborator. The
+    reference is a citation supporting a philosophical argument, not a
+    story idea — this belongs under `humanity` or `project`, not
+    creative_writing.
 
 - tag: project
   goals: >-
@@ -20,10 +29,21 @@
     tag: project, qualifier: new:recipe_app.
 
 - tag: humanity
-  goals: Assign this key to conversations about philosophy AND human psychology
+  goals: >-
+    Assign this key to conversations about philosophy and human
+    psychology — including the nature of human experience,
+    consciousness, free will, meaning, narrative, belief, chaos,
+    solitude, and what it means to be human. Also applies to
+    philosophical reflections on AI-and-human relations (e.g. whether
+    AI can be a collaborator, whether AI will inherit human flaws,
+    whether human perception is "just programming we believe because
+    it is our narrative") — these sit squarely under philosophy of
+    humanity, even when the literal subject word is "AI".
   example: >-
-    The human and AI  are discussing subjects related to the state of human existence,
-    Stoicism, Buddhism, Cognitive Behavior
+    The human and AI are discussing subjects related to the state of
+    human existence, Stoicism, Buddhism, cognitive behavior, the
+    philosophy of mind, or whether an artificial intelligence could
+    truly understand the human condition.
 
 - tag: health
   goals: Assign this key to conversations about health and exercise

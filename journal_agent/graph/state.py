@@ -3,7 +3,7 @@ from operator import add
 from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
 
-from journal_agent.model.session import ClassifiedExchange, Fragment, Exchange
+from journal_agent.model.session import ClassifiedExchange, Fragment, Exchange, ThreadSegment, ExpandedThreadSegment
 
 STATUS_IDLE = "idle"
 STATUS_PROCESSING = "processing"
@@ -19,7 +19,9 @@ class JournalState(TypedDict):
     seed_context: list[BaseMessage]
     session_messages: Annotated[list[BaseMessage], add_messages]
     transcript: Annotated[list[Exchange], add]
-    classified_exchanges: list[ClassifiedExchange]  # new — written by classify, read by extract
+    threads: Annotated[list[ThreadSegment], add]
+    classified_threads: Annotated[list[ThreadSegment], add]
+    classified_exchanges: list[ClassifiedExchange]  # todo DEPRECATEm THIS
     fragments: list[Fragment]  # new — written by classify, read by extract
     status: Literal["idle", "processing", "completed", "error"]
     error_message: str | None

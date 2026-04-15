@@ -38,6 +38,7 @@ class TranscriptStore:
         self._current_exchange.session_id = session_id
         self._current_exchange.ai = Turn(session_id=session_id, role=role, content=content)
         response = self._current_exchange
+        response.timestamp = response.ai.timestamp
         self._current_exchange = Exchange()
         return response
 

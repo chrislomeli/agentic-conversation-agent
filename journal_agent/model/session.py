@@ -47,6 +47,7 @@ class FragmentList(BaseModel):
 
 class Exchange(BaseModel):
     exchange_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now())
     session_id: str | None = None  # back-reference to raw session
     human: Turn | None = None
     ai: Turn | None = None
@@ -64,3 +65,28 @@ class ClassifiedExchange(BaseModel):
 class ClassifiedExchangeList(BaseModel):
     exchanges: list[ClassifiedExchange]
 
+
+class ThreadSegment(BaseModel):
+    thread_name: str  # free-form snake_case, 2-6 words
+    exchange_ids: list[str]  # which exchanges belong
+    tags: list[Tag]  # from TAXONOMY classify this record using the TAXONOMY provided
+
+class ThreadSegmentList(BaseModel):
+    threads: list[ThreadSegment]
+
+class ThreadClassificationResponse(BaseModel):
+    tags: list[Tag]
+
+class ExchangeClassificationRequest(BaseModel):
+    exchange_id: str
+    timestamp: datetime  # copied from the Exchange record
+    dialog: str
+
+class ExpandedThreadSegment(BaseModel):
+    thread_name: str  # free-form snake_case, 2-6 words
+    exchange_ids: list[str]  # which exchanges belong
+    exchanges: list[ExchangeClassificationRequest]  # which exchanges belong
+    tags: list[Tag]  # from TAXONOMY classify this record using the TAXONOMY provided
+
+class ExpandedThreadSegmentList(BaseModel):
+    threads: list[ExpandedThreadSegment]

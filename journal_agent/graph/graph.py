@@ -135,14 +135,16 @@ def build_journal_graph(
 ):
     """Build and compile the journal conversation graph."""
     conversation_llm = registry.get("conversation")
+    classifier_llm = registry.get("classifier")
+    extractor_llm = registry.get("extractor")
 
     # noinspection PyTypeChecker
     builder = StateGraph(JournalState)  # no_qa
 
     builder.add_node("get_user_input", make_get_user_input(session_store=session_store))
     builder.add_node("get_ai_response", make_get_ai_response(llm=conversation_llm, session_store=session_store))
-    builder.add_node("exchange_classifier", make_exchange_classifier(llm=conversation_llm, session_store=session_store))
-    builder.add_node("fragment_extractor", make_fragment_extractor(llm=conversation_llm))
+    builder.add_node("exchange_classifier", make_exchange_classifier(llm=classifier_llm))
+    builder.add_node("fragment_extractor", make_fragment_extractor(llm=extractor_llm))
     builder.add_node("save_transcript", make_save_transcript())
     builder.add_node("save_exchanges", make_save_exchanges())
     builder.add_node("save_fragments", make_save_fragments())

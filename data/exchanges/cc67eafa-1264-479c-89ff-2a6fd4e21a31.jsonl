@@ -1,0 +1,38 @@
+{
+  "classification_id": "31aa9a7a-9045-4f39-a102-fae0752544a2",
+  "session_id": "cc67eafa-1264-479c-89ff-2a6fd4e21a31",
+  "exchange_ids": [
+    "ce6becdb-8a11-438a-b4d0-4aad38dfbdb8",
+    "f5696e54-286e-4551-8a4b-e17b22566f9e",
+    "26a20eff-ccc9-4593-99d9-7688b3f7ad5f",
+    "fa4bae62-6381-4a92-9279-d3ad045512c5",
+    "da7953ad-cb55-4eb8-878a-5ec7c1646aa1",
+    "dfc84c11-100d-4fb5-a00e-0a016c99588e",
+    "a767a0e1-5792-4809-b300-7f565e6addd8",
+    "cce5afdb-737f-4a01-84f9-df4e2830694b",
+    "c36f35c7-7320-410c-9430-cabd08c0c6ff",
+    "5816b779-409e-4cb8-a586-c2bb50fa40bd",
+    "c0590f16-71bf-4230-858a-c0a68a51f043",
+    "c36f35c7-7320-410c-9430-cabd08c0c6ff"
+  ],
+  "human_summary": "The human and AI are discussing the inner and outer worlds, with the human suggesting that humans have a dual existence. The AI responds by highlighting the complexities of the external world and the importance of balance between the two.",
+  "ai_summary": "The AI is exploring the concept of chaos and its appeal, suggesting that it represents freedom from structure and routine. It also highlights the importance of finding meaning and beauty in the midst of chaos.",
+  "tags": [
+    {
+      "tag": "dual_existence",
+      "qualifier": null,
+      "note": null
+    },
+    {
+      "tag": "chaos",
+      "qualifier": null,
+      "note": null
+    },
+    {
+      "tag": "balance",
+      "qualifier": null,
+      "note": null
+    }
+  ],
+  "timestamp": "2026-04-14T05:00:00Z"
+}
