@@ -14,6 +14,7 @@ from journal_agent.graph.state import (
     STATUS_CLASSIFIED_THREADS_SAVED,
 )
 from journal_agent.storage.storage import JsonStore
+from journal_agent.storage.vector_store import VectorStore
 
 logger = logging.getLogger(__name__)
 
@@ -124,9 +125,9 @@ def make_save_classified_threads() -> Callable[..., dict]:
     return save_classified_threads
 
 
-def make_save_fragments() -> Callable[..., dict]:
-    @node_trace("fragment_extractor")
-    def save_fragments(state: JournalState):
+def make_save_fragments_to_json() -> Callable[..., dict]:
+    @node_trace("save_fragments_to_json")
+    def save_fragments_to_json(state: JournalState):
         try:
             # store under session name
             session_id = state["session_id"]
@@ -151,8 +152,33 @@ def make_save_fragments() -> Callable[..., dict]:
                 "error_message": str(e),
             }
 
-    return save_fragments
+    return save_fragments_to_json
 
 
+def make_save_fragments_to_vectordb(vector_store: VectorStore) -> Callable[..., dict]:
+    @node_trace("save_fragments_to_vectordb")
+    def save_fragments_to_vectordb(state: JournalState):
+        try:
+            # store under session name
+            session_id = state["session_id"]
 
+            # content
+            content = state["fragments"]
+
+
+            # save exchanges
+            vector_store.add_to_chroma_from_fragments(content)
+
+            return {
+                "status": STATUS_FRAGMENTS_SAVED
+            }
+
+        except Exception as e:
+            logger.exception("Failed to extract fragments")
+            return {
+                "status": STATUS_ERROR,
+                "error_message": str(e),
+            }
+
+    return save_fragments_to_vectordb
 

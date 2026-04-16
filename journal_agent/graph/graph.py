@@ -19,7 +19,7 @@ from journal_agent.graph.nodes.save_data import (
     make_save_transcript,
     make_save_threads,
     make_save_classified_threads,
-    make_save_fragments,
+    make_save_fragments_to_json, make_save_fragments_to_vectordb,
 )
 from journal_agent.graph.state import (
     STATUS_COMPLETED,
@@ -73,7 +73,7 @@ from langchain_core.messages import HumanMessage
 
 
 def make_retrieve_history(vector_store: VectorStore) -> Callable[..., dict]:
-    @node_trace("get_ai_response")
+    @node_trace("retrieve_history")
     def retrieve_history(state: JournalState) -> dict:
         # Find the most recent HumanMessage, not just the last message.
         # Robust to future graph wiring that may interleave AI/tool messages.
@@ -98,20 +98,19 @@ def make_get_ai_response(llm: LLMClient, session_store: TranscriptStore) -> Call
             # Build the system message with retrieved context baked in
             system_prompt = get_prompt("conversation")
             fragments = state["retrieved_history"]
-            system_content = (system_prompt
-                              + "\nPREVIOUS CONVERSATIONS: "
-                              + "\n\t" + json.dumps([{"content": f.content,"tag": [t.tag for t in f.tags]} for f in fragments]))
-            system = SystemMessage(system_content)
+            system_content = (
+                f"{system_prompt}\n\nPREVIOUS CONVERSATIONS:\n\t"
+                + json.dumps([{"content": f.content, "tag": [t.tag for t in f.tags]} for f in fragments])
+            )
+            system = [SystemMessage(system_content)]
 
             # construct the  prompt messages
-            messages = state["seed_context"]     # messages seeded prior to the graph
-            session = state["session_messages"]  # messages in this session
-            messages.extend(session)
+            messages = state["seed_context"] + state["session_messages"]
 
             # get the llm response
             client = llm.get_client()
-            response = client.invoke([system] + messages)
-            
+            response = client.invoke(system + messages)
+
             # model answers using context
             content = (
                 response.content if isinstance(response.content, str) else str(response.content)
@@ -201,12 +200,13 @@ def build_journal_graph(
     builder.add_node("exchange_decomposer", make_exchange_decomposer(llm=classifier_llm))
     builder.add_node("thread_classifier", make_thread_classifier(llm=classifier_llm))
     builder.add_node("thread_fragment_extractor", make_thread_fragment_extractor(llm=extractor_llm))
+    builder.add_node("save_fragments_to_vectordb", make_save_fragments_to_vectordb(vector_store=vector_store))
 
     # Persistence nodes (one per pipeline artifact)
     builder.add_node("save_transcript", make_save_transcript())
     builder.add_node("save_threads", make_save_threads())
     builder.add_node("save_classified_threads", make_save_classified_threads())
-    builder.add_node("save_fragments", make_save_fragments())
+    builder.add_node("save_fragments_to_json", make_save_fragments_to_json())
 
     # Wiring
     builder.add_edge(START, "get_user_input")
@@ -220,8 +220,8 @@ def build_journal_graph(
     builder.add_edge("save_threads", "thread_classifier")
     builder.add_edge("thread_classifier", "save_classified_threads")
     builder.add_edge("save_classified_threads", "thread_fragment_extractor")
-    builder.add_edge("thread_fragment_extractor", "save_fragments")
-    builder.add_edge("save_fragments", END)
-
+    builder.add_edge("thread_fragment_extractor", "save_fragments_to_json")
+    builder.add_edge("save_fragments_to_json", "save_fragments_to_vectordb")
+    builder.add_edge("save_fragments_to_vectordb", END)
     compiled = builder.compile()
     return compiled

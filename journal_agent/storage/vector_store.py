@@ -43,17 +43,18 @@ class VectorStore:
         self.truncate_collection()
         self.add_to_chroma_from_json(full_path)
 
-
     def add_to_chroma_from_json(self, full_path: Path):
         # Assuming 'collection' is your collection object
-        self.truncate_collection()
-
         for json_file in full_path.glob("*.json"):
             objects = json.loads(json_file.read_text())
+            _fragments: list[Fragment] = [Fragment(**f) for f in objects]
+            self.add_to_chroma_from_fragments(_fragments=_fragments)
 
+    def add_to_chroma_from_fragments(self, _fragments: list[Fragment]):
+        # Assuming 'collection' is your collection object
             ids, docs, metas = [], [], []
-            for f in objects:
-                d = self.fragment_to_chroma(Fragment(**f))
+            for f in _fragments:
+                d = self.fragment_to_chroma(f)
                 ids.append(d["id"])
                 docs.append(d["document"]  + "  TAGS: " + d["metadata"]["tags"])
                 metas.append(d["metadata"])

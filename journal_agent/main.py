@@ -2,14 +2,13 @@
 
 from uuid import uuid4
 
+from langchain_core.messages import BaseMessage
+
 from journal_agent.comms.llm_registry import build_llm_registry
 from journal_agent.configure.config_builder import LLM_ROLE_CONFIG, configure_environment, models
-from journal_agent.configure.prompts import get_prompt
 from journal_agent.graph.graph import build_journal_graph
 from journal_agent.graph.state import STATUS_IDLE
 from journal_agent.storage.exchange_store import TranscriptStore
-from langchain_core.messages import BaseMessage, SystemMessage
-
 from journal_agent.storage.vector_store import get_vector_store
 
 
@@ -45,7 +44,6 @@ def main():
         "session_id": session_id,
         "seed_context": seed_context,
         "session_messages": [],
-        "classified_exchanges": [],
         "status": STATUS_IDLE,
         "error_message": None,
     }
