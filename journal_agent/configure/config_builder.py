@@ -21,6 +21,11 @@ from journal_agent.configure.settings import (
     get_settings,
 )
 
+DEFAULT_RECENT_MESSAGES_COUNT = 5
+DEFAULT_SESSION_MESSAGES_COUNT = 10
+DEFAULT_RETRIEVED_HISTORY_COUNT = 5
+
+
 models: dict[LLMLabel, LLMModel | None] = {
     # OpenAI models
     LLMLabel.GPT_MINI: LLMModel(

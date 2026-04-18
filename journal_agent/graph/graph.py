@@ -9,7 +9,7 @@ from journal_agent.comms.human_chat import get_human_input
 from journal_agent.comms.llm_client import LLMClient
 from journal_agent.comms.llm_registry import LLMRegistry
 from journal_agent.configure.context_builder import ContextBuilder, ContextBuildError
-from journal_agent.configure.prompts import get_prompt
+from journal_agent.configure.prompts import get_prompt, PromptKey
 from journal_agent.graph.node_tracer import node_trace
 from journal_agent.graph.nodes.classifier import (
     make_exchange_decomposer,
@@ -28,15 +28,15 @@ from journal_agent.graph.state import (
     STATUS_PROCESSING,
     JournalState,
 )
-from journal_agent.model.session import Role
+from journal_agent.model.session import Role, ContextSpecification
 from journal_agent.storage.exchange_store import TranscriptStore
 from journal_agent.storage.vector_store import get_vector_store, VectorStore
 
 logger = logging.getLogger(__name__)
 context_builder = ContextBuilder()
 
-# ── Graph builder ─────────────────────────────────────────────────────────────
 
+# ── Graph builder ─────────────────────────────────────────────────────────────
 
 
 def make_get_user_input(session_store: TranscriptStore) -> Callable[..., dict]:
@@ -87,8 +87,8 @@ def make_retrieve_history(vector_store: VectorStore) -> Callable[..., dict]:
             return {
                 "retrieved_history": []}  # nothing to query against
 
-        history = vector_store.search_fragments(query_msg.content, max_distance=1.3, top_k=5)
-        return {"retrieved_history": history}
+        matches = vector_store.search_fragments(query_msg.content, min_relevance=0.3, top_k=5)
+        return {"retrieved_history": [fragment for fragment, _ in matches]}
 
     return retrieve_history
 
@@ -98,9 +98,12 @@ def make_get_ai_response(llm: LLMClient, session_store: TranscriptStore) -> Call
     def get_ai_response(state: JournalState) -> dict:
         try:
 
-
             # Build the system message with retrieved context baked in
-            messages = context_builder.get_context("conversation", state)
+            instruction = state["context_specification"]
+            messages = context_builder.get_context(instruction=instruction,
+                                                   session_messages=state["session_messages"],
+                                                   recent_messages=state["recent_messages"],
+                                                   retrieved_fragments=state["retrieved_history"])
 
             # get the llm response
             client = llm.get_client()
@@ -119,11 +122,10 @@ def make_get_ai_response(llm: LLMClient, session_store: TranscriptStore) -> Call
             )
             print(content)
 
-
             # update the transcript with this exchange
             return {
                 "session_messages": [AIMessage(content=content)],
-                "transcript" : [exchange],
+                "transcript": [exchange],
                 "status": STATUS_PROCESSING,
             }
         except ContextBuildError as e:
@@ -164,11 +166,10 @@ def route_on_ai_response(state: JournalState) -> str:
     return "get_user_input"
 
 
-
 def build_journal_graph(
-    registry: LLMRegistry,
-    session_store: TranscriptStore,
-    vector_store: VectorStore
+        registry: LLMRegistry,
+        session_store: TranscriptStore,
+        vector_store: VectorStore
 ):
     """Build and compile the journal conversation graph.
 

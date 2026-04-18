@@ -3,7 +3,8 @@ from operator import add
 from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
 
-from journal_agent.model.session import ClassifiedExchange, Fragment, Exchange, ThreadSegment, ExpandedThreadSegment
+from journal_agent.model.session import ClassifiedExchange, Fragment, Exchange, ThreadSegment, ExpandedThreadSegment, \
+    ScoreCard, ContextSpecification
 
 STATUS_IDLE = "idle"
 STATUS_PROCESSING = "processing"
@@ -18,12 +19,13 @@ STATUS_ERROR = "error"
 
 class JournalState(TypedDict):
     session_id: str
-    seed_context: list[BaseMessage]
+    recent_messages: list[BaseMessage]
     session_messages: Annotated[list[BaseMessage], add_messages]
     transcript: Annotated[list[Exchange], add]
     threads: Annotated[list[ThreadSegment], add]
     classified_threads: Annotated[list[ThreadSegment], add]
     fragments: list[Fragment]  # new — written by classify, read by extract
     retrieved_history: list[Fragment]  # lookup by user query
+    context_specification: ContextSpecification  # current instruction from intent classification
     status: Literal["idle", "processing", "completed", "error"]
     error_message: str | None

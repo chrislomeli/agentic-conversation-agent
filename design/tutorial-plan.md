@@ -151,6 +151,42 @@ Classify what the user is doing each turn and use that to shape retrieval and re
 
 **Test it:** Say "let's design a system" vs "what did we talk about last time?" vs "I'm just thinking out loud" — verify intent is classified correctly and response style changes.
 
+### Design guidance
+
+At its core this is a classifier node — but the *interesting* part is what you do with the label, not the classification itself. The classifier answers: *"what is the user trying to do this turn?"* → one of the enum values. The value comes from downstream branching that reads that label:
+
+- **Router decision:** `exploration` → maybe skip RAG entirely; `retrieval` → run retrieval with a wider net
+- **Retrieval params:** `design` wants 3 tightly-relevant fragments; `reflection` might want 8 loosely-related ones
+- **Prompt shape:** ContextBuilder appends an intent-specific instruction block ("user is in design mode, be structured and concrete")
+
+The classifier itself is boring — the architecture is where the learning lives: *how does one upstream signal reshape multiple downstream nodes?* That's why Phase 8 sits before parallelization (Phase 11): you need the signal to exist before you can fan out on it.
+
+### The canonical pattern: "Routing"
+
+This is a named pattern — **Routing**, from Anthropic's *Building Effective Agents* post. It's one of the five canonical agent patterns (prompt chaining, routing, parallelization, orchestrator-workers, evaluator-optimizer). Worth skimming that post before coding — it'll frame the whole curriculum, not just this phase.
+
+### Practical patterns that save you from common mistakes
+
+1. **Keep the taxonomy small (5–7 intents max).** Classifiers degrade fast past that. The current 5 is right-sized.
+
+2. **Always include a fallback/unknown intent.** Force-choosing among 5 labels when the real answer is "none of these" produces confident-but-wrong labels. Better: 6 labels with `unknown` as the escape hatch.
+
+3. **Separate classification from routing.** The classifier returns the label; a *router function* (or LangGraph conditional edge) consumes it. Strategy pattern — swap routing logic without retraining/retuning the classifier.
+
+4. **Table-driven config, not if/else.** Map intent → `{top_k, max_distance, prompt_suffix}` in a dict. Declarative, easy to tune, easy to test:
+
+   ```python
+   INTENT_POLICY = {
+       "design":      {"top_k": 3, "max_distance": 1.0, "prompt_suffix": "Be structured."},
+       "exploration": {"top_k": 0, ...},  # skip retrieval
+       ...
+   }
+   ```
+
+5. **Log the classification (with confidence if you have it).** You'll want to review misclassifications later to refine the taxonomy — hard to do without a trace.
+
+**What you don't need to learn ahead of time:** the classifier mechanics (prompt + structured output — you've done that). The downstream design is a judgment call — code the mechanics, make your own calls, iterate.
+
 **NOTES:**
  ---                                                                                                                                                                                                                                               
   2. Chain-of-thought / self-critique scaffolds                                                                                                                                                                                                       

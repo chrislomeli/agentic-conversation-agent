@@ -4,13 +4,12 @@ import logging
 import tiktoken
 from langchain_core.messages import BaseMessage, SystemMessage
 
-from journal_agent.configure.prompts import get_prompt
-from journal_agent.graph.state import JournalState
-from journal_agent.model.session import Fragment
-
+from journal_agent.configure.prompts import get_prompt, PromptKey
+from journal_agent.model.session import Fragment, ContextSpecification
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
+
 
 class ContextBuildError(Exception):
     """Base exception for context-building failures."""
@@ -44,24 +43,35 @@ class ContextBuilder:
     def __init__(self):
         pass
 
-    def get_context(self, key: str, state: JournalState) -> list[BaseMessage]:
-        # get all the various components we need to build the context
-        try:
-            prompt: str = get_prompt(key=key)
-        except KeyError as e:
-            raise MissingStateError(f"prompt:{key}") from e
+    def get_context(self, instruction: ContextSpecification, session_messages: list[BaseMessage] | None = None,
+                    recent_messages: list[BaseMessage] | None = None,
+                    retrieved_fragments: list[Fragment] | None = None) -> list[BaseMessage]:
 
-        try:
-            session_messages: list[BaseMessage] = list(state["session_messages"])
-            recent_messages: list[BaseMessage] = list(state["seed_context"])
-            retrieved_fragments: list[Fragment] = state["retrieved_history"]
-        except KeyError as e:
-            raise MissingStateError(str(e)) from e
+        # get all the various components we need to build the context - truncate them based on the instructions passed in
+        session_messages = list(
+            session_messages[-instruction.last_k_session_messages:]      # truncate to the last N messages based on the instruction passed in
+        ) if session_messages and instruction.last_k_session_messages else []  # guard against zeros and Nones
 
+        recent_messages = list(
+            recent_messages[-instruction.last_k_recent_messages:]  # truncate to the last N messages based on the instruction passed in
+        ) if recent_messages and instruction.last_k_recent_messages else [] # guard against zeros and Nones
+
+        retrieved_fragments = list(
+            retrieved_fragments[:instruction.top_k_retrieved_history]   # truncate to the TOP N messages based on the instruction passed in
+        ) if retrieved_fragments and instruction.top_k_retrieved_history else []
+
+
+        # get the prompt value using the PromptKey passed in
+        try:
+            prompt: str = get_prompt(instruction.prompt_key)
+        except KeyError as e:
+            raise MissingStateError(f"prompt:{instruction.prompt_key}") from e
+
+        # build the retrieved context to a json string
         retrieved_context: str = json.dumps(
             [{"content": f.content, "tag": [t.tag for t in f.tags]} for f in retrieved_fragments])
 
-        # a good time to perform a rough calculation of the estimated token count
+        # perform a calculation of the token count
         effective_max = self.max_tokens * (1 - self.threshold)
         count_prompt_tokens = self.count_string_tokens(prompt)
         count_retrieved_context = self.count_string_tokens(retrieved_context)
@@ -99,7 +109,8 @@ class ContextBuilder:
 
         # if we've pruned everything we can and are still over, bail
         if overage_tokens > 0:
-            logger.debug(f"After removing session_messages we are still {overage_tokens} tokens too big - throw an exception")
+            logger.debug(
+                f"After removing session_messages we are still {overage_tokens} tokens too big - throw an exception")
             raise ContextTooLargeError(int(count_all_tokens), int(effective_max))
 
         # Construct the System message
@@ -107,7 +118,7 @@ class ContextBuilder:
         logger.debug(f"System context: \n{system_content}")
 
         if retrieved_context:
-            rc =  f"\n\n<retrieved_context>\n{retrieved_context}\n</retrieved_context>"
+            rc = f"\n\n<retrieved_context>\n{retrieved_context}\n</retrieved_context>"
             logger.debug(f"Retrieved Context: \n{rc}")
             system_content += rc
 
@@ -124,7 +135,6 @@ class ContextBuilder:
             "Session Messages: %s",
             [m.model_dump_json() for m in session_messages]
         )
-
 
         # Construct all messages
         messages = [system_message] + recent_messages + session_messages

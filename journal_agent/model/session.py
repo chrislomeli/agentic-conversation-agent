@@ -5,6 +5,10 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
+from journal_agent.configure.config_builder import DEFAULT_RECENT_MESSAGES_COUNT, DEFAULT_SESSION_MESSAGES_COUNT, \
+    DEFAULT_RETRIEVED_HISTORY_COUNT
+from journal_agent.configure.prompts import PromptKey
+
 
 class Role(Enum):
     HUMAN = "human"
@@ -34,12 +38,13 @@ class Tag(BaseModel):
 
 
 class Fragment(BaseModel):
-    fragment_id: str = Field(default_factory=lambda: str(uuid.uuid4())) # a unique uuid
+    fragment_id: str = Field(default_factory=lambda: str(uuid.uuid4()))  # a unique uuid
     session_id: str  # (which Turn this came from)
     content: str  # your summary for searchable embedding
     exchange_ids: list[str]  # a list of exchange_id from the Exchange records that comprised this summary
     tags: list[Tag]  # tags
     timestamp: datetime
+
 
 class FragmentList(BaseModel):
     exchanges: list[Fragment]
@@ -62,6 +67,7 @@ class ClassifiedExchange(BaseModel):
     tags: list[Tag]  # from TAXONOMY classify this record using the TAXONOMY provided
     timestamp: datetime  # copied from the Exchange record
 
+
 class ClassifiedExchangeList(BaseModel):
     exchanges: list[ClassifiedExchange]
 
@@ -71,22 +77,27 @@ class ThreadSegment(BaseModel):
     exchange_ids: list[str]  # which exchanges belong
     tags: list[Tag]  # from TAXONOMY classify this record using the TAXONOMY provided
 
+
 class ThreadSegmentList(BaseModel):
     threads: list[ThreadSegment]
 
+
 class ThreadClassificationResponse(BaseModel):
     tags: list[Tag]
+
 
 class ExchangeClassificationRequest(BaseModel):
     exchange_id: str
     timestamp: datetime  # copied from the Exchange record
     dialog: str
 
+
 class ExpandedThreadSegment(BaseModel):
     thread_name: str  # free-form snake_case, 2-6 words
     exchange_ids: list[str]  # which exchanges belong
     exchanges: list[ExchangeClassificationRequest]  # which exchanges belong
     tags: list[Tag]  # from TAXONOMY classify this record using the TAXONOMY provided
+
 
 class ExpandedThreadSegmentList(BaseModel):
     threads: list[ExpandedThreadSegment]
@@ -98,10 +109,29 @@ class FragmentDraft(BaseModel):
     Bookkeeping fields (session_id, fragment_id, timestamp) are filled in
     by the node code post-hoc, not by the LLM.
     """
-    content: str                   # the standalone, voice-preserving idea statement
-    exchange_ids: list[str]        # which thread exchange(s) this idea came from
-    tags: list[Tag]                # subset of the thread's tags that apply to this idea
+    content: str  # the standalone, voice-preserving idea statement
+    exchange_ids: list[str]  # which thread exchange(s) this idea came from
+    tags: list[Tag]  # subset of the thread's tags that apply to this idea
 
 
 class FragmentDraftList(BaseModel):
     fragments: list[FragmentDraft]
+
+
+class Domain(BaseModel):
+    tag: str  # from fixed taxonomy list
+    score: float  # 0.0–1.0
+
+
+class ScoreCard(BaseModel):
+    question_score: float  # 0.0–1.0  how much is this a request for information/opinion
+    first_person_score: float  # 0.0–1.0  how much is the speaker talking about themselves
+    task_score: float  # 0.0–1.0  how much does this contain an explicit directive
+    domains: list[Domain]  # scores across all 8 domains
+
+
+class ContextSpecification(BaseModel):
+    prompt_key: PromptKey
+    last_k_session_messages: int = Field(default=DEFAULT_RECENT_MESSAGES_COUNT, ge=0, le=20)
+    last_k_recent_messages: int = Field(default=DEFAULT_SESSION_MESSAGES_COUNT, ge=0, le=20)
+    top_k_retrieved_history: int = Field(default=DEFAULT_RETRIEVED_HISTORY_COUNT, ge=0, le=10)

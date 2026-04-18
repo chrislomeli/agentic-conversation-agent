@@ -1,6 +1,6 @@
-- tag: creative_writing
+- tag: creativity
   goals: >-
-    Assign this key ONLY when the human explicitly treats an idea as a
+    Assign this key when the human explicitly treats an idea as a
     kernel or prompt for creative writing — e.g. they say "that would
     make a good story", are brainstorming fiction, or are developing
     characters, plots, or scenes. Do NOT assign this tag for
@@ -30,7 +30,7 @@
 
 - tag: humanity
   goals: >-
-    Assign this key to conversations about philosophy and human
+    Assign this key to conversations about philosophy, spirituality, and human
     psychology — including the nature of human experience,
     consciousness, free will, meaning, narrative, belief, chaos,
     solitude, and what it means to be human. Also applies to
@@ -44,6 +44,12 @@
     human existence, Stoicism, Buddhism, cognitive behavior, the
     philosophy of mind, or whether an artificial intelligence could
     truly understand the human condition.
+
+- tag: music
+  goals: >-
+    Assign this key to conversations about music theory, music performance, music production, music history
+  example: >-
+    The human and AI are discussing subjects related music performance, musicality, and music theory
 
 - tag: health
   goals: Assign this key to conversations about health and exercise
@@ -66,7 +72,17 @@
   example: The human and AI are discussing the humans schedule
 
 - tag: personal_goals
-  goals: Assign this key to conversations about the user's personal goals
+  goals: Assign this key to conversations about the user's personal and career goals
   example: >-
     The human and AI are discussing traits, skills and even career and life
     goals that the human aspires to
+
+- tag: technology
+  goals: Assign this key to conversations about tools, engineering, software, systems, or any STEM subject
+  example: >-
+    The human and AI are discussing a software engineering or AI project, or any STEM subject
+
+- tag: finance
+  goals: Assign this key to conversations about money, budgeting, investing, economic decisions
+  example: >-
+    The human and AI are discussing both their own finances and also general economics and finance

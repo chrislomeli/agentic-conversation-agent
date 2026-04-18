@@ -6,7 +6,9 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from typing_extensions import deprecated
 
 from journal_agent.comms.llm_client import LLMClient
-from journal_agent.configure.prompts import get_prompt, taxonomy_json
+from journal_agent.configure.context_builder import ContextBuilder
+from journal_agent.configure.prompts import get_prompt, taxonomy_json, PromptKey
+from journal_agent.configure.score_card import resolve_scorecard_to_specification
 from journal_agent.graph.node_tracer import node_trace
 from journal_agent.graph.state import (
     STATUS_ERROR,
@@ -14,10 +16,10 @@ from journal_agent.graph.state import (
 from journal_agent.model.session import ClassifiedExchangeList, FragmentList, \
     ThreadSegmentList, ExchangeClassificationRequest, ThreadSegment, Exchange, \
     ThreadClassificationResponse, ExpandedThreadSegment, Fragment, \
-    FragmentDraftList
+    FragmentDraftList, ScoreCard, ContextSpecification
 
 logger = logging.getLogger(__name__)
-
+context_builder = ContextBuilder()
 
 def inflate_threads(threads: list[ThreadSegment], exchanges: list[Exchange]) -> list[ExpandedThreadSegment]:
     # optional make the exchange list into a map
@@ -51,7 +53,7 @@ def make_exchange_decomposer(llm: LLMClient) -> Callable[..., dict]:
     @node_trace("exchange_decomposer")
     def exchange_decomposer(state: JournalState) -> dict:
         try:
-            system_message = get_prompt("decomposer")
+            system_message = get_prompt(PromptKey.DECOMPOSER)
             system = SystemMessage(system_message)
 
             exchanges = state["transcript"]
@@ -78,7 +80,7 @@ def make_thread_classifier(llm: LLMClient) -> Callable[..., dict]:
     def thread_classifier(state: JournalState) -> dict:
 
         try:
-            system_message = get_prompt("thread_classifier") + "\n\nTaxonomy:\n" + taxonomy_json()
+            system_message = get_prompt(PromptKey.THREAD_CLASSIFIER) + "\n\nTaxonomy:\n" + taxonomy_json()
             system = SystemMessage(system_message)
 
             classified_threads: list[ThreadSegment] = []
@@ -116,7 +118,7 @@ def make_thread_fragment_extractor(llm: LLMClient) -> Callable[..., dict]:
     @node_trace("fragment_extractor")
     def fragment_extractor(state: JournalState) -> dict:
         try:
-            system = SystemMessage(get_prompt("extractor"))
+            system = SystemMessage(get_prompt(PromptKey.FRAGMENT_EXTRACTOR))
             fragment_list: list[Fragment] = []
 
             session_id: str = state["session_id"]
@@ -154,24 +156,37 @@ def make_thread_fragment_extractor(llm: LLMClient) -> Callable[..., dict]:
     return fragment_extractor
 
 
+def make_intent_classifier(llm: LLMClient) -> Callable[..., dict]:
+    @node_trace("retrieve_history")
+    def intent_classifier(state: JournalState) -> dict:
 
-@deprecated("Old one-shot pipeline — use make_exchange_decomposer + make_thread_classifier.")
-def make_exchange_classifier(llm: LLMClient) -> Callable[..., dict]:
-    @node_trace("exchange_classifier")
-    def exchange_classifier(state: JournalState) -> dict:
         try:
-            system_message = get_prompt("classifier") + "\n\nTaxonomy:\n" + taxonomy_json()
-            system = SystemMessage(system_message)
 
-            exchanges = state["transcript"]
+            # preconditions
+            if len(state["session_messages"]) < 1:
+                raise  Exception("No session messages found while asking for AI response")
 
-            human_prompt = "\n\n".join([turn.model_dump_json() for turn in exchanges])
-            human = HumanMessage(content=human_prompt)
+            # set up the messages we will pass the llm for this intent classification
+            messages = context_builder.get_context(
+                ContextSpecification(
+                    prompt_key=PromptKey.INTENT_CLASSIFIER,
+                    last_k_session_messages=5,
+                    last_k_recent_messages=0,
+                    top_k_retrieved_history=0
+                ) ,
+                session_messages=state["session_messages"])
 
-            structured_llm = llm.structured(ClassifiedExchangeList)
-            exchange_list = structured_llm.invoke([system, human])
+            # involve the llm
+            structured_llm = llm.structured(ScoreCard)
+            score_card: ScoreCard = structured_llm.invoke(messages)
 
-            return {"classified_exchanges": exchange_list.exchanges}
+            # translate the score_card into a message specification
+            specification = resolve_scorecard_to_specification(score_card)
+
+            # update the state
+            return {"context_specification": specification}
+
+
         except Exception as e:
             logger.exception("Failed to classify turns")
             return {
@@ -179,33 +194,13 @@ def make_exchange_classifier(llm: LLMClient) -> Callable[..., dict]:
                 "error_message": str(e),
             }
 
-    return exchange_classifier
+        return {"score_card": score_card}  ## NO - we need to assess the score card and return the best ones
+
+
+    return intent_classifier
 
 
 
-@deprecated("Old one-shot pipeline — use make_thread_fragment_extractor.")
-def make_fragment_extractor(llm: LLMClient) -> Callable[..., dict]:
-    @node_trace("fragment_extractor")
-    def fragment_extractor(state: JournalState) -> dict:
-        try:
-            system = SystemMessage(get_prompt("extractor"))
 
-            classified = state["classified_exchanges"]
-            human_prompt = "\n\n".join([ce.model_dump_json() for ce in classified])
-            human = HumanMessage(content=human_prompt)
 
-            structured_llm = llm.structured(FragmentList)
-            fragment_list = structured_llm.invoke([system, human])
-            #
-            # for f in fragments:
-            #     f.fragment_id = str(uuid.uuid4())
 
-            return {"fragments": fragment_list.exchanges}
-        except Exception as e:
-            logger.exception("Failed to extract fragments")
-            return {
-                "status": STATUS_ERROR,
-                "error_message": str(e),
-            }
-
-    return fragment_extractor

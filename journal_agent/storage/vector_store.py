@@ -1,11 +1,28 @@
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Callable
 
 import chromadb
 
 from journal_agent.model.session import Fragment, Tag
 from journal_agent.storage.utils import resolve_project_root
+
+logger = logging.getLogger(__name__)
+
+# Clamp raw L2 distances above this value to relevance 0.
+# With Chroma's default embeddings, real queries rarely exceed 2.0.
+_L2_MAX_USEFUL = 2.0
+
+
+def _relevance_from_l2(distance: float) -> float:
+    return max(0.0, 1.0 - distance / _L2_MAX_USEFUL)
+
+
+def _relevance_from_cosine(distance: float) -> float:
+    # Chroma cosine distance ∈ [0, 2]: 0 = identical, 2 = opposite.
+    return max(0.0, 1.0 - distance / 2.0)
 
 """
 
@@ -31,6 +48,20 @@ class VectorStore:
 
         # Create/get the collection (this is your "table")
         self.collection = self.client.get_or_create_collection(name=self.collection_name)
+
+        self._to_relevance = self._select_relevance_fn()
+
+    def _select_relevance_fn(self) -> Callable[[float], float]:
+        metadata = self.collection.metadata or {}
+        space = metadata.get("hnsw:space", "l2")
+        if space == "cosine":
+            return _relevance_from_cosine
+        if space == "l2":
+            return _relevance_from_l2
+        # ip ("inner product") and any future metrics: not implemented.
+        # Fall back to L2 with a warning so callers still get a 0–1 value.
+        logger.warning("Unknown hnsw:space=%r; falling back to L2 normalization.", space)
+        return _relevance_from_l2
 
     def truncate_collection(self):
         # Delete the collection
@@ -61,8 +92,13 @@ class VectorStore:
             self.collection.add(ids=ids, documents=docs, metadatas=metas)
 
 
-    def search_fragments(self, query_text: str, max_distance: float = 1.3, top_k: int = 5) -> list[Fragment]:
-        _fragments: list[Fragment] = []
+    def search_fragments(
+        self,
+        query_text: str,
+        min_relevance: float = 0.3,
+        top_k: int = 5,
+    ) -> list[tuple[Fragment, float]]:
+        matches: list[tuple[Fragment, float]] = []
         try:
             results = self.collection.query(
                 query_texts=[query_text],  # ← human's raw message
@@ -72,23 +108,23 @@ class VectorStore:
             rows_count = len(results["ids"][result_set])
             for row in range(rows_count):
                 distance = results["distances"][result_set][row]
-                if distance > max_distance:
+                relevance = self._to_relevance(distance)
+                if relevance < min_relevance:
                     continue
                 id = results["ids"][result_set][row]
                 document = results["documents"][result_set][row]
                 metadata = results["metadatas"][result_set][row]
 
-                _fragments.append(
-                    VectorStore.fragment_from_chroma({
-                        "id": id,
-                        "document": document,
-                        "metadata": metadata
-                    })
-                )
+                fragment = VectorStore.fragment_from_chroma({
+                    "id": id,
+                    "document": document,
+                    "metadata": metadata
+                })
+                matches.append((fragment, relevance))
 
-            return _fragments
+            return matches
         except Exception as e:
-            print(f"Error searching fragments: {e}")
+            logger.exception("Error searching fragments: %s", e)
             return []
 
     @staticmethod
@@ -127,15 +163,13 @@ def get_vector_store(rebuild: bool = False):
 
 if __name__ == "__main__":
     v = get_vector_store(rebuild=True)
-    fragments = v.search_fragments("lets discuss humanity")
+    matches = v.search_fragments("lets discuss humanity")
 
     history = json.dumps([{
+        "relevance": round(rel, 3),
         "content": f.content,
         "tag": [t.tag for t in f.tags]
-    } for f in fragments])
+    } for f, rel in matches])
 
     print(history)
-
-
-
-    print(fragments)
+    print(matches)
