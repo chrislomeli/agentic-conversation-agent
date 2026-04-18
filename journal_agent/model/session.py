@@ -6,7 +6,8 @@ from enum import Enum, StrEnum
 from pydantic import BaseModel, Field
 
 from journal_agent.configure.config_builder import DEFAULT_RECENT_MESSAGES_COUNT, DEFAULT_SESSION_MESSAGES_COUNT, \
-    DEFAULT_RETRIEVED_HISTORY_COUNT
+    DEFAULT_RETRIEVED_HISTORY_COUNT, DEFAULT_RETRIEVED_HISTORY_DISTANCE
+
 
 class Status(StrEnum):
     IDLE = "idle"
@@ -156,3 +157,4 @@ class ContextSpecification(BaseModel):
     last_k_session_messages: int = Field(default=DEFAULT_RECENT_MESSAGES_COUNT, ge=0, le=20)
     last_k_recent_messages: int = Field(default=DEFAULT_SESSION_MESSAGES_COUNT, ge=0, le=20)
     top_k_retrieved_history: int = Field(default=DEFAULT_RETRIEVED_HISTORY_COUNT, ge=0, le=10)
+    distance_retrieved_history: int = Field(default=DEFAULT_RETRIEVED_HISTORY_DISTANCE, ge=0, le=10)

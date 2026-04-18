@@ -85,9 +85,13 @@ def make_retrieve_history(vector_store: VectorStore) -> Callable[..., dict]:
         # sprinkle in any tags from the intent classifier
         query = query_msg.content +  " tags: " + ",".join(state["context_specification"].tags)
 
+        # get specifications for searching
+        tspec = state["context_specification"]
+        distance = tspec.distance_retrieved_history
+        top_k = tspec.top_k_retrieved_history
+
         # perform the search
-        top_k = state["context_specification"].top_k_retrieved_history or 5
-        matches = vector_store.search_fragments(query, min_relevance=0.3, top_k=top_k)
+        matches = vector_store.search_fragments(query, min_relevance=distance, top_k=top_k)
         return {"retrieved_history": [fragment for fragment, _ in matches]}
 
     return retrieve_history
