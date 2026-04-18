@@ -1,23 +1,32 @@
-# we are doing two things here - retrieving context and caching turns - but this is just to keep it out of core logic and will be refactored
-from journal_agent.storage.storage import JsonStore
+from pathlib import Path
+
+from journal_agent.model.session import UserProfile
+from journal_agent.storage.utils import resolve_project_root
 
 
 class ProfileStore:
+    path: Path
     def __init__(self):
-        self._session_store = JsonStore("transcripts")
+        self._path = resolve_project_root() / "data" / "profile" / "profile.json"
+        if not self._path.exists():
+            self._path.mkdir(parents=True, exist_ok=True)
 
-    def retrieve_transcript(self, profile: UserProfile | None = None) -> list[BaseMessage] | None:
-        _messages: list[BaseMessage] | None = None
+    def load_profile(self, profile: UserProfile | None = None) -> UserProfile | None:
+        if self._path is None:
+            raise ValueError("Path name is not set")
 
-        if (latest_session_id := self._session_store.get_last_session_id()) is not None:
-            if (retrieved_exchanges := self._session_store.load_session(latest_session_id)) is not None:
-                _messages = to_messages(retrieved_exchanges)
-        return _messages
+        # Write single atomic profile
+        with self.path.open(mode="r", encoding="utf-8") as f:
+            f.read()
+            return UserProfile.model_validate_json(f.read())
 
-    def store_cache(self, session_id: str):
-        self._session_store.save_session(session_id, self._exchanges)
-        self._exchanges = []
+    def save_profile(self,  profile: UserProfile | None = None):
+        if self._path is None:
+            raise ValueError("Path name is not set")
 
+        # Write single atomic profile
+        with self.path.open(mode="w", encoding="utf-8") as f:
+            f.write(f"{profile.model_dump_json(indent=2)}\n")
 
 
 

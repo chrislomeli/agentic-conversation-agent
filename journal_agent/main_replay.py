@@ -27,11 +27,11 @@ from journal_agent.configure.config_builder import (
     models,
 )
 from journal_agent.graph.nodes.classifier import (
-    make_exchange_classifier,
-    make_fragment_extractor, make_exchange_decomposer, make_thread_classifier, make_thread_fragment_extractor,
+    make_exchange_decomposer,
+    make_thread_classifier,
+    make_thread_fragment_extractor,
 )
 from journal_agent.model.session import Exchange
-from journal_agent.storage.exchange_store import TranscriptStore
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent

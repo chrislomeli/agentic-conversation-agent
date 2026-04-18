@@ -1,3 +1,18 @@
+"""session.py — Domain models for the journal agent pipeline.
+
+Defines every data structure that flows through the LangGraph:
+
+    Turn → Exchange → ThreadSegment → ExpandedThreadSegment → Fragment
+            │                                                    │
+            └──  raw conversation pairs                          └──  searchable embeddings
+                 stored as JSONL                                      stored in ChromaDB
+
+Classification models (ScoreCard, Domain, ContextSpecification) drive
+per-turn routing: which prompt to use, how much history to retrieve, etc.
+
+UserProfile (Phase 9) accumulates user preferences across sessions.
+"""
+
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
@@ -69,10 +84,6 @@ class Fragment(BaseModel):
     timestamp: datetime
 
 
-class FragmentList(BaseModel):
-    exchanges: list[Fragment]
-
-
 class Exchange(BaseModel):
     exchange_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: datetime = Field(default_factory=lambda: datetime.now())
@@ -122,10 +133,6 @@ class ExpandedThreadSegment(BaseModel):
     tags: list[Tag]  # from TAXONOMY classify this record using the TAXONOMY provided
 
 
-class ExpandedThreadSegmentList(BaseModel):
-    threads: list[ExpandedThreadSegment]
-
-
 class FragmentDraft(BaseModel):
     """Lean fragment output from the extractor LLM — only reasoning decisions.
 
@@ -166,7 +173,7 @@ class PromptKey(Enum):
 
 class ContextSpecification(BaseModel):
     prompt_key: PromptKey = Field(default=PromptKey.CONVERSATION)
-    tags: list[str] = Field(default=[])
+    tags: list[str] = Field(default_factory=list)
     last_k_session_messages: int = Field(default=DEFAULT_RECENT_MESSAGES_COUNT, ge=0, le=20)
     last_k_recent_messages: int = Field(default=DEFAULT_SESSION_MESSAGES_COUNT, ge=0, le=20)
     top_k_retrieved_history: int = Field(default=DEFAULT_RETRIEVED_HISTORY_COUNT, ge=0, le=10)

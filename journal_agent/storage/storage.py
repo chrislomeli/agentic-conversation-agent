@@ -1,53 +1,41 @@
-import dataclasses
+"""storage.py — JSON-lines persistence for session artifacts.
+
+Provides JsonStore, a simple append-only store that writes Pydantic models
+as one-JSON-object-per-line (.jsonl) files under ``<project-root>/data/<folder>/``.
+
+Each pipeline artifact (transcripts, threads, classified_threads, fragments)
+gets its own JsonStore instance with a different folder name.
+
+The project root is resolved via the JOURNAL_AGENT_ROOT env var or by
+walking up from this file to find pyproject.toml.
+"""
+
 import json
-import os
-from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import TypeVar
 
 from pydantic import BaseModel
 
-from journal_agent.model.session import Turn, Exchange, ClassifiedExchange
-from langchain_core.messages import BaseMessage
+from journal_agent.model.session import Exchange
+from journal_agent.storage.utils import resolve_project_root
 
-#from journal_agent.storage.api import Exchange
-
-
-@dataclasses.dataclass
-class SessionData:
-    messages: list[BaseMessage]
-    turns: list[Turn]
+T = TypeVar("T", bound=BaseModel)
 
 
-class DataStore(ABC):
-    @abstractmethod
-    def save_session(self, session_id: str, turn: list[Turn]):
-        pass
+class JsonStore:
+    """Append-only JSONL store for Pydantic models.
 
-    @abstractmethod
-    def load_session(self, session_id: str) -> list[Turn] | None:
-        pass
+    Data lives at ``<project-root>/data/<folder>/<session_id>.jsonl``.
+    Each call to ``save_session`` appends; ``load_session`` reads all lines back.
+    """
 
-
-def _resolve_project_root() -> Path:
-    configured_root = os.getenv("JOURNAL_AGENT_ROOT")
-    if configured_root:
-        return Path(configured_root).expanduser().resolve()
-
-    here = Path(__file__).resolve()
-    for candidate in [here, *here.parents]:
-        if (candidate / "pyproject.toml").exists():
-            return candidate
-
-    return Path.cwd().resolve()
-
-
-class JsonStore(DataStore):
     def __init__(self, folder: str = "sessions"):
-        self._path = _resolve_project_root() / "data" / folder
+        self._path = resolve_project_root() / "data" / folder
         if not self._path.exists():
             self._path.mkdir(parents=True, exist_ok=True)
 
     def get_last_session_id(self) -> str | None:
+        """Return the session_id of the most recently created file, or None."""
         if not self._path.exists():
             return None
 
@@ -61,7 +49,7 @@ class JsonStore(DataStore):
         except ValueError:
             return None
 
-    def save_session(self, session_id: str, exchanges: list[BaseModel]  ):
+    def save_session(self, session_id: str, exchanges: list[BaseModel]):
         if self._path is None:
             raise ValueError("Path name is not set")
 
@@ -75,13 +63,18 @@ class JsonStore(DataStore):
             for t in exchanges:
                 f.write(f"{t.model_dump_json()}\n")  # Manually add newline characters
 
-    def load_session(self, session_id: str) -> list[Exchange] | None:
+    def load_session(self, session_id: str, model: type[T] = Exchange) -> list[T] | None:
+        """Read all records from the session's JSONL file, or None if empty/missing.
+
+        *model* controls deserialization — defaults to Exchange for backward
+        compatibility, but callers can pass ThreadSegment, Fragment, etc.
+        """
         file = self._path / f"{session_id}.jsonl"
         data = []
         if file.exists():
             with file.open("r") as f:
                 for line in f:
-                    t = Exchange.model_validate(json.loads(line.strip()))
+                    t = model.model_validate(json.loads(line.strip()))
                     data.append(t)
 
         return data if len(data) > 0 else None

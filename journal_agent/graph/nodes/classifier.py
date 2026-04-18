@@ -1,3 +1,20 @@
+"""classifier.py — LLM-powered graph nodes for the classification pipeline.
+
+Each ``make_*`` factory returns a node function closed over its LLMClient.
+All nodes follow the same contract:
+  - Read from JournalState
+  - Call the LLM with structured output
+  - Return a partial state dict (or Status.ERROR on failure)
+
+Pipeline order (end-of-session):
+    exchange_decomposer   — splits transcript into ThreadSegments
+    thread_classifier     — tags each thread via taxonomy
+    thread_fragment_extractor — distills threads into searchable Fragments
+
+Per-turn:
+    intent_classifier     — scores the latest messages to pick a response strategy
+"""
+
 import logging
 from collections.abc import Callable
 from datetime import datetime
@@ -17,9 +34,13 @@ from journal_agent.model.session import ThreadSegmentList, ExchangeClassificatio
     FragmentDraftList, ScoreCard, ContextSpecification
 
 logger = logging.getLogger(__name__)
-context_builder = ContextBuilder()
 
 def inflate_threads(threads: list[ThreadSegment], exchanges: list[Exchange]) -> list[ExpandedThreadSegment]:
+    """Expand compact ThreadSegments into full dialog text for LLM consumption.
+
+    Each ThreadSegment only holds exchange_ids. This function joins them with
+    the actual Exchange content so the LLM can read the conversation.
+    """
     # optional make the exchange list into a map
     exchange_map: dict[str, Exchange] = {exchange.exchange_id: exchange for exchange in exchanges}
 
@@ -48,6 +69,7 @@ def inflate_threads(threads: list[ThreadSegment], exchanges: list[Exchange]) -> 
 
 
 def make_exchange_decomposer(llm: LLMClient) -> Callable[..., dict]:
+    """Factory: split the session transcript into topical ThreadSegments."""
     @node_trace("exchange_decomposer")
     def exchange_decomposer(state: JournalState) -> dict:
         try:
@@ -74,6 +96,7 @@ def make_exchange_decomposer(llm: LLMClient) -> Callable[..., dict]:
 
 
 def make_thread_classifier(llm: LLMClient) -> Callable[..., dict]:
+    """Factory: assign taxonomy tags to each thread via structured LLM output."""
     @node_trace("thread_classifier")
     def thread_classifier(state: JournalState) -> dict:
 
@@ -113,6 +136,7 @@ def make_thread_classifier(llm: LLMClient) -> Callable[..., dict]:
 
 
 def make_thread_fragment_extractor(llm: LLMClient) -> Callable[..., dict]:
+    """Factory: distill classified threads into standalone, searchable Fragments."""
     @node_trace("fragment_extractor")
     def fragment_extractor(state: JournalState) -> dict:
         try:
@@ -154,13 +178,19 @@ def make_thread_fragment_extractor(llm: LLMClient) -> Callable[..., dict]:
     return fragment_extractor
 
 
-def make_intent_classifier(llm: LLMClient) -> Callable[..., dict]:
-    @node_trace("retrieve_history")
+def make_intent_classifier(llm: LLMClient, context_builder: ContextBuilder | None = None) -> Callable[..., dict]:
+    """Factory: score recent messages to determine the user's conversational intent.
+
+    Returns a ContextSpecification that drives prompt selection and retrieval
+    depth for the current turn.
+    """
+    context_builder = context_builder or ContextBuilder()
+    @node_trace("intent_classifier")
     def intent_classifier(state: JournalState) -> dict:
         try:
             # preconditions
             if len(state["session_messages"]) < 1:
-                raise  Exception("No session messages found while asking for AI response")
+                raise ValueError("No session messages found while asking for AI response")
 
             # set up the messages we will pass the llm for this intent classification
             messages = context_builder.get_context(
@@ -190,13 +220,50 @@ def make_intent_classifier(llm: LLMClient) -> Callable[..., dict]:
                 "error_message": str(e),
             }
 
-        return {"score_card": score_card}  ## NO - we need to assess the score card and return the best ones
-
-
     return intent_classifier
 
 
 
+def make_profile_classifier(llm: LLMClient, context_builder: ContextBuilder | None = None) -> Callable[..., dict]:
+    context_builder = context_builder or ContextBuilder()
+    @node_trace("retrieve_history")
+    def profile_classifier(state: JournalState) -> dict:
+        try:
+            # preconditions
+            if len(state["session_messages"]) < 1:
+                raise  Exception("No session messages found while asking for AI response")
 
+            # set up the messages we will pass the llm for this profile classification
+            messages = context_builder.get_context(
+                ContextSpecification(
+                    prompt_key=PromptKey.profile_CLASSIFIER,
+                    last_k_session_messages=5,
+                    last_k_recent_messages=0,
+                    top_k_retrieved_history=0
+                ) ,
+                session_messages=state["session_messages"])
+
+            # involve the llm
+            structured_llm = llm.structured(ScoreCard)
+            score_card: ScoreCard = structured_llm.invoke(messages)
+
+            # translate the score_card into a message specification
+            specification = resolve_scorecard_to_specification(score_card)
+
+            # update the state
+            return {"context_specification": specification}
+
+
+        except Exception as e:
+            logger.exception("Failed to classify turns")
+            return {
+                "status": Status.ERROR,
+                "error_message": str(e),
+            }
+
+        return {"score_card": score_card}  ## NO - we need to assess the score card and return the best ones
+
+
+    return intent_classifier
 
 

@@ -1,7 +1,28 @@
+"""graph.py — Build and wire the LangGraph for the journal agent.
+
+Two execution paths share a single compiled graph:
+
+    Conversation loop (repeats every turn):
+        get_user_input → intent_classifier → [retrieve_history] → get_ai_response
+                  ↑                                                         │
+                  └─────────────────────────────────────────────────┘
+
+    End-of-session pipeline (runs once after /quit):
+        save_transcript → exchange_decomposer → save_threads
+          → thread_classifier → save_classified_threads
+          → thread_fragment_extractor → save_fragments_to_json
+          → save_fragments_to_vectordb → END
+
+Routing functions inspect ``JournalState.status`` to decide the next node.
+On ERROR, every route sends the graph to END.
+On COMPLETED (user typed /quit), the conversation loop exits into the
+end-of-session pipeline.
+"""
+
 import logging
 from collections.abc import Callable
 
-from langchain_core.messages import AIMessage
+from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.graph import END, START, StateGraph
 
 from journal_agent.comms.human_chat import get_human_input
@@ -28,13 +49,14 @@ from journal_agent.storage.exchange_store import TranscriptStore
 from journal_agent.storage.vector_store import VectorStore
 
 logger = logging.getLogger(__name__)
-context_builder = ContextBuilder()
 
 
 # ── Graph builder ─────────────────────────────────────────────────────────────
 
 
 def make_get_user_input(session_store: TranscriptStore) -> Callable[..., dict]:
+    """Factory: node that reads console input, records the human turn, and
+    returns a HumanMessage to append to session_messages."""
     @node_trace("get_user_input")
     def get_user_input(state: JournalState) -> dict:
 
@@ -66,38 +88,47 @@ def make_get_user_input(session_store: TranscriptStore) -> Callable[..., dict]:
     return get_user_input
 
 
-from langchain_core.messages import HumanMessage
-
-
-def make_retrieve_history(vector_store: VectorStore) -> Callable[..., dict]:
+def make_retrieve_history(vector_store: VectorStore, context_builder: ContextBuilder | None = None) -> Callable[..., dict]:
+    """Factory: node that queries the vector store for fragments similar
+    to the latest human message, enriched with intent-derived tags."""
+    context_builder = context_builder or ContextBuilder()
     @node_trace("retrieve_history")
     def retrieve_history(state: JournalState) -> dict:
-        # Find the most recent HumanMessage, not just the last message.
-        # Robust to future graph wiring that may interleave AI/tool messages.
-        query_msg = next(
-            (m for m in reversed(state["session_messages"]) if isinstance(m, HumanMessage)),
-            None,
-        )
-        if query_msg is None:
+        try:
+            # Find the most recent HumanMessage, not just the last message.
+            # Robust to future graph wiring that may interleave AI/tool messages.
+            query_msg = next(
+                (m for m in reversed(state["session_messages"]) if isinstance(m, HumanMessage)),
+                None,
+            )
+            if query_msg is None:
+                return {"retrieved_history": []}  # nothing to query against
+
+            # sprinkle in any tags from the intent classifier
+            query = query_msg.content + " tags: " + ",".join(state["context_specification"].tags)
+
+            # get specifications for searching
+            tspec = state["context_specification"]
+            distance = tspec.distance_retrieved_history
+            top_k = tspec.top_k_retrieved_history
+
+            # perform the search
+            matches = vector_store.search_fragments(query, min_relevance=distance, top_k=top_k)
+            return {"retrieved_history": [fragment for fragment, _ in matches]}
+        except Exception as e:
+            logger.exception("Failed to retrieve history")
             return {
-                "retrieved_history": []}  # nothing to query against
-
-        # sprinkle in any tags from the intent classifier
-        query = query_msg.content +  " tags: " + ",".join(state["context_specification"].tags)
-
-        # get specifications for searching
-        tspec = state["context_specification"]
-        distance = tspec.distance_retrieved_history
-        top_k = tspec.top_k_retrieved_history
-
-        # perform the search
-        matches = vector_store.search_fragments(query, min_relevance=distance, top_k=top_k)
-        return {"retrieved_history": [fragment for fragment, _ in matches]}
+                "status": Status.ERROR,
+                "error_message": str(e),
+            }
 
     return retrieve_history
 
 
-def make_get_ai_response(llm: LLMClient, session_store: TranscriptStore) -> Callable[..., dict]:
+def make_get_ai_response(llm: LLMClient, session_store: TranscriptStore, context_builder: ContextBuilder | None = None) -> Callable[..., dict]:
+    """Factory: node that assembles context, calls the conversation LLM,
+    records the AI turn, and prints the response to the console."""
+    context_builder = context_builder or ContextBuilder()
     @node_trace("get_ai_response")
     def get_ai_response(state: JournalState) -> dict:
         try:
@@ -124,7 +155,7 @@ def make_get_ai_response(llm: LLMClient, session_store: TranscriptStore) -> Call
                 role=Role.AI,
                 content=content,
             )
-            print(content)
+            logger.info("AI: %s", content)
 
             # update the transcript with this exchange
             return {
@@ -145,6 +176,7 @@ def make_get_ai_response(llm: LLMClient, session_store: TranscriptStore) -> Call
     return get_ai_response
 
 def goto(node: str, on_completion: str = END) -> Callable[..., str]:
+    """Generic router: go to *node* on PROCESSING, *on_completion* on COMPLETED, END on ERROR."""
     def goto_node(state: JournalState) -> str:
         if state["status"] == Status.ERROR:
             logger.warning(
@@ -161,6 +193,7 @@ def goto(node: str, on_completion: str = END) -> Callable[..., str]:
 
 
 def route_on_user_input(state: JournalState) -> str:
+    """After user input: ERROR → END, COMPLETED → save_transcript, else → intent_classifier."""
     if state["status"] == Status.ERROR:
         logger.warning(
             "Routing to end after user input error (session_id=%s, error_message=%s)",
@@ -174,6 +207,7 @@ def route_on_user_input(state: JournalState) -> str:
 
 
 def route_on_intent(state: JournalState) -> str:
+    """After intent classification: skip retrieval if top_k_retrieved_history is 0."""
     if state["status"] == Status.ERROR:
         logger.warning(
             "Routing to end after user input error (session_id=%s, error_message=%s)",
@@ -189,6 +223,7 @@ def route_on_intent(state: JournalState) -> str:
         return "get_ai_response"
 
 def route_on_ai_response(state: JournalState) -> str:
+    """After AI response: ERROR → END, else → back to get_user_input."""
     if state["status"] == Status.ERROR:
         logger.warning(
             "Routing to end after AI response error (session_id=%s, error_message=%s)",

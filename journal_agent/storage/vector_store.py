@@ -1,3 +1,18 @@
+"""vector_store.py — ChromaDB-backed semantic search for conversation fragments.
+
+VectorStore wraps a ChromaDB PersistentClient and a single collection
+("journal") where each Fragment is stored as an embedding document.
+
+Write path (end-of-session pipeline):
+    add_to_chroma_from_fragments()  — called by save_fragments_to_vectordb node
+
+Read path (per-turn):
+    search_fragments()              — called by retrieve_history node
+
+Relevance scoring converts Chroma's raw L2 (or cosine) distance into a
+0–1 float so callers can filter with a simple threshold.
+"""
+
 import json
 import logging
 from datetime import datetime
@@ -24,14 +39,13 @@ def _relevance_from_cosine(distance: float) -> float:
     # Chroma cosine distance ∈ [0, 2]: 0 = identical, 2 = opposite.
     return max(0.0, 1.0 - distance / 2.0)
 
-"""
-
-  - Architecture: inject (match the LLMClient pattern). Not state, not inside TranscriptStore.
-  - Code: nearly complete. Add an add_fragments method so the live pipeline can push new fragments after each session.
-  - Wire it into both make_retrieve_fragments (new, for the read path — Phase 6) and make_save_fragments (update, add vector write alongside JSON write)
-"""
-
 class VectorStore:
+    """Persistent ChromaDB wrapper for Fragment storage and semantic search.
+
+    Injected into the graph builder (same pattern as LLMClient).
+    Handles serialization between Fragment Pydantic models and Chroma's
+    id/document/metadata format via static helper methods.
+    """
 
     database_name: str = "chroma_db"
     collection_name = "journal"
@@ -82,14 +96,14 @@ class VectorStore:
             self.add_to_chroma_from_fragments(_fragments=_fragments)
 
     def add_to_chroma_from_fragments(self, _fragments: list[Fragment]):
-        # Assuming 'collection' is your collection object
-            ids, docs, metas = [], [], []
-            for f in _fragments:
-                d = self.fragment_to_chroma(f)
-                ids.append(d["id"])
-                docs.append(d["document"]  + "  TAGS: " + d["metadata"]["tags"])
-                metas.append(d["metadata"])
-            self.collection.add(ids=ids, documents=docs, metadatas=metas)
+        """Add a batch of Fragments to the collection."""
+        ids, docs, metas = [], [], []
+        for f in _fragments:
+            d = self.fragment_to_chroma(f)
+            ids.append(d["id"])
+            docs.append(d["document"] + "  TAGS: " + d["metadata"]["tags"])
+            metas.append(d["metadata"])
+        self.collection.add(ids=ids, documents=docs, metadatas=metas)
 
 
     def search_fragments(
@@ -98,6 +112,7 @@ class VectorStore:
         min_relevance: float = 0.3,
         top_k: int = 5,
     ) -> list[tuple[Fragment, float]]:
+        """Return (Fragment, relevance) pairs above *min_relevance*, best first."""
         matches: list[tuple[Fragment, float]] = []
         try:
             results = self.collection.query(

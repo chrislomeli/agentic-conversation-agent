@@ -1,3 +1,20 @@
+"""context_builder.py — Assemble the LLM message list from state and instructions.
+
+ContextBuilder is the single place that decides what the LLM sees on each turn.
+Given a ContextSpecification (produced by the intent classifier), it:
+
+1. Truncates session messages, recent messages, and retrieved fragments
+   to the counts specified in the instruction.
+2. Estimates token usage (fast heuristic, or tiktoken if a model name is given).
+3. Prunes in a fixed priority order if the context exceeds the budget:
+      retrieved context → recent messages → session messages
+4. Wraps the system prompt and optional retrieved context into a SystemMessage.
+5. Returns [SystemMessage, ...recent, ...session] ready to pass to the LLM.
+
+Raises ContextBuildError (or subclass) if a required prompt is missing or
+the context is still too large after all pruning.
+"""
+
 import json
 import logging
 
@@ -35,9 +52,15 @@ class ContextTooLargeError(ContextBuildError):
 
 
 class ContextBuilder:
-    threshold: float = 0.2  # if the estimated token count is within 20% of the max - then we are too high
-    per_message_token_overhead: int = 5  # add 5 tokens to every message for metadata
-    max_tokens: int = 8000  # max tokens in context
+    """Assemble and budget-fit the message list sent to the LLM.
+
+    Class-level tunables:
+        threshold  — safety margin (0.2 = keep 20% headroom for the reply)
+        max_tokens — hard ceiling on estimated context tokens
+    """
+    threshold: float = 0.2
+    per_message_token_overhead: int = 5
+    max_tokens: int = 8000
     chars_per_token: int = 4
 
     def __init__(self):
@@ -46,6 +69,12 @@ class ContextBuilder:
     def get_context(self, instruction: ContextSpecification, session_messages: list[BaseMessage] | None = None,
                     recent_messages: list[BaseMessage] | None = None,
                     retrieved_fragments: list[Fragment] | None = None) -> list[BaseMessage]:
+        """Build the full message list for one LLM call.
+
+        Returns [SystemMessage, ...recent_messages, ...session_messages].
+        Raises MissingStateError if the prompt key is invalid.
+        Raises ContextTooLargeError if pruning cannot bring tokens under budget.
+        """
 
         # get all the various components we need to build the context - truncate them based on the instructions passed in
         session_messages = list(
@@ -117,7 +146,7 @@ class ContextBuilder:
         system_content = f"<instructions>\n{prompt}\n</instructions>"
         logger.debug(f"System context: \n{system_content}")
 
-        if retrieved_context:
+        if retrieved_context and retrieved_fragments:
             rc = f"\n\n<retrieved_context>\n{retrieved_context}\n</retrieved_context>"
             logger.debug(f"Retrieved Context: \n{rc}")
             system_content += rc
@@ -141,20 +170,22 @@ class ContextBuilder:
         return messages
 
     def count_message_tokens(self, messages: list, model: str | None = None) -> int:
+        """Count tokens: tiktoken if *model* is given, else fast char-based estimate."""
         if isinstance(model, str):
             try:
                 return self._count_message_tokens_with_tiktoken(messages, model)
-            except:
+            except Exception:
                 pass
 
         return self._estimate_message_tokens(messages)
 
     def count_string_tokens(self, content: str, model: str | None = None) -> int:
+        """Count tokens for a raw string: tiktoken if *model* is given, else estimate."""
         if isinstance(model, str):
             try:
                 enc = tiktoken.encoding_for_model(model)
                 return len(enc.encode(content))
-            except:
+            except Exception:
                 pass
         return self._estimate_tokens_from_string(content)
 

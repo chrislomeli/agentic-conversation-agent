@@ -1,5 +1,4 @@
 """Entry point for the interactive journal agent."""
-from typing import Literal
 from uuid import uuid4
 
 from langchain_core.messages import BaseMessage

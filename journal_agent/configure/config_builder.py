@@ -24,6 +24,10 @@ from journal_agent.configure.settings import (
 )
 
 
+# ── Application defaults ──────────────────────────────────────────────────
+# These constants are the starting values for ContextSpecification and
+# UserProfile fields.  They live here (not in settings.py) because they
+# are domain-level choices, not deployment/infra configuration.
 DEFAULT_RECENT_MESSAGES_COUNT = 5
 DEFAULT_SESSION_MESSAGES_COUNT = 10
 DEFAULT_RETRIEVED_HISTORY_COUNT = 5

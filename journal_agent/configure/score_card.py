@@ -1,3 +1,32 @@
+"""score_card.py — Map LLM score cards to response strategies.
+
+The intent classifier LLM returns a ScoreCard with three 0–1 floats
+(question, first_person, task) plus per-domain scores. This module:
+
+1. Thresholds each float into a boolean (> 0.5 = True).
+2. Looks up the resulting (bool, bool, bool) triple in the Intent enum.
+3. Maps the Intent to a ContextSpecification that tells ContextBuilder
+   which prompt to use, how many messages to include, and whether to
+   retrieve history from the vector store.
+
+The 8 intents cover the full 2³ space:
+
+    question  first_person  task  →  Intent
+    --------  ------------  ----     ------
+    T         T             T        SEEKING_HELP
+    T         T             F        SELF_QUESTIONING
+    T         F             T        RESEARCHING
+    T         F             F        CURIOUS
+    F         T             T        PLANNING
+    F         T             F        MUSING
+    F         F             T        DIRECTING
+    F         F             F        OBSERVING
+
+SEEKING_HELP and CURIOUS fall through to the default (conversational) spec.
+SELF_QUESTIONING / MUSING / OBSERVING use the Socratic prompt.
+RESEARCHING / DIRECTING / PLANNING use the Guidance prompt.
+"""
+
 from enum import Enum
 
 from journal_agent.configure.prompts import PromptKey
@@ -52,9 +81,7 @@ def resolve_scorecard_to_specification(card: ScoreCard) -> ContextSpecification:
     fp = card.first_person_score > THRESHOLDS["first_person"]
     t  = card.task_score         > THRESHOLDS["task"]
     intent = Intent((q, fp, t))
-    spec =  INTENT_TO_SPEC.get(intent, _DEFAULT_SPEC)
-    spec.tags = domains
-    return spec
+    return INTENT_TO_SPEC.get(intent, _DEFAULT_SPEC).model_copy(update={"tags": domains})
 
 
 
