@@ -32,7 +32,6 @@ from profile_scanner import UserProfileTemplate
 from journal_agent.graph.state import JournalState
 from journal_agent.model.session import PromptKey
 
-
 _STATIC_REGISTRY: dict[str, str] = {
     PromptKey.INTENT_CLASSIFIER.value:   intent_classifier.TEMPLATE,
     PromptKey.CONVERSATION.value:        conversation.TEMPLATE,
@@ -71,23 +70,23 @@ def get_prompt(key: str | PromptKey, state: JournalState) -> str:
 
 
 
-# if __name__ == "__main__":
-#     from journal_agent.model.session import PromptKey, ContextSpecification, UserProfile, Status
-#
-#     _state = JournalState(
-#         session_id="xyx",
-#         recent_messages=[],
-#         session_messages=[],
-#         transcript=[],
-#         threads=[],
-#         classified_threads=[],
-#         fragments=[],
-#         retrieved_history=[],
-#         context_specification=ContextSpecification(),  # nodes that need it run after intent_classifier sets it
-#         user_profile=UserProfile(),
-#         status=Status.IDLE,
-#         error_message=None,
-#     )
-#
-#     prompt = get_prompt(PromptKey.PROFILE_SCANNER, _state)
-#     print(prompt)
+if __name__ == "__main__":
+    from journal_agent.model.session import  UserProfile, ContextSpecification
+    from journal_agent.model.session import  Status
+    _state = JournalState(
+        session_id="xyx",
+        recent_messages=[],
+        session_messages=[],
+        transcript=[],
+        threads=[],
+        classified_threads=[],
+        fragments=[],
+        retrieved_history=[],
+        context_specification=ContextSpecification(),  # nodes that need it run after intent_classifier sets it
+        user_profile=UserProfile(),
+        status=Status.IDLE,
+        error_message=None,
+    )
+
+    prompt = get_prompt(PromptKey.PROFILE_SCANNER, _state)
+    print(prompt)

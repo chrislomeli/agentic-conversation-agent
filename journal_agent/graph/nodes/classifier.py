@@ -32,6 +32,7 @@ from journal_agent.model.session import Status, UserProfile
 from journal_agent.model.session import ThreadSegmentList, ExchangeClassificationRequest, ThreadSegment, Exchange, \
     ThreadClassificationResponse, ExpandedThreadSegment, Fragment, \
     FragmentDraftList, ScoreCard, ContextSpecification
+from journal_agent.storage.profile_store import UserProfileStore
 
 logger = logging.getLogger(__name__)
 
@@ -224,11 +225,14 @@ def make_intent_classifier(llm: LLMClient, context_builder: ContextBuilder | Non
 
 
 
-def make_profile_classifier(llm: LLMClient, context_builder: ContextBuilder | None = None) -> Callable[..., dict]:
+def make_profile_scanner(llm: LLMClient, context_builder: ContextBuilder | None = None) -> Callable[..., dict]:
     context_builder = context_builder or ContextBuilder()
     @node_trace("retrieve_history")
     def profile_scanner(state: JournalState) -> dict:
         try:
+            if state["user_profile"].is_current:
+                return {}
+
             # preconditions
             if len(state["session_messages"]) < 1:
                 raise  Exception("No session messages found while asking for AI response")
@@ -248,19 +252,17 @@ def make_profile_classifier(llm: LLMClient, context_builder: ContextBuilder | No
                 ),
                 session_messages=state["session_messages"])
 
-            # hack hack
-
-
             # involve the llm
             structured_llm = llm.structured(UserProfile)
-            score_card: ScoreCard = structured_llm.invoke(messages)
+            user_profile: UserProfile = structured_llm.invoke(messages)
 
-            # translate the score_card into a message specification
-            specification = resolve_scorecard_to_specification(score_card)
+            # at this point we might have changed something about the user profile
 
-            # update the state
-            return {"context_specification": specification}
+            if user_profile.is_current:
+                UserProfileStore().save_profile(user_profile)
 
+                # push into state
+                return {"user_profile": user_profile}
 
         except Exception as e:
             logger.exception("Failed to classify turns")
@@ -268,9 +270,6 @@ def make_profile_classifier(llm: LLMClient, context_builder: ContextBuilder | No
                 "status": Status.ERROR,
                 "error_message": str(e),
             }
-
-        return {"score_card": score_card}  ## NO - we need to assess the score card and return the best ones
-
 
     return profile_scanner
 

@@ -33,7 +33,7 @@ from journal_agent.graph.node_tracer import node_trace
 from journal_agent.graph.nodes.classifier import (
     make_exchange_decomposer,
     make_thread_classifier,
-    make_thread_fragment_extractor, make_intent_classifier,
+    make_thread_fragment_extractor, make_intent_classifier, make_profile_scanner,
 )
 from journal_agent.graph.nodes.save_data import (
     make_save_transcript,
@@ -270,6 +270,7 @@ def build_journal_graph(
     builder.add_node("thread_fragment_extractor", make_thread_fragment_extractor(llm=extractor_llm))
     builder.add_node("save_fragments_to_vectordb", make_save_fragments_to_vectordb(vector_store=vector_store))
     builder.add_node("intent_classifier", make_intent_classifier(llm=classifier_llm))
+    builder.add_node("profile_scanner", make_profile_scanner(llm=classifier_llm))
 
     # Persistence nodes (one per pipeline artifact)
     builder.add_node("save_transcript", make_save_transcript())
@@ -280,8 +281,9 @@ def build_journal_graph(
     # Wiring
     builder.add_edge(START, "get_user_input")
     builder.add_conditional_edges("get_user_input", route_on_user_input)
-    builder.add_conditional_edges("get_ai_response", route_on_ai_response)
+
     builder.add_conditional_edges("intent_classifier", route_on_intent)
+    builder.add_conditional_edges("get_ai_response", route_on_ai_response)
 
     builder.add_conditional_edges("retrieve_history", goto("get_ai_response", on_completion="save_transcript"))
     builder.add_conditional_edges("exchange_decomposer", goto("save_threads", on_completion="save_transcript"))

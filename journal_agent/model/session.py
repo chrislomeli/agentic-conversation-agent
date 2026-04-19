@@ -157,6 +157,7 @@ class Domain(BaseModel):
 class ScoreCard(BaseModel):
     question_score: float  # 0.0–1.0  how much is this a request for information/opinion
     first_person_score: float  # 0.0–1.0  how much is the speaker talking about themselves
+    personalization_score: float  # 0.0–1.0  is the user asking for a change in the ai behavior
     task_score: float  # 0.0–1.0  how much does this contain an explicit directive
     domains: list[Domain]  # scores across all 8 domains
 
@@ -207,6 +208,7 @@ class UserProfile(BaseModel):
 
     # Meta
     updated_at: datetime = Field(default_factory=datetime.now)
-    is_modified: bool = Field(default=False)  # how many sessions contributed
+    is_updated: bool = Field(default=False)  # does the profile need to be saved
+    is_current: bool = Field(default=False)  # is the current version current - set if the user has indicated they want a change
 
 

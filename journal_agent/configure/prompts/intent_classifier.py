@@ -45,6 +45,14 @@ first_person_score — How much is the speaker talking about themselves?
   1.0  Deeply personal. The speaker's own feelings, plans, or identity.
        "I've been struggling with whether I'm cut out for this."
 
+personalization_score — How much is the user asking for a change in the AI's behavior?
+  0.0  No directive. Reflection, musing, or open-ended sharing.
+       "I've been thinking a lot about what matters to me."
+  0.5  Soft or implied request for the AI to do something.
+       "It might be nice to get the point more quickly"
+  1.0  Clear, specific instruction.
+       "Please call me Chris"
+       
 task_score — How much does this contain an explicit directive or action?
   0.0  No directive. Reflection, musing, or open-ended sharing.
        "I've been thinking a lot about what matters to me."
