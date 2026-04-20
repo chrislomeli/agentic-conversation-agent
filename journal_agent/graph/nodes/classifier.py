@@ -15,6 +15,7 @@ Per-turn:
     intent_classifier     — scores the latest messages to pick a response strategy
 """
 
+import asyncio
 import logging
 from collections.abc import Callable
 from datetime import datetime
@@ -33,9 +34,13 @@ from journal_agent.model.session import Status, UserProfile, PromptKey
 from journal_agent.model.session import ThreadSegmentList, ExchangeClassificationRequest, ThreadSegment, Exchange, \
     ThreadClassificationResponse, ExpandedThreadSegment, Fragment, \
     FragmentDraftList, ScoreCard, ContextSpecification
-from journal_agent.storage.profile_store import UserProfileStore
+from journal_agent.storage.protocols import ProfileStore
 
 logger = logging.getLogger(__name__)
+
+# Maximum concurrent LLM calls when fan-out processing threads.
+# Prevents rate-limit saturation while still parallelizing.
+DEFAULT_LLM_CONCURRENCY = 4
 
 def inflate_threads(threads: list[ThreadSegment], exchanges: list[Exchange]) -> list[ExpandedThreadSegment]:
     """Expand compact ThreadSegments into full dialog text for LLM consumption.
@@ -97,38 +102,44 @@ def make_exchange_decomposer(llm: LLMClient) -> Callable[..., dict]:
     return exchange_decomposer
 
 
-def make_thread_classifier(llm: LLMClient) -> Callable[..., dict]:
-    """Factory: assign taxonomy tags to each thread via structured LLM output."""
+def make_thread_classifier(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CONCURRENCY) -> Callable[..., dict]:
+    """Factory: assign taxonomy tags to each thread via structured LLM output.
+
+    Per-thread LLM calls are fanned out with ``asyncio.gather``, bounded
+    by a semaphore to avoid rate-limit saturation.
+    """
     @node_trace("thread_classifier")
-    def thread_classifier(state: JournalState) -> dict:
+    async def thread_classifier(state: JournalState) -> dict:
 
         try:
             system_message = get_prompt(PromptKey.THREAD_CLASSIFIER) + "\n\nTaxonomy:\n" + taxonomy_json()
             system = SystemMessage(system_message)
 
-            classified_threads: list[ThreadSegment] = []
-
             exchanges: list[Exchange] = state["transcript"]
             threads: list[ThreadSegment] = state["threads"]
             expanded_threads = inflate_threads(threads, exchanges)
-            for expanded_thread in expanded_threads:
-                human_prompt = expanded_thread.model_dump_json()
-                human = HumanMessage(content=human_prompt)
 
-                # call the llm for one request
-                structured_llm = llm.structured(ThreadClassificationResponse)
-                result = structured_llm.invoke([system, human])
-                expanded_thread.tags = result.tags
-                classified_threads.append(ThreadSegment(
-                    thread_name=expanded_thread.thread_name,
-                    exchange_ids=expanded_thread.exchange_ids,
-                    tags=result.tags
-                ))
+            structured_llm = llm.astructured(ThreadClassificationResponse)
+            sem = asyncio.Semaphore(max_concurrency)
 
-            return {"classified_threads": classified_threads}
+            async def classify_one(thread: ExpandedThreadSegment) -> ThreadSegment:
+                async with sem:
+                    human = HumanMessage(content=thread.model_dump_json())
+                    result = await structured_llm.ainvoke([system, human])
+                    return ThreadSegment(
+                        thread_name=thread.thread_name,
+                        exchange_ids=thread.exchange_ids,
+                        tags=result.tags,
+                    )
+
+            classified_threads = await asyncio.gather(
+                *(classify_one(t) for t in expanded_threads)
+            )
+
+            return {"classified_threads": list(classified_threads)}
 
         except Exception as e:
-            logger.exception("Failed to classify turns")
+            logger.exception("Failed to classify threads")
             return {
                 "status": Status.ERROR,
                 "error_message": str(e),
@@ -137,38 +148,49 @@ def make_thread_classifier(llm: LLMClient) -> Callable[..., dict]:
     return thread_classifier
 
 
-def make_thread_fragment_extractor(llm: LLMClient) -> Callable[..., dict]:
-    """Factory: distill classified threads into standalone, searchable Fragments."""
+def make_thread_fragment_extractor(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CONCURRENCY) -> Callable[..., dict]:
+    """Factory: distill classified threads into standalone, searchable Fragments.
+
+    Per-thread LLM calls are fanned out with ``asyncio.gather``, bounded
+    by a semaphore to avoid rate-limit saturation.
+    """
     @node_trace("fragment_extractor")
-    def fragment_extractor(state: JournalState) -> dict:
+    async def fragment_extractor(state: JournalState) -> dict:
         try:
             system = SystemMessage(get_prompt(PromptKey.FRAGMENT_EXTRACTOR))
-            fragment_list: list[Fragment] = []
 
             session_id: str = state["session_id"]
             exchanges: list[Exchange] = state["transcript"]
             threads: list[ThreadSegment] = state["classified_threads"]
             expanded_threads = inflate_threads(threads, exchanges)
 
-            structured_llm = llm.structured(FragmentDraftList)
+            structured_llm = llm.astructured(FragmentDraftList)
+            sem = asyncio.Semaphore(max_concurrency)
 
-            for expanded_thread in expanded_threads:
-                human_prompt = expanded_thread.model_dump_json()
-                human = HumanMessage(content=human_prompt)
+            async def extract_one(thread: ExpandedThreadSegment) -> list[Fragment]:
+                async with sem:
+                    human = HumanMessage(content=thread.model_dump_json())
+                    # LLM emits only reasoning decisions (content, exchange_ids, tags).
+                    # Bookkeeping fields are filled in here, not by the model.
+                    result = await structured_llm.ainvoke([system, human])
+                    return [
+                        Fragment(
+                            content=draft.content,
+                            exchange_ids=draft.exchange_ids,
+                            tags=draft.tags,
+                            session_id=session_id,
+                            timestamp=datetime.now(),
+                        )
+                        for draft in result.fragments
+                    ]
 
-                # LLM emits only reasoning decisions (content, exchange_ids, tags).
-                # Bookkeeping fields are filled in here, not by the model.
-                result = structured_llm.invoke([system, human])
-                for draft in result.fragments:
-                    fragment_list.append(Fragment(
-                        content=draft.content,
-                        exchange_ids=draft.exchange_ids,
-                        tags=draft.tags,
-                        session_id=session_id,
-                        timestamp=datetime.now(),
-                    ))
+            nested = await asyncio.gather(
+                *(extract_one(t) for t in expanded_threads)
+            )
+            # flatten list-of-lists into a single fragment list
+            fragments = [f for batch in nested for f in batch]
 
-            return {"fragments": fragment_list}
+            return {"fragments": fragments}
 
         except Exception as e:
             logger.exception("Failed to extract fragments")
@@ -235,9 +257,9 @@ def make_intent_classifier(llm: LLMClient, context_builder: ContextBuilder | Non
 
 
 
-def make_profile_scanner(llm: LLMClient, context_builder: ContextBuilder | None = None) -> Callable[..., dict]:
+def make_profile_scanner(llm: LLMClient, profile_store: ProfileStore, context_builder: ContextBuilder | None = None) -> Callable[..., dict]:
     context_builder = context_builder or ContextBuilder()
-    @node_trace("retrieve_history")
+    @node_trace("profile_scanner")
     def profile_scanner(state: JournalState) -> dict:
         try:
             if state["user_profile"].is_current:
@@ -245,7 +267,7 @@ def make_profile_scanner(llm: LLMClient, context_builder: ContextBuilder | None 
 
             # preconditions
             if len(state["session_messages"]) < 1:
-                raise  Exception("No session messages found while asking for AI response")
+                raise ValueError("No session messages found while asking for AI response")
 
             # The profile-scanner prompt is parametric: it needs the current
             # UserProfile rendered into its template.
@@ -268,10 +290,10 @@ def make_profile_scanner(llm: LLMClient, context_builder: ContextBuilder | None 
 
             # at this point we might have changed something about the user profile
             if user_profile.is_updated:
-                UserProfileStore().save_profile(user_profile)
-
-                # push into state
+                profile_store.save_profile(user_profile)
                 return {"user_profile": user_profile}
+
+            return {}
 
         except Exception as e:
             logger.exception("Failed to classify turns")

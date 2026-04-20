@@ -10,8 +10,7 @@ Two execution paths share a single compiled graph:
     End-of-session pipeline (runs once after /quit):
         save_transcript → exchange_decomposer → save_threads
           → thread_classifier → save_classified_threads
-          → thread_fragment_extractor → save_fragments_to_json
-          → save_fragments_to_vectordb → END
+          → thread_fragment_extractor → save_fragments → END
 
 Routing functions inspect ``JournalState.status`` to decide the next node.
 On ERROR, every route sends the graph to END.
@@ -40,14 +39,13 @@ from journal_agent.graph.nodes.save_data import (
     make_save_transcript,
     make_save_threads,
     make_save_classified_threads,
-    make_save_fragments_to_json, make_save_fragments_to_vectordb,
+    make_save_fragments,
 )
 from journal_agent.graph.state import (
     JournalState,
 )
 from journal_agent.model.session import Role, Status
-from journal_agent.storage.exchange_store import TranscriptStore
-from journal_agent.storage.vector_store import VectorStore
+from journal_agent.storage.protocols import FragmentStore, ProfileStore, SessionStore
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +53,7 @@ logger = logging.getLogger(__name__)
 # ── Graph builder ─────────────────────────────────────────────────────────────
 
 
-def make_get_user_input(session_store: TranscriptStore) -> Callable[..., dict]:
+def make_get_user_input(session_store: SessionStore) -> Callable[..., dict]:
     """Factory: node that reads console input, records the human turn, and
     returns a HumanMessage to append to session_messages."""
     @node_trace("get_user_input")
@@ -89,8 +87,8 @@ def make_get_user_input(session_store: TranscriptStore) -> Callable[..., dict]:
     return get_user_input
 
 
-def make_retrieve_history(vector_store: VectorStore, context_builder: ContextBuilder | None = None) -> Callable[..., dict]:
-    """Factory: node that queries the vector store for fragments similar
+def make_retrieve_history(fragment_store: FragmentStore, context_builder: ContextBuilder | None = None) -> Callable[..., dict]:
+    """Factory: node that queries the fragment store for fragments similar
     to the latest human message, enriched with intent-derived tags."""
     context_builder = context_builder or ContextBuilder()
     @node_trace("retrieve_history")
@@ -114,7 +112,7 @@ def make_retrieve_history(vector_store: VectorStore, context_builder: ContextBui
             top_k = tspec.top_k_retrieved_history
 
             # perform the search
-            matches = vector_store.search_fragments(query, min_relevance=distance, top_k=top_k)
+            matches = fragment_store.search_fragments(query, min_relevance=distance, top_k=top_k)
             return {"retrieved_history": [fragment for fragment, _ in matches]}
         except Exception as e:
             logger.exception("Failed to retrieve history")
@@ -126,7 +124,7 @@ def make_retrieve_history(vector_store: VectorStore, context_builder: ContextBui
     return retrieve_history
 
 
-def make_get_ai_response(llm: LLMClient, session_store: TranscriptStore, context_builder: ContextBuilder | None = None) -> Callable[..., dict]:
+def make_get_ai_response(llm: LLMClient, session_store: SessionStore, context_builder: ContextBuilder | None = None) -> Callable[..., dict]:
     """Factory: node that assembles context, calls the conversation LLM,
     records the AI turn, and prints the response to the console."""
     context_builder = context_builder or ContextBuilder()
@@ -147,8 +145,7 @@ def make_get_ai_response(llm: LLMClient, session_store: TranscriptStore, context
             )
 
             # get the llm response
-            client = llm.get_client()
-            response = client.invoke(messages)
+            response = llm.chat(messages)
 
             # model answers using context
             content = (
@@ -181,90 +178,62 @@ def make_get_ai_response(llm: LLMClient, session_store: TranscriptStore, context
 
     return get_ai_response
 
-def goto(node: str, on_completion: str = END) -> Callable[..., str]:
-    """Generic router: go to *node* on PROCESSING, *on_completion* on COMPLETED, END on ERROR."""
-    def goto_node(state: JournalState) -> str:
-        if state["status"] == Status.ERROR:
-            logger.warning(
-                "Routing to end after user input error (session_id=%s, error_message=%s)",
-                state.get("session_id", "unknown"),
-                state.get("error_message"),
-            )
-            return END
-        elif state["status"] == Status.COMPLETED:
-            return on_completion
-        return node
+# ── Routing ──────────────────────────────────────────────────────────────────
 
+
+def _route_base(state: JournalState, *, next_node: str, on_completion: str = END) -> str:
+    """Shared routing logic: ERROR → END, COMPLETED → *on_completion*, else → *next_node*."""
+    if state["status"] == Status.ERROR:
+        logger.warning(
+            "Routing to END (session_id=%s, error_message=%s)",
+            state.get("session_id", "unknown"),
+            state.get("error_message"),
+        )
+        return END
+    if state["status"] == Status.COMPLETED:
+        return on_completion
+    return next_node
+
+
+def goto(node: str, on_completion: str = END) -> Callable[..., str]:
+    """Generic router factory: go to *node* on PROCESSING, *on_completion* on COMPLETED, END on ERROR."""
+    def goto_node(state: JournalState) -> str:
+        return _route_base(state, next_node=node, on_completion=on_completion)
     return goto_node
 
 
 def route_on_user_input(state: JournalState) -> str:
     """After user input: ERROR → END, COMPLETED → save_transcript, else → intent_classifier."""
-    if state["status"] == Status.ERROR:
-        logger.warning(
-            "Routing to end after user input error (session_id=%s, error_message=%s)",
-            state.get("session_id", "unknown"),
-            state.get("error_message"),
-        )
-        return END
-    elif state["status"] == Status.COMPLETED:
-        return "save_transcript"
-    return "intent_classifier"
+    return _route_base(state, next_node="intent_classifier", on_completion="save_transcript")
 
 
 def route_on_intent(state: JournalState) -> str:
-    """After intent classification: skip retrieval if top_k_retrieved_history is 0."""
-    if state["status"] == Status.ERROR:
-        logger.warning(
-            "Routing to end after user input error (session_id=%s, error_message=%s)",
-            state.get("session_id", "unknown"),
-            state.get("error_message"),
-        )
-        return END
-    elif state["status"] == Status.COMPLETED:
-        return "save_transcript"
-    else:
-        if not state["user_profile"].is_current:
-            return "profile_scanner"
-        if state["context_specification"].top_k_retrieved_history > 0:
-            return "retrieve_history"
-        else:
-            return "get_ai_response"
+    """After intent classification: branch to profile_scanner, retrieve_history, or get_ai_response."""
+    base = _route_base(state, next_node="get_ai_response", on_completion="save_transcript")
+    if base != "get_ai_response":
+        return base
+    if not state["user_profile"].is_current:
+        return "profile_scanner"
+    if state["context_specification"].top_k_retrieved_history > 0:
+        return "retrieve_history"
+    return "get_ai_response"
+
 
 def route_on_profile(state: JournalState) -> str:
-    """After intent classification: skip retrieval if top_k_retrieved_history is 0."""
-    if state["status"] == Status.ERROR:
-        logger.warning(
-            "Routing to end after user input error (session_id=%s, error_message=%s)",
-            state.get("session_id", "unknown"),
-            state.get("error_message"),
-        )
-        return END
-    elif state["status"] == Status.COMPLETED:
-        return "save_transcript"
-    else:
-        if state["context_specification"].top_k_retrieved_history > 0:
-            return "retrieve_history"
-        else:
-            return "get_ai_response"
-
-def route_on_ai_response(state: JournalState) -> str:
-    """After AI response: ERROR → END, else → back to get_user_input."""
-    if state["status"] == Status.ERROR:
-        logger.warning(
-            "Routing to end after AI response error (session_id=%s, error_message=%s)",
-            state.get("session_id", "unknown"),
-            state.get("error_message"),
-        )
-        return END
-
-    return "get_user_input"
+    """After profile scanner: branch to retrieve_history or get_ai_response."""
+    base = _route_base(state, next_node="get_ai_response", on_completion="save_transcript")
+    if base != "get_ai_response":
+        return base
+    if state["context_specification"].top_k_retrieved_history > 0:
+        return "retrieve_history"
+    return "get_ai_response"
 
 
 def build_journal_graph(
         registry: LLMRegistry,
-        session_store: TranscriptStore,
-        vector_store: VectorStore
+        session_store: SessionStore,
+        fragment_store: FragmentStore,
+        profile_store: ProfileStore,
 ):
     """Build and compile the journal conversation graph.
 
@@ -288,21 +257,20 @@ def build_journal_graph(
     # Conversation loop nodes
     builder.add_node("get_user_input", make_get_user_input(session_store=session_store))
     builder.add_node("get_ai_response", make_get_ai_response(llm=conversation_llm, session_store=session_store))
-    builder.add_node("retrieve_history", make_retrieve_history(vector_store=vector_store))
+    builder.add_node("retrieve_history", make_retrieve_history(fragment_store=fragment_store))
 
     # Classification pipeline (decomposed: 3 LLM stages)
     builder.add_node("exchange_decomposer", make_exchange_decomposer(llm=classifier_llm))
     builder.add_node("thread_classifier", make_thread_classifier(llm=classifier_llm))
     builder.add_node("thread_fragment_extractor", make_thread_fragment_extractor(llm=extractor_llm))
-    builder.add_node("save_fragments_to_vectordb", make_save_fragments_to_vectordb(vector_store=vector_store))
     builder.add_node("intent_classifier", make_intent_classifier(llm=classifier_llm))
-    builder.add_node("profile_scanner", make_profile_scanner(llm=classifier_llm))
+    builder.add_node("profile_scanner", make_profile_scanner(llm=classifier_llm, profile_store=profile_store))
 
     # Persistence nodes (one per pipeline artifact)
     builder.add_node("save_transcript", make_save_transcript())
     builder.add_node("save_threads", make_save_threads())
     builder.add_node("save_classified_threads", make_save_classified_threads())
-    builder.add_node("save_fragments_to_json", make_save_fragments_to_json())
+    builder.add_node("save_fragments", make_save_fragments(fragment_store=fragment_store))
 
     # Wiring
     builder.add_edge(START, "get_user_input")
@@ -310,7 +278,7 @@ def build_journal_graph(
 
     builder.add_conditional_edges("intent_classifier", route_on_intent)
     builder.add_conditional_edges("profile_scanner", route_on_profile)
-    builder.add_conditional_edges("get_ai_response", route_on_ai_response)
+    builder.add_conditional_edges("get_ai_response", goto("get_user_input"))
 
     builder.add_conditional_edges("retrieve_history", goto("get_ai_response", on_completion="save_transcript"))
     builder.add_conditional_edges("exchange_decomposer", goto("save_threads", on_completion="save_transcript"))
@@ -319,8 +287,7 @@ def build_journal_graph(
     # Linear end-of-session pipeline
     builder.add_conditional_edges("save_transcript", goto("exchange_decomposer"))
     builder.add_conditional_edges("save_classified_threads", goto("thread_fragment_extractor"))
-    builder.add_conditional_edges("thread_fragment_extractor", goto("save_fragments_to_json"))
-    builder.add_conditional_edges("save_fragments_to_json", goto("save_fragments_to_vectordb"))
-    builder.add_edge("save_fragments_to_vectordb", END)
+    builder.add_conditional_edges("thread_fragment_extractor", goto("save_fragments"))
+    builder.add_edge("save_fragments", END)
     compiled = builder.compile()
     return compiled

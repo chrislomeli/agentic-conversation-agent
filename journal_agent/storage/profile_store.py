@@ -5,13 +5,19 @@ from journal_agent.storage.utils import resolve_project_root
 
 
 class UserProfileStore:
+    """Local ProfileStore: single JSON file per user.
+
+    Satisfies the ``ProfileStore`` protocol.  The ``user_id`` parameter
+    is accepted for forward compatibility but currently ignored (single-file
+    store at ``data/profile/profile.json``).
+    """
     _path: Path
     def __init__(self):
         self._path = resolve_project_root() / "data" / "profile" / "profile.json"
         if not self._path.exists():
             self._path.mkdir(parents=True, exist_ok=True)
 
-    def load_profile(self) -> UserProfile | None:
+    def load_profile(self, user_id: str | None = None) -> UserProfile | None:
         try:
             if self._path is None:
                 raise ValueError("Path name is not set")
@@ -28,7 +34,7 @@ class UserProfileStore:
             pass
 
 
-    def save_profile(self,  profile: UserProfile | None = None):
+    def save_profile(self, profile: UserProfile, user_id: str | None = None) -> None:
         if self._path is None:
             raise ValueError("Path name is not set")
 

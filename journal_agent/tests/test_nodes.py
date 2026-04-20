@@ -1,23 +1,25 @@
 """Layer 6 tests — Graph nodes (classifier.py, save_data.py).
 
 Mocking strategy:
-- Classifier nodes: stub LLMClient whose .structured() returns a mock
-  runnable producing fixed Pydantic instances.
+- Classifier nodes: stub LLMClient whose .structured()/.astructured()
+  returns a mock runnable producing fixed Pydantic instances.
+  Async nodes (thread_classifier, fragment_extractor) use .ainvoke().
 - Save nodes: monkeypatch resolve_project_root → tmp_path for JsonStore;
-  MagicMock for VectorStore.
-- chromadb stub: save_data.py imports VectorStore which imports chromadb
-  at module level; we inject a sys.modules stub if chromadb is absent.
+  MagicMock for FragmentStore.
+- chromadb stub: chroma_fragment_store.py imports chromadb at module
+  level; we inject a sys.modules stub if chromadb is absent.
 """
 
+import asyncio
 import importlib.util
 import sys
 from datetime import datetime
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from langchain_core.messages import HumanMessage
 
-# ── chromadb stub (needed because save_data.py imports VectorStore) ──────────
+# ── chromadb stub (needed because chroma_fragment_store.py imports VectorStore) ─
 if importlib.util.find_spec("chromadb") is None:
     _stub = MagicMock()
     _stub.PersistentClient = MagicMock()
@@ -33,8 +35,7 @@ from journal_agent.graph.nodes.classifier import (
 )
 from journal_agent.graph.nodes.save_data import (
     make_save_classified_threads,
-    make_save_fragments_to_json,
-    make_save_fragments_to_vectordb,
+    make_save_fragments,
     make_save_threads,
     make_save_transcript,
 )
@@ -91,6 +92,20 @@ def _stub_llm_client(return_value) -> LLMClient:
     mock_chat = MagicMock()
     mock_runnable = MagicMock()
     mock_runnable.invoke.return_value = return_value
+    mock_chat.with_structured_output.return_value = mock_runnable
+    client = LLMClient(model="stub", client=mock_chat)
+    return client
+
+
+def _stub_async_llm_client(return_value) -> LLMClient:
+    """Create an LLMClient whose .astructured(schema).ainvoke() returns *return_value*.
+
+    Used for async nodes (thread_classifier, fragment_extractor) that call
+    ``await structured_llm.ainvoke(...)``.
+    """
+    mock_chat = MagicMock()
+    mock_runnable = MagicMock()
+    mock_runnable.ainvoke = AsyncMock(return_value=return_value)
     mock_chat.with_structured_output.return_value = mock_runnable
     client = LLMClient(model="stub", client=mock_chat)
     return client
@@ -173,33 +188,36 @@ class TestExchangeDecomposer:
 
 
 class TestThreadClassifier:
-    def test_returns_classified_threads_with_tags(self):
+    @pytest.mark.asyncio
+    async def test_returns_classified_threads_with_tags(self):
         exchange = _make_exchange()
         thread = _make_thread([exchange.exchange_id])
         tags_response = ThreadClassificationResponse(
             tags=[Tag(tag="creativity"), Tag(tag="philosophy")]
         )
-        llm = _stub_llm_client(tags_response)
+        llm = _stub_async_llm_client(tags_response)
         node = make_thread_classifier(llm)
-        result = node(_base_state(transcript=[exchange], threads=[thread]))
+        result = await node(_base_state(transcript=[exchange], threads=[thread]))
         assert "classified_threads" in result
         assert len(result["classified_threads"]) == 1
         tag_names = [t.tag for t in result["classified_threads"][0].tags]
         assert "creativity" in tag_names
 
-    def test_returns_error_on_llm_exception(self):
+    @pytest.mark.asyncio
+    async def test_returns_error_on_llm_exception(self):
         exchange = _make_exchange()
         thread = _make_thread([exchange.exchange_id])
         mock_chat = MagicMock()
         mock_chat.with_structured_output.side_effect = RuntimeError("fail")
         llm = LLMClient(model="stub", client=mock_chat)
         node = make_thread_classifier(llm)
-        result = node(_base_state(transcript=[exchange], threads=[thread]))
+        result = await node(_base_state(transcript=[exchange], threads=[thread]))
         assert result["status"] == Status.ERROR
 
 
 class TestFragmentExtractor:
-    def test_returns_fragments_from_drafts(self):
+    @pytest.mark.asyncio
+    async def test_returns_fragments_from_drafts(self):
         exchange = _make_exchange()
         thread = _make_thread([exchange.exchange_id])
         drafts = FragmentDraftList(fragments=[
@@ -209,9 +227,9 @@ class TestFragmentExtractor:
                 tags=[Tag(tag="philosophy")],
             )
         ])
-        llm = _stub_llm_client(drafts)
+        llm = _stub_async_llm_client(drafts)
         node = make_thread_fragment_extractor(llm)
-        result = node(_base_state(
+        result = await node(_base_state(
             transcript=[exchange],
             classified_threads=[thread],
         ))
@@ -220,14 +238,15 @@ class TestFragmentExtractor:
         assert result["fragments"][0].content == "an insight"
         assert result["fragments"][0].session_id == "test-session"
 
-    def test_returns_error_on_llm_exception(self):
+    @pytest.mark.asyncio
+    async def test_returns_error_on_llm_exception(self):
         exchange = _make_exchange()
         thread = _make_thread([exchange.exchange_id])
         mock_chat = MagicMock()
         mock_chat.with_structured_output.side_effect = RuntimeError("boom")
         llm = LLMClient(model="stub", client=mock_chat)
         node = make_thread_fragment_extractor(llm)
-        result = node(_base_state(
+        result = await node(_base_state(
             transcript=[exchange],
             classified_threads=[thread],
         ))
@@ -314,31 +333,19 @@ class TestSaveClassifiedThreads:
         assert result["status"] == Status.CLASSIFIED_THREADS_SAVED
 
 
-class TestSaveFragmentsToJson:
-    def test_saves_fragments_to_json_store(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(
-            "journal_agent.storage.storage.resolve_project_root", lambda: tmp_path
-        )
+class TestSaveFragments:
+    def test_delegates_to_fragment_store(self):
+        mock_store = MagicMock()
         fragment = _make_fragment()
-        node = make_save_fragments_to_json()
+        node = make_save_fragments(mock_store)
         result = node(_base_state(fragments=[fragment]))
         assert result["status"] == Status.FRAGMENTS_SAVED
-        assert (tmp_path / "data" / "fragments" / "test-session.jsonl").exists()
+        mock_store.save_fragments.assert_called_once_with([fragment])
 
-
-class TestSaveFragmentsToVectordb:
-    def test_delegates_to_vector_store(self):
-        mock_vs = MagicMock()
-        fragment = _make_fragment()
-        node = make_save_fragments_to_vectordb(mock_vs)
-        result = node(_base_state(fragments=[fragment]))
-        assert result["status"] == Status.FRAGMENTS_SAVED
-        mock_vs.add_to_chroma_from_fragments.assert_called_once_with([fragment])
-
-    def test_returns_error_on_vector_store_exception(self):
-        mock_vs = MagicMock()
-        mock_vs.add_to_chroma_from_fragments.side_effect = RuntimeError("chroma fail")
-        node = make_save_fragments_to_vectordb(mock_vs)
+    def test_returns_error_on_fragment_store_exception(self):
+        mock_store = MagicMock()
+        mock_store.save_fragments.side_effect = RuntimeError("store fail")
+        node = make_save_fragments(mock_store)
         result = node(_base_state(fragments=[_make_fragment()]))
         assert result["status"] == Status.ERROR
-        assert "chroma fail" in result["error_message"]
+        assert "store fail" in result["error_message"]

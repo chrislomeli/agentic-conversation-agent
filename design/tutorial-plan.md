@@ -6,7 +6,9 @@ Chris designed a journal-based LLM agent through a conversation with ChatGPT (ca
 
 This project already has a working `conversation_engine` (LangGraph-based validation loop). Rather than extending that, we're building the journal agent standalone — Chris writes every line, with tutorial-level guidance at each step.
 
-**Goal:** Build the journal agent in 11 phases. Each phase produces something runnable. Each phase teaches specific Python/LangGraph concepts. Phases 1–10 focus on correctness; Phase 11 hardens the whole pipeline for performance and resilience.
+**Goal:** Build a demo-ready journaling agent that a CTO would consider evidence of senior-level AI engineering skill. Phases 1–9 are complete (correctness). The remaining phases migrate to production infrastructure, add derived insights, harden for resilience, and prepare the demo.
+
+**Demo thesis:** The system should demonstrate three user-visible moments — "it remembers," "it notices patterns," "it adapts to me" — backed by architecture that bears professional scrutiny.
 
 **Project location:** `journal_agent/` package alongside `conversation_engine/` in this repo.
 
@@ -247,50 +249,373 @@ Shape the agent's personality and adapt to the user over time.
 
 ---
 
-## Phase 10: Derived Insights
-**You'll learn:** Async/periodic processing, aggregation, cross-session analysis
+## Phase 10: Infrastructure Migration
+**You'll learn:** Docker Compose, Postgres + pgvector, database schema design, replacing file-based storage with SQL, user scoping
 
-Build the "derived memory" layer — the system learns patterns across all conversations.
+Migrate from file-based storage (JSONL + Chroma) to a production-grade stack. This unblocks cross-session queries, multi-user support, and consolidated vector search — all of which are prerequisites for the insight pipeline and the demo.
 
-- Create `journal_agent/insights.py` — `generate_insights(fragments) -> list[Insight]`
-- Run periodically (end of session or on-demand): analyze all fragments for themes, connections, trends
-- Store insights alongside fragments
-- Feed relevant insights into Context Builder (Phase 7) as an additional layer
-- Add a `/insights` command that shows what the system has learned
+**Why now:** The insight pipeline (Phase 12) needs cross-session aggregation queries that are painful against JSONL files (glob + parse + filter). Postgres with pgvector consolidates structured queries and vector search into one system, eliminating the impedance mismatch between Chroma and the relational store.
 
-**Parallelization note:** insight generation naturally fans out across fragments or themes. Keep V1 synchronous; Phase 11 parallelizes this along with the other fan-out points in the pipeline.
+### Stack
 
-**Concept focus:** This is where the system goes beyond memory into understanding. It's the difference between "I remember you said X" and "I notice you keep coming back to the tension between X and Y."
+```yaml
+# docker-compose.yml
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    volumes:
+      - pgdata:/var/lib/postgresql/data
 
-**Test it:** After several sessions, run insights. Verify they capture real patterns, not noise.
+  neo4j:                              # provisioned for future graph-of-ideas
+    image: neo4j:5-community          # not wired yet — shows architectural forethought
+    volumes:
+      - neo4jdata:/data
+
+  app:
+    build: .
+    depends_on: [postgres, neo4j]
+    environment:
+      - DATABASE_URL=postgresql://...
+      - NEO4J_URI=bolt://neo4j:7687
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+
+volumes:
+  pgdata:
+  neo4jdata:
+```
+
+### Schema
+
+```sql
+CREATE TABLE users (
+    user_id     TEXT PRIMARY KEY,
+    created_at  TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE sessions (
+    session_id  TEXT PRIMARY KEY,
+    user_id     TEXT REFERENCES users(user_id),
+    created_at  TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE fragments (
+    fragment_id TEXT PRIMARY KEY,
+    session_id  TEXT REFERENCES sessions(session_id),
+    user_id     TEXT REFERENCES users(user_id),
+    content     TEXT NOT NULL,
+    tags        JSONB DEFAULT '[]',
+    embedding   vector(1536),
+    created_at  TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_fragments_user    ON fragments(user_id);
+CREATE INDEX idx_fragments_tags    ON fragments USING GIN(tags);
+CREATE INDEX idx_fragments_time    ON fragments(created_at);
+CREATE INDEX idx_fragments_embed   ON fragments USING hnsw(embedding vector_cosine_ops);
+
+CREATE TABLE insights (
+    insight_id   TEXT PRIMARY KEY,
+    user_id      TEXT REFERENCES users(user_id),
+    tag          TEXT NOT NULL,
+    fragment_ids JSONB DEFAULT '[]',
+    content      TEXT NOT NULL,
+    confidence   FLOAT CHECK (confidence BETWEEN 0 AND 1),
+    supersedes   TEXT REFERENCES insights(insight_id),
+    created_at   TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_insights_user     ON insights(user_id);
+CREATE INDEX idx_insights_current  ON insights(user_id, tag) WHERE supersedes IS NULL;
+
+CREATE TABLE user_profiles (
+    user_id      TEXT PRIMARY KEY REFERENCES users(user_id),
+    profile_data JSONB NOT NULL DEFAULT '{}',
+    updated_at   TIMESTAMPTZ DEFAULT now()
+);
+```
+
+### Tasks
+- Docker Compose with Postgres (pgvector), Neo4j (provisioned only), app service
+- Postgres schema: `users`, `sessions`, `fragments` (with `vector(1536)` column), `insights`, `user_profiles`
+- `PostgresStore` replacing `JsonStore` — same public interface, SQL backend
+- `PgVectorStore` replacing `VectorStore` (Chroma) — `add_fragments()` and `search_fragments()` with filtered vector search
+- `user_id` scoping — flow `user_id` through the graph alongside `session_id`; all queries filter on it
+- Data migration script: dump existing JSONL → INSERT into Postgres
+
+**What gets dropped:** Chroma, JSONL file storage. Your event log (raw session JSONL) can optionally stay as an immutable backup — Postgres becomes the primary store.
+
+**Test it:** Run existing test suite against the new stores. Verify `docker compose up` brings up the full stack. Verify two different user_ids produce isolated data.
 
 ---
 
-## Phase 11: Performance & Resilience
-**You'll learn:** `asyncio.gather` for LLM fan-out, graceful per-call failure handling, retry with backoff, rate-limit awareness, LangSmith observability review, light cost tracking
+## Phase 11: Hardening
+**You'll learn:** Retry with backoff, per-call error isolation, cost tracking, `asyncio.gather` for LLM fan-out
 
-By Phase 10 you have a full pipeline with several places where LLM calls fan out: per-thread classification, per-thread extraction, batch embeddings, per-session insights. Each has been synchronous until now — correct by design, because correctness should precede scale. This phase converts correct code into code you could run at scale.
+Harden the pipeline *before* adding the insight feature. Get retry and error handling in place so that transient LLM failures don't derail development or the demo.
 
-- Convert per-thread loops (classifier, extractor, insights) to `asyncio.gather` fan-out. Use your LLMClient's async variants (`ainvoke`). Measure latency before/after — this is where the win becomes tangible.
-- Add per-call error handling: one poisoned LLM response (rate limit, malformed output, network blip) should log and skip, not kill the whole batch. This is the real-world version of the "one bad thread shouldn't take down the others" principle.
-- Add retry with exponential backoff for transient failures (429s, 5xx, timeouts). Use a library (`tenacity`) rather than hand-rolling.
-- Review LangSmith traces: what per-call information is useful, what's missing. Add timing and metadata where traces are thin.
-- Optional: light cost tracking — sum tokens per node per session, write to a summary file so you can see where your money goes.
+### Tasks
 
-**Concept focus:** Hardening is a distinct activity from building. Your correctness-first approach (synchronous, loud failures) was right for learning; this phase converts correct code into scalable code. The pattern — ship correctness, then harden for scale — is how real systems get built professionally. Trying to do both at once is how projects get stuck.
+**Critical (do before Phase 12):**
 
-**Test it:** Re-run sessions that work from earlier phases; verify parity (same outputs, faster). Induce a failure (e.g., feed a malformed exchange) and verify the rest of the batch continues cleanly. Compare end-to-end session latency with and without `asyncio.gather` on the classifier.
+- **`tenacity` retry on LLM calls** — decorator on `LLMClient.invoke` / `structured`. Exponential backoff for 429s, 5xx, timeouts. ~5 lines of decorator code but prevents demo embarrassment.
+- **Per-call error isolation** — one bad LLM response (rate limit, malformed output) should log and skip, not crash the pipeline. The end-of-session fan-out (classifier → extractor → fragments) must survive partial failures.
+
+**Important (do during or after Phase 12):**
+
+- **Cost tracking** — sum input/output tokens per node per session, write to a summary table or file. During the CTO walkthrough: "This session cost $0.03 across 4 LLM calls." Shows production cost awareness.
+- **`asyncio.gather` on end-of-session pipeline** — convert per-thread loops (classifier, extractor, insight pipeline) to concurrent fan-out. Measure latency before/after. Not critical for the demo (runs after `/quit`) but impressive in the architecture walkthrough.
+
+**Test it:** Induce a failure (mock a 429 from OpenAI). Verify: the failed call retries, and if it still fails, the rest of the batch continues cleanly. Verify cost log is populated after a session.
+
+---
+
+## Phase 12: Derived Insights (Tag-Cluster)
+**You'll learn:** Batch pipeline design, strategy pattern, incremental processing, materialized views, feeding derived data back into the conversation
+
+Build the "derived memory" layer — the system learns patterns across all conversations. This is the feature that makes the demo go from "good memory" to "it actually understands me."
+
+**Architectural framing:** The insight layer is a *materialized view* over the fragment store — batch-derived, incrementally refreshed, served into the context assembly path at query time.
+
+### 1. New schemas
+
+```python
+class Insight(BaseModel):
+    """A derived observation synthesised from a cluster of Fragments."""
+    insight_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    tag: str                          # the cluster's primary tag
+    fragment_ids: list[str]           # provenance: which fragments contributed
+    content: str                      # the derived pattern / tension / theme
+    confidence: float = Field(ge=0, le=1)  # LLM self-rated
+    created_at: datetime = Field(default_factory=datetime.now)
+    supersedes: str | None = None     # insight_id this replaces on re-run
+
+class InsightList(BaseModel):
+    """Wrapper for structured LLM output."""
+    insights: list[Insight]
+```
+
+`supersedes` enables **incremental updates**: when a cluster grows and you
+re-derive, the new insight links to the one it replaces. Old insights stay
+in the store for auditability; the read path filters to the latest via
+`WHERE supersedes IS NULL`.
+
+### 2. Aggregation strategy protocol
+
+```python
+class AggregationStrategy(Protocol):
+    """Seam between the pipeline and the partitioning logic.
+
+    Implement for each insight variant:
+      - TagClusterStrategy   (this phase — partition by primary tag)
+      - SessionWindowStrategy (future — partition by session, then diff)
+    """
+    def partition(self, fragments: list[Fragment]) -> dict[str, list[Fragment]]: ...
+    def filter(self, groups: dict[str, list[Fragment]]) -> dict[str, list[Fragment]]: ...
+    def build_prompt(self, key: str, fragments: list[Fragment]) -> str: ...
+```
+
+### 3. Tag-cluster strategy
+
+```python
+class TagClusterStrategy:
+    min_cluster_size: int = 3
+
+    def partition(self, fragments: list[Fragment]) -> dict[str, list[Fragment]]:
+        clusters: dict[str, list[Fragment]] = {}
+        for f in fragments:
+            key = f.tags[0].tag if f.tags else "untagged"
+            clusters.setdefault(key, []).append(f)
+        return clusters
+
+    def filter(self, groups: dict[str, list[Fragment]]) -> dict[str, list[Fragment]]:
+        return {k: v for k, v in groups.items() if len(v) >= self.min_cluster_size}
+
+    def build_prompt(self, key: str, fragments: list[Fragment]) -> str:
+        fragment_block = "\n".join(
+            f"- [{f.fragment_id}] {f.content}" for f in fragments
+        )
+        return (
+            f"You are analyzing {len(fragments)} journal fragments about '{key}'.\n\n"
+            f"Fragments:\n{fragment_block}\n\n"
+            "Identify recurring patterns, tensions, or evolving themes across "
+            "these fragments.  For each insight:\n"
+            "- State the pattern in one clear sentence.\n"
+            "- Rate your confidence (0.0–1.0) that this is a real pattern, not noise.\n"
+            "- List the fragment_ids that support it.\n\n"
+            "Return your answer as a JSON object matching the InsightList schema."
+        )
+```
+
+### 4. Insight pipeline
+
+```python
+class InsightPipeline:
+    """Stateless batch pipeline: load → partition → derive → store."""
+
+    def __init__(self, llm: LLMClient, store: InsightStore):
+        self.llm = llm
+        self.store = store
+
+    def run(
+        self,
+        fragments: list[Fragment],
+        strategy: AggregationStrategy,
+        watermark: datetime | None = None,
+    ) -> list[Insight]:
+        if watermark:
+            fragments = [f for f in fragments if f.timestamp > watermark]
+
+        groups = strategy.partition(fragments)
+        groups = strategy.filter(groups)
+
+        all_insights: list[Insight] = []
+        for key, cluster in groups.items():
+            prompt = strategy.build_prompt(key, cluster)
+            structured_llm = self.llm.structured(InsightList)
+            result: InsightList = structured_llm.invoke([
+                SystemMessage(content=prompt),
+            ])
+            for insight in result.insights:
+                insight.tag = key
+                insight.fragment_ids = [f.fragment_id for f in cluster]
+            all_insights.extend(result.insights)
+
+        self.store.save(all_insights)
+        return all_insights
+```
+
+### 5. Storage
+
+Insight storage is backed by the `insights` Postgres table (schema in Phase 10).
+`InsightStore` wraps it with the same interface pattern as other stores:
+
+```python
+class InsightStore:
+    def save(self, insights: list[Insight]) -> None: ...
+    def load_all(self, user_id: str) -> list[Insight]: ...
+    def load_current(self, user_id: str) -> list[Insight]:
+        """Latest version of each insight (WHERE supersedes IS NULL)."""
+        ...
+```
+
+### 6. Graph integration
+
+The insight pipeline runs in the **end-of-session pipeline**, after fragments
+are saved:
+
+```
+End-of-session pipeline (updated):
+    save_transcript → exchange_decomposer → save_threads
+      → thread_classifier → save_classified_threads
+      → thread_fragment_extractor → save_fragments
+      → generate_insights → END
+         ^^^^^^^^^^^^^^^^^^
+         NEW NODE
+```
+
+**Node prototype:**
+
+```python
+def make_generate_insights(
+    llm: LLMClient,
+    insight_store: InsightStore | None = None,
+) -> Callable[..., dict]:
+    insight_store = insight_store or InsightStore()
+    pipeline = InsightPipeline(llm=llm, store=insight_store)
+    strategy = TagClusterStrategy()
+
+    @node_trace("generate_insights")
+    def generate_insights(state: JournalState) -> dict:
+        try:
+            all_fragments = fragment_store.load_all(user_id=state["user_id"])
+            existing = insight_store.load_current(user_id=state["user_id"])
+            watermark = max((i.created_at for i in existing), default=None)
+            insights = pipeline.run(all_fragments, strategy, watermark=watermark)
+            return {"status": Status.INSIGHTS_GENERATED}
+        except Exception as e:
+            logger.exception("Insight generation failed")
+            return {"status": Status.ERROR, "error_message": str(e)}
+
+    return generate_insights
+```
+
+### 7. Feeding insights into the conversation
+
+Insights are retrieved alongside fragments during the conversation loop.
+The `retrieve_history` node gains an insight lookup:
+
+```
+retrieve_history node (updated):
+    1. Vector search for relevant fragments     (existing)
+    2. Load current insights matching top tags   (NEW)
+    3. Return both in state
+```
+
+Context Builder assembles them as a separate layer in the system message:
+
+```
+SystemMessage content:
+    {prompt}
+    <retrieved_context>...</retrieved_context>    ← fragments (existing)
+    <insights>...</insights>                      ← derived insights (NEW)
+```
+
+### 8. Extensibility — future strategies
+
+The `AggregationStrategy` protocol is the seam for future insight types:
+
+| Future strategy | What it adds | Effort to plug in |
+|---|---|---|
+| **SessionWindowStrategy** (temporal drift) | Partitions by session, generates digests, diffs consecutive pairs for emerging/persistent/fading patterns | New strategy class + `SessionDigest` model + `DiffPass`. Zero changes to pipeline or store. |
+| **GraphClusterStrategy** (idea connections) | Uses embedding similarity as pre-filter, LLM extracts edges, connected components become insight clusters | New strategy class + `IdeaEdge` model. Wires into Neo4j. |
+
+Both plug into the existing `InsightPipeline` with no structural changes.
+
+**Test it:** After several sessions, run insights. Verify they capture real patterns, not noise. Verify `supersedes` chains work (re-run after adding more sessions — old insights get replaced, not duplicated).
+
+---
+
+## Phase 13: Demo Preparation
+**You'll learn:** Seed data generation, demo reliability, architecture storytelling, presentation
+
+Ship the demo. This phase is about making the product reliable and presentable, not adding features.
+
+### Tasks
+
+- **Seed data script** — generates 8–10 realistic multi-topic sessions so the demo is warm from the first interaction. Without this, a demo user must invest 30+ minutes before insights have anything to work with.
+- **Prompt polish** — tune the personality prompt, insight surfacing language, and profile adaptation. Iterate with real conversations over 2–3 rounds.
+- **Architecture doc** — one-page diagram + 10 bullet points explaining design decisions. This is what the CTO takes away after the meeting. Include: event-sourced write path, materialized view insight layer, strategy pattern extensibility, pgvector consolidation, Context Builder separation of concerns.
+- **Git history cleanup** — squash experiments. The commit log should read like a professional progression.
+- **Rehearse** — the demo itself takes 5 minutes (three moments: remembers, notices, adapts). The architecture walkthrough takes 15. The questions take 30. Practice all three.
+
+### The three demo moments
+
+| Moment | What happens | What the CTO sees |
+|---|---|---|
+| **"It remembers"** | User mentions something from a previous session. Agent references it naturally. | Cross-session RAG with pgvector, semantic retrieval as a passive feed |
+| **"It notices"** | Agent volunteers a pattern: "I notice you keep coming back to the tension between X and Y" | Materialized insight pipeline, strategy pattern, incremental processing |
+| **"It adapts"** | User says "be more direct." Next response shifts tone. | Profile scanner node, parametric prompts, separation of concerns |
+
+### CTO walkthrough points
+
+1. Event-sourced architecture: immutable write path → derived stores → read path
+2. Strategy pattern in the insight pipeline: `AggregationStrategy` protocol, extensible without refactoring
+3. Context Builder separation of concerns: nodes own their prompts, builder does pure assembly
+4. Test suite: 196+ tests, edge cases, behavior-driven
+5. Error handling: `@node_trace`, `Status.ERROR` propagation, tenacity retry
+6. Cost tracking: per-node token accounting
+7. Infrastructure: `docker compose up`, Postgres + pgvector, Neo4j provisioned
 
 ---
 
 ## Graph Topology Evolution
 
 ```
-Phase 2:  input → respond → loop
-Phase 4:  START → get_input → respond → save_turn → route → END
-Phase 5:  START → get_input → respond → save_turn → extract → route → END
-Phase 6:  START → get_input → retrieve → respond → save_turn → extract → route → END
-Phase 8:  START → get_input → detect_intent → retrieve → respond → save_turn → extract → route → END
+Phase 2:   input → respond → loop
+Phase 4:   START → get_input → respond → save_turn → route → END
+Phase 5:   START → get_input → respond → save_turn → extract → route → END
+Phase 6:   START → get_input → retrieve → respond → save_turn → extract → route → END
+Phase 8:   START → get_input → detect_intent → retrieve → respond → save_turn → extract → route → END
+Phase 9:   START → get_input → intent_classifier → profile_scanner → retrieve → respond → ... → END
+Phase 12:  (end-of-session) ... → save_fragments → generate_insights → END
 ```
 
 ## Project Structure (final)
@@ -298,33 +623,65 @@ Phase 8:  START → get_input → detect_intent → retrieve → respond → sav
 ```
 journal_agent/
 ├── __init__.py
-├── main.py                  # Entry point
-├── models.py                # Turn, Fragment, Intent, UserProfile, Insight
+├── main.py                      # Entry point
+├── model/
+│   └── session.py               # Turn, Fragment, Insight, UserProfile, ScoreCard, etc.
+├── configure/
+│   ├── config_builder.py        # Environment + defaults
+│   ├── context_builder.py       # Layered prompt assembly + token budgeting
+│   └── prompts/                 # Parametric prompt templates per node
+│       ├── __init__.py          # get_prompt(key, state) registry
+│       ├── conversation.py
+│       ├── intent_classifier.py
+│       ├── profile_scanner.py
+│       └── socratic.py
 ├── graph/
-│   ├── __init__.py
-│   ├── state.py             # JournalState (TypedDict)
-│   ├── nodes.py             # get_input, detect_intent, retrieve, respond, save_turn, extract
-│   └── builder.py           # Wire the graph
-├── extraction.py            # Fragment extraction from turns
-├── retrieval.py             # Search stored fragments (embeddings + tags)
-├── context_builder.py       # Layered prompt assembly
-├── intent.py                # Intent classification
-├── profile.py               # User profile management
-├── insights.py              # Derived insights generation
-└── storage.py               # Session + fragment persistence
+│   ├── state.py                 # JournalState (TypedDict)
+│   ├── graph.py                 # Wire the graph, make_get_ai_response
+│   └── nodes/
+│       ├── classifier.py        # intent_classifier, profile_scanner
+│       ├── insights.py          # generate_insights (end-of-session)
+│       └── ...                  # save nodes, retrieval, extraction
+├── insights/
+│   ├── strategy.py              # AggregationStrategy protocol
+│   ├── tag_cluster.py           # TagClusterStrategy
+│   └── pipeline.py              # InsightPipeline
+├── storage/
+│   ├── postgres_store.py        # PostgresStore (replaces JsonStore)
+│   ├── pgvector_store.py        # PgVectorStore (replaces VectorStore/Chroma)
+│   ├── insight_store.py         # InsightStore
+│   ├── profile_store.py         # UserProfileStore
+│   └── exchange_store.py        # TranscriptStore
+├── tests/
+│   ├── test_models.py
+│   ├── test_context_builder.py
+│   ├── test_nodes.py
+│   └── ...
+├── docker-compose.yml
+└── seed_data.py                 # Generate realistic demo sessions
 ```
 
 ## Verification
 
 After each phase:
 1. Run the agent interactively and verify the new behavior
-2. Write at least one small test for the new code
-3. Review the code together — explain back what it does (solidifies learning)
+2. Run the full test suite: `python -m pytest journal_agent/tests/ -q --tb=short`
+3. Review the code together — explain back what it does
 
-End-to-end test after Phase 10 (correctness):
+End-to-end test after Phase 12 (correctness):
 - Have 3+ conversations across sessions on different topics
 - Verify: fragments are extracted, retrieval finds cross-session context, intent shapes responses, profile adapts, insights emerge
+- Verify multi-user isolation: two user_ids produce completely independent data
 
-End-to-end test after Phase 11 (scale & resilience):
-- Re-run the Phase 10 end-to-end test. Outputs should be identical; latency should be materially lower where parallelization applies.
-- Inject a synthetic failure mid-pipeline. Verify: the failed unit is logged, the rest of the batch completes, the system exits cleanly rather than crashing.
+End-to-end test after Phase 13 (demo readiness):
+- Run seed data script, start fresh demo session as a new user
+- Verify: insights are warm from session one, the three demo moments land
+- Induce a failure (mock a 429). Verify: retry kicks in, pipeline survives partial failures
+
+## Explicitly out of scope
+
+- **Phase 10B** (temporal drift / session digests) — `AggregationStrategy` protocol supports it; build when real usage data exists
+- **Phase 10C** (graph-of-ideas) — Neo4j is provisioned in Compose; build when edge extraction is worth the quadratic cost
+- **Web UI beyond minimal** — a CTO doesn't evaluate CSS
+- **Auth / multi-tenant** — user_id scoping is sufficient; auth is an infrastructure concern (Auth0/Clerk), not hand-rolled
+- **Kafka / event streaming** — append-only Postgres tables serve the event-log role at this scale

@@ -8,9 +8,9 @@ from journal_agent.configure.config_builder import LLM_ROLE_CONFIG, configure_en
 from journal_agent.graph.graph import build_journal_graph
 from journal_agent.graph.state import  JournalState
 from journal_agent.model.session import ContextSpecification, Status, UserProfile
+from journal_agent.storage.chroma_fragment_store import ChromaFragmentStore
 from journal_agent.storage.exchange_store import TranscriptStore
 from journal_agent.storage.profile_store import UserProfileStore
-from journal_agent.storage.vector_store import get_vector_store
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -29,16 +29,14 @@ def main():
         role_config=LLM_ROLE_CONFIG,
     )
 
-    # create a session store
-    # Data is saved under <project-root>/data/sessions by default.
-    # Set JOURNAL_AGENT_ROOT to override the root directory.
+    # create stores — all satisfy their respective protocols
+    # (SessionStore, FragmentStore, ProfileStore)
     session_store = TranscriptStore()
-
-    # create a vector store
-    vector_store = get_vector_store()
+    fragment_store = ChromaFragmentStore()
+    profile_store = UserProfileStore()
 
     # user profile
-    user_profile = UserProfileStore().load_profile()
+    user_profile = profile_store.load_profile()
 
     # get previously stored messages - this assumes we always save transcripts to a retrievable store  - will this always be the case?
     seed_context: list[BaseMessage] = session_store.retrieve_transcript()
@@ -58,7 +56,12 @@ def main():
         status=Status.IDLE,
         error_message=None,
     )
-    graph = build_journal_graph(registry=registry, session_store=session_store, vector_store=vector_store)
+    graph = build_journal_graph(
+        registry=registry,
+        session_store=session_store,
+        fragment_store=fragment_store,
+        profile_store=profile_store,
+    )
     try:
         graph.invoke(initial_state)
 
