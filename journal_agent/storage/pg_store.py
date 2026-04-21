@@ -38,7 +38,7 @@ from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool
 
 from journal_agent.configure.settings import get_settings
-from journal_agent.model.session import Exchange, Fragment, Role, Tag, ThreadSegment, Turn, UserProfile
+from journal_agent.model.session import Exchange, Fragment, Role, Tag, ThreadSegment, Turn, UserProfile, Insight
 
 logger = logging.getLogger(__name__)
 
@@ -265,6 +265,53 @@ class PgStore:
             ),
         )
 
+    def upsert_insights(self, insights: list[Insight]) -> None:
+        if not insights:
+            return
+
+        expected_insights = len(insights)
+
+        # Upsert insights
+        sql = """
+              INSERT INTO insights (insight_id, label, body, verifier_status, confidence)
+              VALUES (%s, %s, %s, %s, %s)
+              ON CONFLICT (insight_id) DO UPDATE SET label           = EXCLUDED.label,
+                                                     body            = EXCLUDED.body,
+                                                     verifier_status = EXCLUDED.verifier_status,
+                                                     confidence      = EXCLUDED.confidence; \
+              """
+        rows = [
+            (i.insight_id, i.label, i.body, i.verifier_status, i.confidence)
+            for i in insights
+        ]
+        with self._conn() as conn, conn.cursor() as cur:
+            cur.executemany(sql, rows)
+            if cur.rowcount != expected_insights:
+                raise RuntimeError(
+                    f"upsert_insights: expected {expected_insights} rows, got {cur.rowcount}"
+                )
+
+        # Upsert junction rows
+        junction_rows = [
+            (i.insight_id, f)
+            for i in insights
+            for f in i.fragment_ids
+        ]
+
+        if junction_rows:
+            expected_junction = len(junction_rows)
+            sql = """
+                  INSERT INTO insight_fragments (insight_id, fragment_id)
+                  VALUES (%s, %s)
+                  ON CONFLICT DO NOTHING \
+                  """
+            with self._conn() as conn, conn.cursor() as cur:
+                cur.executemany(sql, junction_rows)
+                if cur.rowcount != expected_junction:
+                    raise RuntimeError(
+                        f"upsert_insights junction: expected {expected_junction} rows, got {cur.rowcount}"
+                    )
+
 
     def fetch_profile(self, user_id: str = "default") -> list[UserProfile]:
         """Return the user_profiles row for *user_id* as a list (0 or 1 items).
@@ -430,6 +477,49 @@ class PgStore:
         except Exception:
             logger.exception("fetch_fragments failed for session_id=%s", session_id)
             return []
+
+    def fetch_insights(self, label: str | None = None, to_date: datetime | None = None) -> list[Insight]:
+        """Return Insights with their associated fragment_ids from the junction table."""
+        try:
+            rows = self.fetch_rows("""
+                                   SELECT t.insight_id,
+                                          t.label,
+                                          t.body,
+                                          t.verifier_status,
+                                          t.confidence,
+                                          t.created_at,
+                                          COALESCE(
+                                                          array_agg(te.fragment_id)
+                                                          FILTER (WHERE te.fragment_id IS NOT NULL),
+                                                          ARRAY []::text[]
+                                          ) AS fragment_ids
+                                   FROM insights t
+                                            LEFT JOIN insight_fragments te ON te.insight_id = t.insight_id
+                                   WHERE (%s IS NULL OR t.label = %s)
+                                     AND (%s IS NULL OR t.created_at <= %s)
+                                   GROUP BY t.insight_id, t.label, t.body, t.verifier_status, t.confidence, t.created_at
+                                   ORDER BY t.created_at;
+                                   """,
+                                   (label, label, to_date, to_date)
+                                   )
+            if not rows:
+                return []
+            return [
+                Insight(
+                    insight_id=r["insight_id"],
+                    label=r["label"],
+                    body=r["body"],
+                    verifier_status=r["verifier_status"],
+                    confidence=r["confidence"],
+                    created_at=r["created_at"],
+                    fragment_ids=list(r["fragment_ids"]) if r["fragment_ids"] else []
+                )
+                for r in rows
+            ]
+        except Exception:
+            logger.exception("fetch_insights failed for label=%s, to_date=%s", label, to_date)
+            return []
+
 
     # ══════════════════════════════════════════════════════════════════════════
     # pgvector search

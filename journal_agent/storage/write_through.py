@@ -1,4 +1,6 @@
 """write_through.py — Store-level write-through wrappers for non-fragment stores.
+In the future we may want to write JSON records to a queue, and have a consumer load them into Postgres. (store-forward patter)
+But for now we just perform both writes in the same process.
 
 Fragment storage is handled by PgFragmentStore (pg_fragment_store.py) when
 Postgres is enabled — no write-through needed there.
@@ -18,11 +20,12 @@ Enable via settings.enable_postgres in main.py.
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from typing import TypeVar
 
 from pydantic import BaseModel
 
-from journal_agent.model.session import Exchange, ThreadSegment, UserProfile
+from journal_agent.model.session import Exchange, ThreadSegment, UserProfile, Insight
 from journal_agent.storage.pg_store import PgStore
 from journal_agent.storage.profile_store import UserProfileStore
 from journal_agent.storage.storage import JsonStore
@@ -87,8 +90,25 @@ class WriteThroughProfileStore:
         pg = self._pg.fetch_profile(user_id)
         return pg[0] if pg else None
 
-
-
     def save_profile(self, profile: UserProfile) -> None:
         self._local.save_profile(profile)
         self._pg.upsert_profile(profile)
+
+
+class WriteThroughIntentStore:
+    """ArtifactStore for Intent records: writes to JSONL + Postgres; reads from Postgres."""
+
+    def __init__(self, json_store: JsonStore, pg_store: PgStore):
+        self._json = json_store
+        self._pg = pg_store
+
+    def save_insights(self, items: list[Insight]) -> None:
+        if len(items) > 0:
+            from datetime import datetime
+            file_name = f"insights_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            self._json.save_session(file_name, items)
+            self._pg.upsert_insights(items)
+
+    def load_insights(self, search_label: str | None = None, date_cutoff: datetime | None = None ) -> list[T] | None:
+        rows = self._pg.fetch_insights(search_label, date_cutoff)
+        return rows or None  # protocol: return None on miss, not []

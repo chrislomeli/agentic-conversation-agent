@@ -232,7 +232,6 @@ class UserProfile(BaseModel):
 Insights
 """
 
-
 class VerifierStatus(StrEnum):
     UNVERIFIED = "unverified"
     VERIFIED = "verified"
@@ -245,7 +244,7 @@ class Insight(BaseModel):
     label: str  # LLM-generated theme
     body: str  # the actual observation
     confidence: float
-    generated_at: datetime
+    created_at: datetime
     verifier_status: VerifierStatus
 
 

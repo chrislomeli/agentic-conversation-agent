@@ -88,3 +88,36 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     ai_label           TEXT,
     updated_at         TIMESTAMPTZ DEFAULT now()
 );
+
+-- ── insights ─────────────────────────────────
+create table insights
+(
+    insight_id      text not null
+        primary key,
+    session_id      text not null
+        references sessions
+            on delete cascade,
+    label           text not null,
+    body            text not null,
+    verifier_status varchar(20),
+    confidence      double precision,
+    embedding       vector(384),
+    created_at      timestamp with time zone default now()
+);
+
+create index insights_fragments_embedding_idx
+    on insights using hnsw (embedding vector_cosine_ops);
+
+-- ── insights to fragments relational table ─────────────────────────────────
+create table insight_fragments
+(
+    insight_id  text not null
+        references insights
+            on delete cascade,
+    fragment_id text not null
+        references fragments
+            on delete cascade,
+    primary key (insight_id, fragment_id)
+);
+
+
