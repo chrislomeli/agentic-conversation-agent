@@ -34,7 +34,7 @@ class UserProfileStore:
             return None
 
 
-    def save_profile(self, profile: UserProfile, user_id: str | None = None) -> None:
+    def save_profile(self, profile: UserProfile) -> None:
         # Write single atomic profile
         with self._path.open(mode="w", encoding="utf-8") as f:
             f.write(f"{profile.model_dump_json(indent=2)}\n")

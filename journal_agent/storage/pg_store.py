@@ -38,7 +38,7 @@ from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool
 
 from journal_agent.configure.settings import get_settings
-from journal_agent.model.session import Exchange, Fragment, Tag, ThreadSegment, UserProfile
+from journal_agent.model.session import Exchange, Fragment, Role, Tag, ThreadSegment, Turn, UserProfile
 
 logger = logging.getLogger(__name__)
 
@@ -224,7 +224,7 @@ class PgStore:
                     [(fragment.fragment_id, eid) for eid in fragment.exchange_ids],
                 )
 
-    def upsert_profile(self, profile: UserProfile, user_id: str = "default") -> None:
+    def upsert_profile(self, profile: UserProfile) -> None:
         """Upsert the single user profile row."""
         self.execute(
             """
@@ -249,7 +249,7 @@ class PgStore:
                 updated_at        = EXCLUDED.updated_at
             """,
             (
-                user_id,
+                profile.user_id,
                 profile.response_style,
                 profile.explanation_depth,
                 profile.tone,
@@ -264,6 +264,172 @@ class PgStore:
                 profile.updated_at,
             ),
         )
+
+
+    def fetch_profile(self, user_id: str = "default") -> list[UserProfile]:
+        """Return the user_profiles row for *user_id* as a list (0 or 1 items).
+
+        Returns [] on miss or error so callers can do `rows[0] if rows else None`.
+        """
+        try:
+            rows = self.fetch_rows(
+                """
+                SELECT user_id, response_style, explanation_depth, tone,
+                       decision_style, learning_style, interests, pet_peeves,
+                       active_projects, recurring_themes, human_label, ai_label, updated_at
+                FROM user_profiles
+                WHERE user_id = %s
+                """,
+                (user_id,),
+            )
+            if not rows:
+                return []
+            r = rows[0]
+            return [UserProfile(
+                response_style=r["response_style"],
+                explanation_depth=r["explanation_depth"],
+                tone=r["tone"],
+                decision_style=r["decision_style"],
+                learning_style=r["learning_style"],
+                interests=r["interests"] or [],
+                pet_peeves=r["pet_peeves"] or [],
+                active_projects=r["active_projects"] or [],
+                recurring_themes=r["recurring_themes"] or [],
+                human_label=r["human_label"],
+                ai_label=r["ai_label"],
+                updated_at=r["updated_at"],
+            )]
+        except Exception:
+            logger.exception("fetch_profile failed for user_id=%s", user_id)
+            return []
+
+    def fetch_exchanges(self, session_id: str) -> list[Exchange]:
+        """Return all Exchange records for *session_id*, ordered by timestamp.
+
+        Returns [] on miss or error.
+        """
+        try:
+            rows = self.fetch_rows(
+                """
+                SELECT exchange_id, session_id, timestamp, human_content, ai_content
+                FROM exchanges
+                WHERE session_id = %s
+                ORDER BY timestamp
+                """,
+                (session_id,),
+            )
+            if not rows:
+                return []
+            results = []
+            for r in rows:
+                results.append(Exchange(
+                    exchange_id=r["exchange_id"],
+                    session_id=r["session_id"],
+                    timestamp=r["timestamp"],
+                    human=Turn(session_id=r["session_id"], role=Role.HUMAN, content=r["human_content"])
+                          if r["human_content"] else None,
+                    ai=Turn(session_id=r["session_id"], role=Role.AI, content=r["ai_content"])
+                       if r["ai_content"] else None,
+                ))
+            return results
+        except Exception:
+            logger.exception("fetch_exchanges failed for session_id=%s", session_id)
+            return []
+
+    def fetch_threads(self, session_id: str) -> list[ThreadSegment]:
+        """Return ThreadSegments for *session_id* with exchange_ids from the junction.
+
+        Returns [] on miss or error.
+        """
+        try:
+            rows = self.fetch_rows(
+                """
+                SELECT
+                    t.thread_name,
+                    t.tags,
+                    COALESCE(
+                        array_agg(te.exchange_id ORDER BY te.position)
+                        FILTER (WHERE te.exchange_id IS NOT NULL),
+                        ARRAY[]::text[]
+                    ) AS exchange_ids
+                FROM threads t
+                LEFT JOIN thread_exchanges te ON te.thread_id = t.thread_id
+                WHERE t.session_id = %s
+                GROUP BY t.thread_id, t.thread_name, t.tags
+                ORDER BY t.thread_name
+                """,
+                (session_id,),
+            )
+            if not rows:
+                return []
+            results = []
+            for r in rows:
+                tag_data = r["tags"] if isinstance(r["tags"], list) else []
+                results.append(ThreadSegment(
+                    thread_name=r["thread_name"],
+                    exchange_ids=list(r["exchange_ids"]) if r["exchange_ids"] else [],
+                    tags=[Tag(**t) if isinstance(t, dict) else t for t in tag_data],
+                ))
+            return results
+        except Exception:
+            logger.exception("fetch_threads failed for session_id=%s", session_id)
+            return []
+
+    def get_last_session_id(self) -> str | None:
+        """Return the session_id of the most recently started session, or None."""
+        try:
+            rows = self.fetch_rows(
+                "SELECT session_id FROM sessions ORDER BY started_at DESC LIMIT 1"
+            )
+            return rows[0]["session_id"] if rows else None
+        except Exception:
+            logger.exception("get_last_session_id failed")
+            return None
+    
+    
+    def fetch_fragments(self, session_id: str | None = None) -> list[Fragment]:
+        """Load fragments from Postgres, optionally filtered by session.
+
+        Returns [] on miss or error.
+        """
+        try:
+            where = "WHERE f.session_id = %s" if session_id else ""
+            params = (session_id,) if session_id else ()
+            sql = f"""
+                SELECT
+                    f.fragment_id,
+                    f.session_id,
+                    f.content,
+                    f.tags,
+                    f.timestamp,
+                    COALESCE(
+                        array_agg(fe.exchange_id) FILTER (WHERE fe.exchange_id IS NOT NULL),
+                        ARRAY[]::text[]
+                    ) AS exchange_ids
+                FROM fragments f
+                LEFT JOIN fragment_exchanges fe ON fe.fragment_id = f.fragment_id
+                {where}
+                GROUP BY f.fragment_id, f.session_id, f.content, f.tags, f.timestamp
+                ORDER BY f.timestamp
+            """
+            rows = self.fetch_rows(sql, params)
+            if not rows:
+                return []
+            results = []
+            for r in rows:
+                tag_data = r.get("tags") if isinstance(r.get("tags"), list) else []
+                results.append(Fragment(
+                    fragment_id=r["fragment_id"],
+                    session_id=r["session_id"],
+                    content=r["content"],
+                    exchange_ids=list(r["exchange_ids"]) if r["exchange_ids"] else [],
+                    tags=[Tag(**t) if isinstance(t, dict) else t for t in tag_data],
+                    timestamp=r["timestamp"],
+                ))
+            return results
+        except Exception:
+            logger.exception("fetch_fragments failed for session_id=%s", session_id)
+            return []
 
     # ══════════════════════════════════════════════════════════════════════════
     # pgvector search
@@ -300,25 +466,29 @@ class PgStore:
             ORDER BY f.embedding <=> %s::vector
             LIMIT %s
         """
-        rows = self.fetch_rows(sql, (query_embedding, query_embedding, top_k))
-        results: list[tuple[Fragment, float]] = []
-        for r in rows:
-            score = r["score"]
-            if score < min_score:
-                continue
-            raw_tags = r.get("tags")
-            tag_data = raw_tags if isinstance(raw_tags, list) else []
-            tags = [Tag(**t) if isinstance(t, dict) else t for t in tag_data]
-            fragment = Fragment(
-                fragment_id=r["fragment_id"],
-                session_id=r["session_id"],
-                content=r["content"],
-                exchange_ids=list(r["exchange_ids"]) if r["exchange_ids"] else [],
-                tags=tags,
-                timestamp=r["timestamp"] or datetime.now(),
-            )
-            results.append((fragment, score))
-        return results
+        try:
+            rows = self.fetch_rows(sql, (query_embedding, query_embedding, top_k))
+            if not rows:
+                return []
+            results: list[tuple[Fragment, float]] = []
+            for r in rows:
+                score = r["score"]
+                if score < min_score:
+                    continue
+                tag_data = r.get("tags") if isinstance(r.get("tags"), list) else []
+                fragment = Fragment(
+                    fragment_id=r["fragment_id"],
+                    session_id=r["session_id"],
+                    content=r["content"],
+                    exchange_ids=list(r["exchange_ids"]) if r["exchange_ids"] else [],
+                    tags=[Tag(**t) if isinstance(t, dict) else t for t in tag_data],
+                    timestamp=r["timestamp"] or datetime.now(),
+                )
+                results.append((fragment, score))
+            return results
+        except Exception:
+            logger.exception("search_similar failed")
+            return []
 
 
 # ── Module-level singleton (lazy) ──────────────────────────────────────────────

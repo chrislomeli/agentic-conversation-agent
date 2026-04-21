@@ -38,7 +38,7 @@ class LLMModel:
 class Settings(BaseSettings):
     # ── Database ───────────────────────────────────────────────────────────────
     postgres_url: str = "postgresql://localhost:5432/journal"
-    enable_postgres: bool = False  # opt-in write-through to Postgres
+    enable_postgres: bool = True  # opt-in write-through to Postgres
 
     # ── LLM credentials ───────────────────────────────────────────────────────
     llm_source: LLMProvider = LLMProvider.STUB

@@ -27,7 +27,7 @@ dependencies = [
     "psycopg-pool>=3.2",
     "pgvector>=0.3",
     "numpy>=1.26",
-
+    "fastembed>=0.4",
 ]
 
 [project.optional-dependencies]

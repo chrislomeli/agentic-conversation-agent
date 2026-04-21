@@ -191,6 +191,7 @@ class ContextSpecification(BaseModel):
 
 
 class UserProfile(BaseModel):
+    user_id: str = Field(default="default_user", description="Unique identifier for the user - defaults to 'default_user'")
     # Communication
     response_style: str | None = Field(default=DEFAULT_RESPONSE_STYLE,
                                        description="Free text field describing how the AI should format and present data to the user")  # free-text, LLM-generated summary

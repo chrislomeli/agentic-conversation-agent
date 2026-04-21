@@ -10,11 +10,11 @@ from journal_agent.graph.state import JournalState
 from journal_agent.model.session import ContextSpecification, Status, UserProfile
 from journal_agent.storage.chroma_fragment_store import ChromaFragmentStore
 from journal_agent.storage.exchange_store import TranscriptStore
+from journal_agent.storage.pg_fragment_store import PgFragmentStore
 from journal_agent.storage.pg_store import get_pg_store
 from journal_agent.storage.profile_store import UserProfileStore
 from journal_agent.storage.storage import JsonStore
 from journal_agent.storage.write_through import (
-    WriteThroughFragmentStore,
     WriteThroughProfileStore,
     WriteThroughThreadStore,
     WriteThroughTranscriptStore,
@@ -34,13 +34,12 @@ def _build_stores(enable_postgres: bool):
     their default local JsonStores — behavior matches pre-refactor.
     When enabled, every write path fans out to JSONL/Chroma AND Postgres.
     """
-    fragment_store_local = ChromaFragmentStore()
     profile_store_local = UserProfileStore()
 
     if not enable_postgres:
         return (
             TranscriptStore(),
-            fragment_store_local,
+            ChromaFragmentStore(),
             profile_store_local,
             None,
             None,
@@ -52,7 +51,7 @@ def _build_stores(enable_postgres: bool):
     transcript_store = WriteThroughTranscriptStore(JsonStore("transcripts"), pg)
     thread_store = WriteThroughThreadStore(JsonStore("threads"), pg)
     classified_thread_store = WriteThroughThreadStore(JsonStore("classified_threads"), pg)
-    fragment_store = WriteThroughFragmentStore(fragment_store_local, pg)
+    fragment_store = PgFragmentStore(pg_store=pg)
     profile_store = WriteThroughProfileStore(profile_store_local, pg)
 
     # TranscriptStore holds its own session_store for the KeyboardInterrupt
