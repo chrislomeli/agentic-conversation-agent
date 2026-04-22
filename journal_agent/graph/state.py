@@ -13,16 +13,15 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
 
 from journal_agent.model.session import Fragment, Exchange, ThreadSegment, ContextSpecification, Status, UserProfile, \
-    Cluster
+    Cluster, Insight
 
 
 class ReflectionState(TypedDict):
     window_start: datetime
     window_end: datetime
     fragments: list[Fragment]            # populated by collect_window
-    clusters: list[Cluster]              # populated by cluster_fragments
-    # scored_clusters: list[ScoredCluster] # populated by score_clusters
-    # insights: list[Insight]              # populated by label_clusters
+    clusters: list[Cluster]              # populated (and scored) by cluster_fragments
+    insights: list[Insight]              # populated by label_clusters
     # verified_insights: list[Insight]     # populated by verify_citations
     summary: str                         # populated by summarize_result
     error: str | None
