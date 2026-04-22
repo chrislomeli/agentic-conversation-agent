@@ -5,16 +5,13 @@ Mocking strategy:
 """
 
 import time
-from datetime import datetime
 
 import pytest
 from unittest.mock import MagicMock
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from journal_agent.model.session import Exchange, Role, Turn
-from journal_agent.storage.transcript_cache import TranscriptStore
-from journal_agent.storage.jsonl_gateway import JsonlGateway
-from journal_agent.storage.repositories import TranscriptRepository, exchanges_to_messages
+from journal_agent.repository import TranscriptStore, JsonlGateway, TranscriptRepository, exchanges_to_messages
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -32,7 +29,7 @@ def make_exchange(session_id: str = "s1") -> Exchange:
 @pytest.fixture
 def json_store(tmp_path, monkeypatch):
     monkeypatch.setattr(
-        "journal_agent.storage.jsonl_gateway.resolve_project_root",
+        "journal_agent.repository.jsonl_gateway.resolve_project_root",
         lambda: tmp_path,
     )
     return JsonlGateway("transcripts")
@@ -41,7 +38,7 @@ def json_store(tmp_path, monkeypatch):
 @pytest.fixture
 def transcript_store(tmp_path, monkeypatch):
     monkeypatch.setattr(
-        "journal_agent.storage.jsonl_gateway.resolve_project_root",
+        "journal_agent.repository.jsonl_gateway.resolve_project_root",
         lambda: tmp_path,
     )
     jsonl = JsonlGateway("transcripts")
@@ -102,7 +99,7 @@ class TestJsonlGateway:
 
     def test_save_creates_directory_if_absent(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
-            "journal_agent.storage.jsonl_gateway.resolve_project_root",
+            "journal_agent.repository.jsonl_gateway.resolve_project_root",
             lambda: tmp_path,
         )
         store = JsonlGateway("brand-new-folder")

@@ -45,9 +45,13 @@ from journal_agent.graph.state import (
     JournalState,
 )
 from journal_agent.model.session import Role, Status
-from journal_agent.storage.pg_fragment_store import PgFragmentStore
-from journal_agent.storage.repositories import TranscriptRepository, ThreadsRepository, UserProfileRepository
-from journal_agent.storage.transcript_cache import TranscriptStore
+from journal_agent.repository import (
+    PgFragmentRepository,
+    TranscriptRepository,
+    ThreadsRepository,
+    UserProfileRepository,
+    TranscriptStore,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +93,7 @@ def make_get_user_input(session_store: TranscriptStore) -> Callable[..., dict]:
     return get_user_input
 
 
-def make_retrieve_history(fragment_store: PgFragmentStore, context_builder: ContextBuilder | None = None) -> Callable[..., dict]:
+def make_retrieve_history(fragment_store: PgFragmentRepository, context_builder: ContextBuilder | None = None) -> Callable[..., dict]:
     """Factory: node that queries the fragment store for fragments similar
     to the latest human message, enriched with intent-derived tags."""
     context_builder = context_builder or ContextBuilder()
@@ -234,7 +238,7 @@ def route_on_profile(state: JournalState) -> str:
 def build_journal_graph(
         registry: LLMRegistry,
         session_store: TranscriptStore,
-        fragment_store: PgFragmentStore,
+        fragment_store: PgFragmentRepository,
         profile_store: UserProfileRepository,
         transcript_store: TranscriptRepository | None = None,
         thread_store: ThreadsRepository | None = None,

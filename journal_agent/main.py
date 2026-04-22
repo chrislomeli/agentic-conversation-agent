@@ -7,12 +7,12 @@ from journal_agent.comms.llm_registry import build_llm_registry
 from journal_agent.configure.config_builder import LLM_ROLE_CONFIG, configure_environment, models
 from journal_agent.graph.graph import build_journal_graph
 from journal_agent.graph.state import JournalState
-from journal_agent.model.session import ContextSpecification, Status, UserProfile
-from journal_agent.storage.transcript_cache import TranscriptStore
-from journal_agent.storage.pg_fragment_store import PgFragmentStore
-from journal_agent.storage.jsonl_gateway import JsonlGateway
-from journal_agent.storage.pg_gateway import get_pg_gateway
-from journal_agent.storage.repositories import (
+from journal_agent.model.session import ContextSpecification, Status
+from journal_agent.repository import (
+    TranscriptStore,
+    PgFragmentRepository,
+    JsonlGateway,
+    get_pg_gateway,
     UserProfileRepository,
     ThreadsRepository,
     TranscriptRepository,
@@ -35,7 +35,7 @@ def _build_stores():
     transcript_store = TranscriptRepository(JsonlGateway("transcripts"), pg)
     thread_store = ThreadsRepository(JsonlGateway("threads"), pg)
     classified_thread_store = ThreadsRepository(JsonlGateway("classified_threads"), pg)
-    fragment_store = PgFragmentStore(pg_gateway=pg)
+    fragment_store = PgFragmentRepository(pg_gateway=pg)
     profile_store = UserProfileRepository(JsonlGateway("user_profile"), pg)
 
     # TranscriptStore is the pure buffer; repository handles persistence + conversion.

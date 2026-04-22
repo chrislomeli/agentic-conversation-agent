@@ -1,6 +1,4 @@
-"""pg_fragment_store.py — pgvector-backed FragmentStore.
-
-Satisfies the FragmentStore protocol:
+"""fragment_repo.py — pgvector-backed fragment repository.
 
     save_fragments()    — embeds content + upserts to fragments + junctions
     search_fragments()  — cosine similarity search via pgvector
@@ -16,20 +14,18 @@ from __future__ import annotations
 import logging
 
 from journal_agent.model.session import Fragment
-from journal_agent.storage.embedder import Embedder
-from journal_agent.storage.pg_gateway import PgGateway, get_pg_gateway
+from journal_agent.repository.embedder import Embedder
+from journal_agent.repository.pg_gateway import PgGateway, get_pg_gateway
 
 logger = logging.getLogger(__name__)
 
 
-class PgFragmentStore:
-    """FragmentStore backed entirely by Postgres + pgvector."""
+class PgFragmentRepository:
+    """Fragment repository backed entirely by Postgres + pgvector."""
 
     def __init__(self, pg_gateway: PgGateway | None = None, embedder: Embedder | None = None):
         self._pg = pg_gateway or get_pg_gateway()
         self._embedder = embedder or Embedder()
-
-    # ── FragmentStore protocol ─────────────────────────────────────────────────
 
     def save_fragments(self, fragments: list[Fragment]) -> None:
         """Embed all fragments in one batch pass, then upsert to Postgres."""
@@ -51,10 +47,5 @@ class PgFragmentStore:
         return self._pg.search_similar(query_vec, top_k=top_k, min_score=min_relevance)
 
     def load_all(self, user_id: str | None = None) -> list[Fragment]:
-        """Return all fragments, optionally filtered by session via user_id.
-
-        Note: user_id is accepted for protocol compatibility but ignored here —
-        all stored fragments are returned. Pass session_id directly to
-        pg_store.fetch_fragments(session_id) if you need per-session filtering.
-        """
+        """Return all fragments."""
         return self._pg.fetch_fragments()

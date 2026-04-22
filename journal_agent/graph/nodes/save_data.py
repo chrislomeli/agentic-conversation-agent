@@ -1,7 +1,7 @@
 """save_data.py — Persistence nodes for the end-of-session pipeline.
 
 Each ``make_save_*`` factory returns a LangGraph node that writes one
-pipeline artifact to storage and advances the status:
+pipeline artifact to repository and advances the status:
 
     save_transcript           → TranscriptRepository
     save_threads              → ThreadsRepository
@@ -21,8 +21,7 @@ from journal_agent.graph.state import (
 
 )
 from journal_agent.model.session import Status
-from journal_agent.storage.pg_fragment_store import PgFragmentStore
-from journal_agent.storage.repositories import TranscriptRepository, ThreadsRepository
+from journal_agent.repository import PgFragmentRepository, TranscriptRepository, ThreadsRepository
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +92,7 @@ def make_save_classified_threads(store: ThreadsRepository) -> Callable[..., dict
     return save_classified_threads
 
 
-def make_save_fragments(fragment_store: PgFragmentStore) -> Callable[..., dict]:
+def make_save_fragments(fragment_store: PgFragmentRepository) -> Callable[..., dict]:
     """Factory: persist Fragments via PgFragmentStore (handles both structured
     persistence and vector indexing in a single call)."""
 

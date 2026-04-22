@@ -35,7 +35,7 @@ from journal_agent.model.session import Status, UserProfile, PromptKey
 from journal_agent.model.session import ThreadSegmentList, ExchangeClassificationRequest, ThreadSegment, Exchange, \
     ThreadClassificationResponse, ExpandedThreadSegment, Fragment, \
     FragmentDraftList, ScoreCard, ContextSpecification
-from journal_agent.storage.repositories import UserProfileRepository
+from journal_agent.repository import UserProfileRepository
 
 logger = logging.getLogger(__name__)
 
