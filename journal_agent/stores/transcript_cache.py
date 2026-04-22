@@ -5,8 +5,8 @@ live session and buffers them in memory. Persistence and format conversion
 are delegated to an injected ``TranscriptRepository``.
 
 Turn lifecycle:  on_human_turn() → on_ai_turn() → Exchange appended to buffer
-Flush:           store_cache(session_id) delegates to repository, then clears buffer
-Retrieval:       retrieve_transcript() delegates to repository
+Flush:           store_cache(session_id) delegates to stores, then clears buffer
+Retrieval:       retrieve_transcript() delegates to stores
 """
 
 from journal_agent.model.session import Role, Turn, Exchange
@@ -41,7 +41,7 @@ class TranscriptStore:
         return None
 
     def store_cache(self, session_id: str):
-        """Flush buffered exchanges to repository and clear the buffer."""
+        """Flush buffered exchanges to stores and clear the buffer."""
         if self._repository is not None:
             self._repository.save_collection(session_id, self._exchanges)
         self._exchanges = []

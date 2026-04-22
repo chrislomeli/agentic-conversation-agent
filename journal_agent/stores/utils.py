@@ -1,4 +1,4 @@
-"""utils.py — Shared helpers for the repository layer."""
+"""utils.py — Shared helpers for the stores layer."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ def exchanges_to_messages(exchanges: list[Exchange]) -> list[BaseMessage]:
 
 
 def resolve_project_root() -> Path:
-    """Determine the repository root directory.
+    """Determine the stores root directory.
 
     Resolution order:
       1. JOURNAL_AGENT_ROOT env var (explicit override, used by tests)

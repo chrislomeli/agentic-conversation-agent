@@ -1,4 +1,4 @@
-"""transcript_repo.py — Write-through repository for Exchange records."""
+"""transcript_repo.py — Write-through stores for Exchange records."""
 
 from __future__ import annotations
 
@@ -8,9 +8,9 @@ from langchain_core.messages import BaseMessage
 from pydantic import BaseModel
 
 from journal_agent.model.session import Exchange
-from journal_agent.repository.jsonl_gateway import JsonlGateway
-from journal_agent.repository.pg_gateway import PgGateway
-from journal_agent.repository.utils import exchanges_to_messages
+from journal_agent.stores.jsonl_gateway import JsonlGateway
+from journal_agent.stores.pg_gateway import PgGateway
+from journal_agent.stores.utils import exchanges_to_messages
 
 T = TypeVar("T", bound=BaseModel)
 

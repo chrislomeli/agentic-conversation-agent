@@ -433,17 +433,17 @@ class PgGateway:
             return None
     
     
-    def fetch_fragments(self, session_id: str | None = None) -> list[Fragment]:
+    def fetch_fragments(self, window_start: datetime | None = None, window_end: datetime | None = None) -> list[Fragment]:
         """Load fragments from Postgres, optionally filtered by session.
 
         Returns [] on miss or error.
         """
         try:
-            where = "WHERE f.session_id = %s" if session_id else ""
-            params = (session_id,) if session_id else ()
+
             sql = f"""
                 SELECT
                     f.fragment_id,
+                    f.embedding,
                     f.session_id,
                     f.content,
                     f.tags,
@@ -454,11 +454,12 @@ class PgGateway:
                     ) AS exchange_ids
                 FROM fragments f
                 LEFT JOIN fragment_exchanges fe ON fe.fragment_id = f.fragment_id
-                {where}
+                WHERE (%s is NULL or f.timestamp >= %s )
+                  AND (%s is NULL or f.timestamp <= %s )
                 GROUP BY f.fragment_id, f.session_id, f.content, f.tags, f.timestamp
                 ORDER BY f.timestamp
             """
-            rows = self.fetch_rows(sql, params)
+            rows = self.fetch_rows(sql, (window_start, window_start, window_end, window_end ))
             if not rows:
                 return []
             results = []
@@ -477,7 +478,7 @@ class PgGateway:
             logger.exception("fetch_fragments failed for session_id=%s", session_id)
             return []
 
-    def fetch_insights(self, label: str | None = None, to_date: datetime | None = None) -> list[Insight]:
+    def fetch_insights(self, window_start: datetime | None = None, window_end: datetime | None = None) -> list[Insight]:
         """Return Insights with their associated fragment_ids from the junction table."""
         try:
             rows = self.fetch_rows("""
@@ -494,12 +495,13 @@ class PgGateway:
                                           ) AS fragment_ids
                                    FROM insights t
                                             LEFT JOIN insight_fragments te ON te.insight_id = t.insight_id
-                                   WHERE (%s IS NULL OR t.label = %s)
+
+                                     WHERE (%s IS NULL OR t.created_at >= %s)
                                      AND (%s IS NULL OR t.created_at <= %s)
                                    GROUP BY t.insight_id, t.label, t.body, t.verifier_status, t.confidence, t.created_at
                                    ORDER BY t.created_at;
                                    """,
-                                   (label, label, to_date, to_date)
+                                   (window_start, window_start, window_end, window_end)
                                    )
             if not rows:
                 return []
@@ -516,7 +518,7 @@ class PgGateway:
                 for r in rows
             ]
         except Exception:
-            logger.exception("fetch_insights failed for label=%s, to_date=%s", label, to_date)
+            logger.exception("fetch_insights failed for label=%s, to_date=%s", label, window_end)
             return []
 
 

@@ -1,7 +1,7 @@
-"""save_data.py — Persistence nodes for the end-of-session pipeline.
+"""stores.py — Persistence nodes for the end-of-session pipeline.
 
 Each ``make_save_*`` factory returns a LangGraph node that writes one
-pipeline artifact to repository and advances the status:
+pipeline artifact to stores and advances the status:
 
     save_transcript           → TranscriptRepository
     save_threads              → ThreadsRepository
@@ -21,7 +21,7 @@ from journal_agent.graph.state import (
 
 )
 from journal_agent.model.session import Status
-from journal_agent.repository import PgFragmentRepository, TranscriptRepository, ThreadsRepository
+from journal_agent.stores import PgFragmentRepository, TranscriptRepository, ThreadsRepository
 
 logger = logging.getLogger(__name__)
 

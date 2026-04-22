@@ -1,4 +1,4 @@
-"""Layer 6 tests — Graph nodes (classifier.py, save_data.py).
+"""Layer 6 tests — Graph nodes (classifiers.py, stores.py).
 
 Mocking strategy:
 - Classifier nodes: stub LLMClient whose .structured()/.astructured()
@@ -15,14 +15,14 @@ import pytest
 from langchain_core.messages import HumanMessage
 
 from journal_agent.comms.llm_client import LLMClient
-from journal_agent.graph.nodes.classifier import (
+from journal_agent.graph.nodes.classifiers import (
     inflate_threads,
     make_exchange_decomposer,
     make_intent_classifier,
     make_thread_classifier,
     make_thread_fragment_extractor,
 )
-from journal_agent.graph.nodes.save_data import (
+from journal_agent.graph.nodes.stores import (
     make_save_classified_threads,
     make_save_fragments,
     make_save_threads,

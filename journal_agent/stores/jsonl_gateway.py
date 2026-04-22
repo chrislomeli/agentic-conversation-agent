@@ -18,7 +18,7 @@ from typing import TypeVar
 from pydantic import BaseModel
 
 from journal_agent.model.session import Exchange
-from journal_agent.repository.utils import resolve_project_root
+from journal_agent.stores.utils import resolve_project_root
 
 T = TypeVar("T", bound=BaseModel)
 

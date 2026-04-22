@@ -1,10 +1,10 @@
-"""profile_repo.py — Write-through repository for UserProfile."""
+"""profile_repo.py — Write-through stores for UserProfile."""
 
 from __future__ import annotations
 
 from journal_agent.model.session import UserProfile
-from journal_agent.repository.jsonl_gateway import JsonlGateway
-from journal_agent.repository.pg_gateway import PgGateway
+from journal_agent.stores.jsonl_gateway import JsonlGateway
+from journal_agent.stores.pg_gateway import PgGateway
 
 
 class UserProfileRepository:

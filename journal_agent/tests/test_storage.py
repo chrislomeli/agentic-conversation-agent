@@ -11,7 +11,7 @@ from unittest.mock import MagicMock
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 from journal_agent.model.session import Exchange, Role, Turn
-from journal_agent.repository import TranscriptStore, JsonlGateway, TranscriptRepository, exchanges_to_messages
+from journal_agent.stores import TranscriptStore, JsonlGateway, TranscriptRepository, exchanges_to_messages
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -29,7 +29,7 @@ def make_exchange(session_id: str = "s1") -> Exchange:
 @pytest.fixture
 def json_store(tmp_path, monkeypatch):
     monkeypatch.setattr(
-        "journal_agent.repository.jsonl_gateway.resolve_project_root",
+        "journal_agent.stores.jsonl_gateway.resolve_project_root",
         lambda: tmp_path,
     )
     return JsonlGateway("transcripts")
@@ -38,7 +38,7 @@ def json_store(tmp_path, monkeypatch):
 @pytest.fixture
 def transcript_store(tmp_path, monkeypatch):
     monkeypatch.setattr(
-        "journal_agent.repository.jsonl_gateway.resolve_project_root",
+        "journal_agent.stores.jsonl_gateway.resolve_project_root",
         lambda: tmp_path,
     )
     jsonl = JsonlGateway("transcripts")
@@ -99,7 +99,7 @@ class TestJsonlGateway:
 
     def test_save_creates_directory_if_absent(self, tmp_path, monkeypatch):
         monkeypatch.setattr(
-            "journal_agent.repository.jsonl_gateway.resolve_project_root",
+            "journal_agent.stores.jsonl_gateway.resolve_project_root",
             lambda: tmp_path,
         )
         store = JsonlGateway("brand-new-folder")
@@ -186,7 +186,7 @@ class TestTranscriptStore:
         transcript_store._exchanges.append(make_exchange())
         transcript_store.store_cache("s1")
         assert transcript_store._exchanges == []
-        # verify JSONL was written through the repository
+        # verify JSONL was written through the stores
         assert transcript_store._repository._jsonl.load_session("s1") is not None
 
     def test_store_cache_flushes_buffered_turns_to_disk(self, transcript_store):

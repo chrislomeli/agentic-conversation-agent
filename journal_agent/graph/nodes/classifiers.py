@@ -1,4 +1,4 @@
-"""classifier.py — LLM-powered graph nodes for the classification pipeline.
+"""classifiers.py — LLM-powered graph nodes for the classification pipeline.
 
 Each ``make_*`` factory returns a node function closed over its LLMClient.
 All nodes follow the same contract:
@@ -35,7 +35,7 @@ from journal_agent.model.session import Status, UserProfile, PromptKey
 from journal_agent.model.session import ThreadSegmentList, ExchangeClassificationRequest, ThreadSegment, Exchange, \
     ThreadClassificationResponse, ExpandedThreadSegment, Fragment, \
     FragmentDraftList, ScoreCard, ContextSpecification
-from journal_agent.repository import UserProfileRepository
+from journal_agent.stores import UserProfileRepository
 
 logger = logging.getLogger(__name__)
 

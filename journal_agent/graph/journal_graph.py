@@ -1,4 +1,4 @@
-"""graph.py — Build and wire the LangGraph for the journal agent.
+"""journal_graph.py — Build and wire the LangGraph for the journal agent.
 
 Two execution paths share a single compiled graph:
 
@@ -30,12 +30,12 @@ from journal_agent.comms.llm_registry import LLMRegistry
 from journal_agent.configure.context_builder import ContextBuilder, ContextBuildError
 from journal_agent.configure.prompts import get_prompt
 from journal_agent.graph.node_tracer import node_trace
-from journal_agent.graph.nodes.classifier import (
+from journal_agent.graph.nodes.classifiers import (
     make_exchange_decomposer,
     make_thread_classifier,
     make_thread_fragment_extractor, make_intent_classifier, make_profile_scanner,
 )
-from journal_agent.graph.nodes.save_data import (
+from journal_agent.graph.nodes.stores import (
     make_save_transcript,
     make_save_threads,
     make_save_classified_threads,
@@ -45,7 +45,7 @@ from journal_agent.graph.state import (
     JournalState,
 )
 from journal_agent.model.session import Role, Status
-from journal_agent.repository import (
+from journal_agent.stores import (
     PgFragmentRepository,
     TranscriptRepository,
     ThreadsRepository,

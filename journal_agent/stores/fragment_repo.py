@@ -1,4 +1,4 @@
-"""fragment_repo.py — pgvector-backed fragment repository.
+"""fragment_repo.py — pgvector-backed fragment stores.
 
     save_fragments()    — embeds content + upserts to fragments + junctions
     search_fragments()  — cosine similarity search via pgvector
@@ -14,14 +14,14 @@ from __future__ import annotations
 import logging
 
 from journal_agent.model.session import Fragment
-from journal_agent.repository.embedder import Embedder
-from journal_agent.repository.pg_gateway import PgGateway, get_pg_gateway
+from journal_agent.stores.embedder import Embedder
+from journal_agent.stores.pg_gateway import PgGateway, get_pg_gateway
 
 logger = logging.getLogger(__name__)
 
 
 class PgFragmentRepository:
-    """Fragment repository backed entirely by Postgres + pgvector."""
+    """Fragment stores backed entirely by Postgres + pgvector."""
 
     def __init__(self, pg_gateway: PgGateway | None = None, embedder: Embedder | None = None):
         self._pg = pg_gateway or get_pg_gateway()

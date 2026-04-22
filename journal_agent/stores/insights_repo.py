@@ -1,4 +1,4 @@
-"""insights_repo.py — Write-through repository for Insight records."""
+"""insights_repo.py — Write-through stores for Insight records."""
 
 from __future__ import annotations
 
@@ -8,8 +8,8 @@ from typing import TypeVar
 from pydantic import BaseModel
 
 from journal_agent.model.session import Insight
-from journal_agent.repository.jsonl_gateway import JsonlGateway
-from journal_agent.repository.pg_gateway import PgGateway
+from journal_agent.stores.jsonl_gateway import JsonlGateway
+from journal_agent.stores.pg_gateway import PgGateway
 
 T = TypeVar("T", bound=BaseModel)
 

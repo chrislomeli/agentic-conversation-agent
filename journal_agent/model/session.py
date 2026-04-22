@@ -82,6 +82,7 @@ class Fragment(BaseModel):
     content: str  # your summary for searchable embedding
     exchange_ids: list[str]  # a list of exchange_id from the Exchange records that comprised this summary
     tags: list[Tag]  # tags
+    embedding: list[float] = Field(default=[])  # embeddings for clustering
     timestamp: datetime
 
 
@@ -247,6 +248,11 @@ class Insight(BaseModel):
     created_at: datetime
     verifier_status: VerifierStatus
 
+
+class Cluster(BaseModel):
+    cluster_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    fragment_ids: list[str]
+    centroid: list[float] | None = None  # mean of member embeddings
 
 """
 Events

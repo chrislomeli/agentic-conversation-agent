@@ -5,10 +5,10 @@ from langchain_core.messages import BaseMessage
 
 from journal_agent.comms.llm_registry import build_llm_registry
 from journal_agent.configure.config_builder import LLM_ROLE_CONFIG, configure_environment, models
-from journal_agent.graph.graph import build_journal_graph
+from journal_agent.graph.journal_graph import build_journal_graph
 from journal_agent.graph.state import JournalState
 from journal_agent.model.session import ContextSpecification, Status
-from journal_agent.repository import (
+from journal_agent.stores import (
     TranscriptStore,
     PgFragmentRepository,
     JsonlGateway,
@@ -38,7 +38,7 @@ def _build_stores():
     fragment_store = PgFragmentRepository(pg_gateway=pg)
     profile_store = UserProfileRepository(JsonlGateway("user_profile"), pg)
 
-    # TranscriptStore is the pure buffer; repository handles persistence + conversion.
+    # TranscriptStore is the pure buffer; stores handles persistence + conversion.
     session_store = TranscriptStore(repository=transcript_store)
 
     return (

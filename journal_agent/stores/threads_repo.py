@@ -1,4 +1,4 @@
-"""threads_repo.py — Write-through repository for ThreadSegment records.
+"""threads_repo.py — Write-through stores for ThreadSegment records.
 
 Reused for both threads/ and classified_threads/ folders — the PG table is merged;
 upsert COALESCEs tags so classification overlays the initial write.
@@ -11,8 +11,8 @@ from typing import TypeVar
 from pydantic import BaseModel
 
 from journal_agent.model.session import ThreadSegment
-from journal_agent.repository.jsonl_gateway import JsonlGateway
-from journal_agent.repository.pg_gateway import PgGateway
+from journal_agent.stores.jsonl_gateway import JsonlGateway
+from journal_agent.stores.pg_gateway import PgGateway
 
 T = TypeVar("T", bound=BaseModel)
 

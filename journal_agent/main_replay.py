@@ -26,7 +26,7 @@ from journal_agent.configure.config_builder import (
     configure_environment,
     models,
 )
-from journal_agent.graph.nodes.classifier import (
+from journal_agent.graph.nodes.classifiers import (
     make_exchange_decomposer,
     make_thread_classifier,
     make_thread_fragment_extractor,

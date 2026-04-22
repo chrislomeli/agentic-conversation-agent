@@ -27,6 +27,7 @@ dependencies = [
     "pgvector>=0.3",
     "numpy>=1.26",
     "fastembed>=0.4",
+    "scikit-learn>=1.8.0",
 ]
 
 [project.optional-dependencies]
