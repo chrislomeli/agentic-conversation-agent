@@ -61,6 +61,7 @@ class JournalState(TypedDict):
     fragments: list[Fragment]
     retrieved_history: list[Fragment]
     fetch_parameters: WindowParams | None
+    recall_topic: str | None
     latest_insights: list[Insight]   # handoff from the reflection subgraph
     context_specification: ContextSpecification
     user_profile: UserProfile

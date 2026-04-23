@@ -18,12 +18,11 @@ On COMPLETED (user typed /quit), the conversation loop exits into the
 end-of-session pipeline.
 """
 
+import asyncio
 import logging
 from collections.abc import Callable
-from datetime import datetime
 from typing import Coroutine, Any
 
-from dateutil.relativedelta import relativedelta
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.state import CompiledStateGraph
@@ -45,12 +44,9 @@ from journal_agent.graph.nodes.stores import (
     make_save_classified_threads,
     make_save_fragments,
 )
-from journal_agent.graph.reflection_graph import build_reflection_graph
 from journal_agent.graph.routing import _route_base, goto
-from journal_agent.graph.state import (
-    JournalState, WindowParams,
-)
-from journal_agent.model.session import Role, Status
+from journal_agent.graph.state import JournalState
+from journal_agent.model.session import Role, Status, ContextSpecification
 from journal_agent.stores import (
     PgFragmentRepository,
     TranscriptRepository,
@@ -65,15 +61,14 @@ logger = logging.getLogger(__name__)
 # ── Graph builder ─────────────────────────────────────────────────────────────
 
 
-def make_get_user_input(session_store: TranscriptStore) -> Callable[..., dict]:
+def make_get_user_input(session_store: TranscriptStore) -> Callable[..., Coroutine[Any, Any, dict]]:
     """Factory: node that reads console input, records the human turn, and
     returns a HumanMessage to append to session_messages."""
     @node_trace("get_user_input")
-    def get_user_input(state: JournalState) -> dict:
-
+    async def get_user_input(state: JournalState) -> dict:
         try:
-            # Prompt user for input
-            user_input = get_human_input()
+            user_input = await asyncio.to_thread(get_human_input)
+
             if user_input == "/quit":
                 return {"status": Status.COMPLETED}
             if user_input == "/reflect":
@@ -81,8 +76,14 @@ def make_get_user_input(session_store: TranscriptStore) -> Callable[..., dict]:
                     "status": Status.REFLECT_REQUESTED,
                     "session_messages": [HumanMessage(content="Please share the patterns and insights you've observed from my recent journal entries.")],
                 }
-            if user_input == "/recall":
-                return {"status": Status.RECALL_REQUESTED}
+            if user_input.startswith("/recall"):
+                parts = user_input.split(maxsplit=1)
+                topic = parts[1].strip() if len(parts) > 1 else ""
+                return {
+                    "status": Status.RECALL_REQUESTED,
+                    "recall_topic": topic,
+                    "session_messages": [HumanMessage(content=f"Please recall what I've previously written about: {topic}" if topic else "Please recall my recent journal entries.")],
+                }
 
             # add input to session store
             session_store.on_human_turn(
@@ -106,10 +107,9 @@ def make_get_user_input(session_store: TranscriptStore) -> Callable[..., dict]:
     return get_user_input
 
 
-def make_retrieve_history(fragment_store: PgFragmentRepository, context_builder: ContextBuilder | None = None) -> Callable[..., dict]:
+def make_retrieve_history(fragment_store: PgFragmentRepository) -> Callable[..., dict]:
     """Factory: node that queries the fragment store for fragments similar
     to the latest human message, enriched with intent-derived tags."""
-    context_builder = context_builder or ContextBuilder()
     @node_trace("retrieve_history")
     def retrieve_history(state: JournalState) -> dict:
         try:
@@ -152,7 +152,7 @@ def make_get_ai_response(llm: LLMClient, session_store: TranscriptStore, context
         try:
 
             # Build the system message with retrieved context baked in
-            instruction = state["context_specification"]
+            instruction = state.get("context_specification") or ContextSpecification()
             prompt = get_prompt(key=instruction.prompt_key, state=state)
 
             messages = context_builder.get_context(
@@ -218,20 +218,21 @@ def make_reflect_node(reflection_graph) ->  Callable[..., Coroutine[Any, Any, di
 
     return reflect_node
 
-def make_recall_node(insights_repo) -> Callable[..., dict]:
-    """Factory: node that loads past Insights from the DB within an optional date window."""
+def make_recall_node(fragment_store: PgFragmentRepository) -> Callable[..., dict]:
+    """Factory: node that searches FragmentStore by topic and surfaces matches as retrieved history."""
 
     @node_trace("recall_node")
     def recall_node(state: JournalState) -> dict:
         try:
-            fetch_params: WindowParams | None = state.get("fetch_parameters")
-            window_start = fetch_params["window_start"] if fetch_params else None
-            window_end = fetch_params["window_end"] if fetch_params else None
-            insights = insights_repo.load_insights(window_start=window_start, window_end=window_end)
-            return {"latest_insights": insights, "status": Status.PROCESSING}
+            topic = state.get("recall_topic") or ""
+            if not topic:
+                return {"retrieved_history": [], "status": Status.PROCESSING}
+            matches = fragment_store.search_fragments(topic, top_k=10)
+            fragments = [f for f, _ in matches]
+            return {"retrieved_history": fragments, "status": Status.PROCESSING}
 
         except Exception as e:
-            logger.exception("Failed to recall insights")
+            logger.exception("Failed to recall fragments")
             return {"status": Status.ERROR, "error_message": str(e)}
 
     return recall_node
@@ -246,7 +247,7 @@ def route_on_user_input(state: JournalState) -> str:
 
     # User requested recall (/recall)
     if state.get("status") == Status.RECALL_REQUESTED:
-        raise Exception("/recall not yet implemented")
+        return "recall"
 
     # normal processing
     return _route_base(state, next_node="intent_classifier", on_completion="save_transcript")
@@ -279,7 +280,6 @@ def build_journal_graph(
         session_store: TranscriptStore,
         fragment_store: PgFragmentRepository,
         profile_store: UserProfileRepository,
-        insights_repo,
         reflection_graph: CompiledStateGraph,
         transcript_store: TranscriptRepository | None = None,
         thread_store: ThreadsRepository | None = None,
@@ -325,27 +325,35 @@ def build_journal_graph(
 
     # reflection
     builder.add_node("reflect", make_reflect_node(reflection_graph))
-    builder.add_node("recall", make_recall_node(insights_repo=insights_repo))
+    builder.add_node("recall", make_recall_node(fragment_store=fragment_store))
 
     # Wiring
     builder.add_edge(START, "get_user_input")
-    builder.add_conditional_edges("get_user_input", route_on_user_input)
+    builder.add_conditional_edges("get_user_input", route_on_user_input,
+        ["reflect", "recall", "intent_classifier", "save_transcript", END])
 
-    builder.add_conditional_edges("intent_classifier", route_on_intent)
-    builder.add_conditional_edges("profile_scanner", route_on_profile)
-    builder.add_conditional_edges("get_ai_response", goto("get_user_input"))
+    builder.add_conditional_edges("intent_classifier", route_on_intent,
+        ["get_ai_response", "profile_scanner", "retrieve_history", "save_transcript", END])
+    builder.add_conditional_edges("profile_scanner", route_on_profile,
+        ["get_ai_response", "retrieve_history", "save_transcript", END])
+    builder.add_conditional_edges("get_ai_response", goto("get_user_input"),
+        ["get_user_input", END])
 
-    builder.add_conditional_edges("retrieve_history", goto("get_ai_response", on_completion="save_transcript"))
-    builder.add_conditional_edges("exchange_decomposer", goto("save_threads", on_completion="save_transcript"))
-    builder.add_conditional_edges("thread_classifier", goto("save_classified_threads", on_completion="save_transcript"))
+    builder.add_conditional_edges("retrieve_history", goto("get_ai_response", on_completion="save_transcript"),
+        ["get_ai_response", "save_transcript", END])
 
-    builder.add_conditional_edges("reflect", goto("get_ai_response", on_completion="save_transcript"))
-    builder.add_conditional_edges("recall", goto("get_ai_response", on_completion="save_transcript"))
+    builder.add_conditional_edges("reflect", goto("get_ai_response", on_completion="save_transcript"),
+        ["get_ai_response", "save_transcript", END])
+    builder.add_conditional_edges("recall", goto("get_ai_response", on_completion="save_transcript"),
+        ["get_ai_response", "save_transcript", END])
 
     # Linear end-of-session pipeline
-    builder.add_conditional_edges("save_transcript", goto("exchange_decomposer"))
-    builder.add_conditional_edges("save_classified_threads", goto("thread_fragment_extractor"))
-    builder.add_conditional_edges("thread_fragment_extractor", goto("save_fragments"))
+    builder.add_conditional_edges("save_transcript", goto("exchange_decomposer"), ["exchange_decomposer", END])
+    builder.add_conditional_edges("exchange_decomposer", goto("save_threads"), ["save_threads", END])
+    builder.add_conditional_edges("save_threads", goto("thread_classifier"), ["thread_classifier", END])
+    builder.add_conditional_edges("thread_classifier", goto("save_classified_threads"), ["save_classified_threads", END])
+    builder.add_conditional_edges("save_classified_threads", goto("thread_fragment_extractor"), ["thread_fragment_extractor", END])
+    builder.add_conditional_edges("thread_fragment_extractor", goto("save_fragments"), ["save_fragments", END])
     builder.add_edge("save_fragments", END)
 
     compiled = builder.compile()

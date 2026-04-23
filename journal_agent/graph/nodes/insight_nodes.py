@@ -8,7 +8,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from sklearn.cluster import HDBSCAN
 
 from journal_agent.comms.llm_client import LLMClient
-from journal_agent.configure.config_builder import MINIMUM_VERIFIER_SCORE, MINIMUM_CLUSTER_LABEL_SCORE
+from journal_agent.configure.config_builder import MINIMUM_VERIFIER_SCORE, MINIMUM_CLUSTER_LABEL_SCORE, MINIMUM_CLUSTER_SCORE
 from journal_agent.configure.prompts import get_prompt
 from journal_agent.graph.node_tracer import node_trace, logger
 from journal_agent.graph.nodes.classifiers import DEFAULT_LLM_CONCURRENCY
@@ -80,6 +80,8 @@ def make_cluster_fragments() -> Callable[..., dict]:
             for cluster in clusters:
                 score_cluster(cluster, frag_by_id)
 
+            clusters = [c for c in clusters if c.score >= MINIMUM_CLUSTER_SCORE]
+
             # diagnostic — remove when clustering is stable
             noise_count = sum(1 for label in hdb.labels_ if label == -1)
             logger.info("HDBSCAN: %d fragments → %d clusters, %d noise", len(fragments), len(clusters), noise_count)
@@ -139,15 +141,12 @@ def make_label_clusters(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CONCU
                         fragment_ids=cluster.fragment_ids,
                     )
 
-            insights = await asyncio.gather(
+            all_insights = await asyncio.gather(
                 *(label_cluster(c) for c in clusters)
             )
+            insights = [i for i in all_insights if i.label_confidence >= MINIMUM_CLUSTER_LABEL_SCORE]
 
-            print("\nVerified insights:\n")
-            for insight in insights:
-                print(json.dumps(insight.model_dump(), indent=2, default=str))
-
-            return {"insights": list(insights)  }
+            return {"insights": insights}
 
         except Exception as e:
             logger.exception("label_clusters failed")

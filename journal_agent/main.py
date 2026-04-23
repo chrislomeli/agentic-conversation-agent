@@ -1,14 +1,15 @@
 """Entry point for the interactive journal agent."""
+import asyncio
 from uuid import uuid4
 
 from langchain_core.messages import BaseMessage
 
 from journal_agent.comms.llm_registry import build_llm_registry
-from journal_agent.configure.config_builder import LLM_ROLE_CONFIG, configure_environment, models
+from journal_agent.configure.config_builder import  configure_environment, models
 from journal_agent.graph.journal_graph import build_journal_graph
 from journal_agent.graph.reflection_graph import build_reflection_graph
 from journal_agent.graph.state import JournalState
-from journal_agent.model.session import ContextSpecification, Status
+from journal_agent.model.session import ContextSpecification, Status, UserProfile
 from journal_agent.stores import (
     TranscriptStore,
     PgFragmentRepository,
@@ -60,7 +61,7 @@ def _build_stores():
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
-def main():
+async def main():
     """Configure dependencies, build the graph, and run one interactive session."""
     settings = configure_environment()
 
@@ -81,7 +82,11 @@ def main():
     ) = _build_stores()
 
     # user profile
-    user_profile = profile_store.load_profile()
+    try:
+        user_profile = profile_store.load_profile()
+    except Exception as e:
+        user_profile = UserProfile()
+        profile_store.save_profile(user_profile)
 
     # previously stored messages — assumes transcripts are retrievable
     seed_context: list[BaseMessage] = session_store.retrieve_transcript()
@@ -101,7 +106,8 @@ def main():
         status=Status.IDLE,
         error_message=None,
         latest_insights=[],
-        fetch_parameters=None
+        fetch_parameters=None,
+        recall_topic=None,
     )
 
     reflection_graph = build_reflection_graph(
@@ -110,19 +116,23 @@ def main():
         insights_repo=insights_repo,
     )
 
+
     journal_graph = build_journal_graph(
         registry=registry,
         session_store=session_store,
         fragment_store=fragment_store,
         profile_store=profile_store,
-        insights_repo=insights_repo,
         reflection_graph=reflection_graph,
         transcript_store=transcript_store,
         thread_store=thread_store,
         classified_thread_store=classified_thread_store,
     )
+
+    with open("graph.png", "wb") as f:
+        f.write(journal_graph.get_graph().draw_mermaid_png())
+
     try:
-        journal_graph.invoke(initial_state)
+        await journal_graph.ainvoke(initial_state)
 
     except KeyboardInterrupt:
         session_store.store_cache(session_id)
@@ -135,4 +145,4 @@ def main():
 # ═══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

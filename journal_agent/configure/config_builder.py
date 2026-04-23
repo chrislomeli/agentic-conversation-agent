@@ -14,22 +14,20 @@ import logging
 import os
 
 from journal_agent.configure.settings import (
-    LLM_ROLE_CONFIG,
     LLMLabel,
-    LLMModel,
     LLMProvider,
     Settings,
     get_settings,
     models,
 )
 
-
 # ── Application defaults ──────────────────────────────────────────────────
 # These constants are the starting values for ContextSpecification and
 # UserProfile fields.  They live here (not in settings.py) because they
 # are domain-level choices, not deployment/infra configuration.
 INSIGHTS_FETCH_LIMIT = 500
-MINIMUM_CLUSTER_LABEL_SCORE = 0.5
+MINIMUM_CLUSTER_SCORE = 4.0          # cluster-level: size + 0.5*span_days
+MINIMUM_CLUSTER_LABEL_SCORE = 0.5   # InsightDraft.confidence threshold
 MINIMUM_VERIFIER_SCORE = 0.5
 DEFAULT_RECENT_MESSAGES_COUNT = 5
 DEFAULT_SESSION_MESSAGES_COUNT = 10
@@ -75,7 +73,7 @@ def _redacted_settings_json(settings: Settings) -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 literals = {
     "AI_ENV_FILE": "/Users/chrislomeli/Source/SECRETS/.env",
-    "USE_MODEL": LLMLabel.OLLAMA_LLAMA3,
+    "USE_MODEL": LLMLabel.GPT_MINI,
 }
 
 

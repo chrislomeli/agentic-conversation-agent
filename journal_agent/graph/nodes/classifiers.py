@@ -55,6 +55,12 @@ def inflate_threads(threads: list[ThreadSegment], exchanges: list[Exchange]) -> 
 
     # ClassifiedThreadSegment[]
     expanded_threads: list[ExpandedThreadSegment] = []
+    if not threads:
+        logger.warning("No threads found after this conversation")
+        return expanded_threads
+    if not exchanges:
+        logger.warning("No exchanges found after this conversation")
+        return expanded_threads
 
     # transfer from list[ThreadSegment]
     for thread in threads:
@@ -62,10 +68,15 @@ def inflate_threads(threads: list[ThreadSegment], exchanges: list[Exchange]) -> 
         # one ThreadSegment
         for exchange_id in thread.exchange_ids:
             exchange = exchange_map[exchange_id]
-            t = ExchangeClassificationRequest(exchange_id=exchange.exchange_id,
-                                              timestamp=exchange.timestamp,
-                                              dialog=f"Human:\n{exchange.human.content}\nAI:\n{exchange.ai.content}\n\n")
-            thread_requests.append(t)
+            human = getattr(getattr(exchange, 'human', None), 'content', None)
+            ai = getattr(getattr(exchange, 'ai', None), 'content', None)
+            if not human and ai:
+                logger.warning("No human and ai content found for exchange")
+            else:
+                t = ExchangeClassificationRequest(exchange_id=exchange.exchange_id,
+                                                  timestamp=exchange.timestamp,
+                                                  dialog=f"Human:\n{human}\nAI:\n{ai}\n\n")
+                thread_requests.append(t)
 
         # sort all exchanges by time
         thread_requests.sort(key=lambda r: r.timestamp)
@@ -121,7 +132,10 @@ def make_thread_classifier(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CO
 
             exchanges: list[Exchange] = state["transcript"]
             threads: list[ThreadSegment] = state["threads"]
+
             expanded_threads = inflate_threads(threads, exchanges)
+            if not expanded_threads:
+                return {"classified_threads": []}
 
             structured_llm = llm.astructured(ThreadClassificationResponse)
             sem = asyncio.Semaphore(max_concurrency)
@@ -168,7 +182,10 @@ def make_thread_fragment_extractor(llm: LLMClient, max_concurrency: int = DEFAUL
             session_id: str = state["session_id"]
             exchanges: list[Exchange] = state["transcript"]
             threads: list[ThreadSegment] = state["classified_threads"]
+
             expanded_threads = inflate_threads(threads, exchanges)
+            if not expanded_threads:
+                return {"fragments": []}
 
             structured_llm = llm.astructured(FragmentDraftList)
             sem = asyncio.Semaphore(max_concurrency)

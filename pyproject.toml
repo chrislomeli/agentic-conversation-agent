@@ -28,6 +28,7 @@ dependencies = [
     "numpy>=1.26",
     "fastembed>=0.4",
     "scikit-learn>=1.8.0",
+    "grandalf>=0.7",
 ]
 
 [project.optional-dependencies]
