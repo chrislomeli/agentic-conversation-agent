@@ -87,15 +87,22 @@ async def test_streaming_chunks_accumulate_into_ai_message(monkeypatch):
     assert session_store.on_ai_turn.call_args.kwargs["content"] == "hello world!"
 
 
-async def test_get_ai_response_does_not_call_talk_to_human(monkeypatch):
-    """Terminal printing must happen in the runner, not the node."""
+async def test_journal_graph_module_does_not_import_talk_to_human(monkeypatch):
+    """Static guard: the graph module must not import the terminal printer.
+
+    The node can't accidentally call ``talk_to_human`` if the symbol isn't in
+    the module. This catches a regression where someone re-adds the terminal
+    coupling we removed during #9a / #9c. If you legitimately need to add
+    a printer somewhere, do it in the runner, not the graph.
+    """
     monkeypatch.setattr(jg, "get_prompt", lambda key, state: "system prompt")
 
-    talk_calls: list = []
-    monkeypatch.setattr(
-        jg, "talk_to_human", lambda *args, **kw: talk_calls.append((args, kw))
+    assert not hasattr(jg, "talk_to_human"), (
+        "journal_graph imports talk_to_human — terminal coupling has crept back in. "
+        "Move terminal output to the runner (main.py / API endpoint)."
     )
 
+    # Behavioral sanity: the streaming node runs end-to-end without it.
     context_builder = MagicMock()
     context_builder.get_context.return_value = []
 
@@ -114,11 +121,8 @@ async def test_get_ai_response_does_not_call_talk_to_human(monkeypatch):
     state = JournalState(
         session_id="s1", context_specification=ContextSpecification()
     )
-    await node(state)
-
-    assert talk_calls == [], (
-        f"talk_to_human must not be called from get_ai_response, got {talk_calls}"
-    )
+    result = await node(state)
+    assert result["session_messages"][0].content == "ok"
 
 
 # ── stream_ai_response_to_terminal: rendering and filtering ──────────────────

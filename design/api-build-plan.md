@@ -23,11 +23,12 @@ the chosen framework, but used deliberately rather than reflexively. Concretely:
 
 | # | Decision or task | Severity | Effort / Risk | Model | What it means concretely |
 |---|---|---|---|---|---|
-| **9a** | Decouple node I/O from the terminal | High | **M / M** | Sonnet (Opus reduces risk on async edge cases) | Refactor `get_ai_response` to yield tokens through an async generator. Update terminal client and API to consume it. Async streaming has subtle pitfalls (cancellation, backpressure, mid-stream errors). |
-| **1** | EOS pipeline: collapse to one node, linear inside | Medium-High | **S / S** | Sonnet | Replace 7-node chain with single `end_of_session_node` calling each phase as plain async function. Structured logs at phase boundaries preserve observability. Conversation graph routes via one edge. |
-| **4** | Adopt checkpointer for in-flight state; repositories canonical archive | Medium | **S / S** | Sonnet | `AsyncPostgresSaver` with `thread_id = session_id` (or `user_id:session_id` for multi-tenant). Live `JournalState` between requests. Repositories stay queryable archive. EOS node bridges checkpoint → repositories. Add cleanup job for closed sessions. |
+| **9a** | Decouple AI output from the terminal *(done)* | High | **M / M** | Sonnet (Opus reduces risk on async edge cases) | `get_ai_response` streams via `llm.astream`; terminal client consumes `astream_events(v2)` and prints chunks filtered by `langgraph_node`. No more `talk_to_human` inside the node. |
+| **9c** | Make the conversation graph one-shot per turn | High | **M / M** | Sonnet (Opus reduces risk on topology refactor) | Remove `get_user_input` from the graph. Conversation graph starts at `intent_classifier` and ends after `get_ai_response`. The terminal client loops in Python: read stdin → invoke graph for one turn → consume token events → repeat. The API endpoint is the same shape: read HTTP body → invoke graph → SSE the events. Recursion limit becomes irrelevant once each invocation is one turn. Removes the `recursion_limit=1000` band-aid in `main.py`. |
+| **1** | EOS pipeline: collapse to one node, linear inside *(done)* | Medium-High | **S / S** | Sonnet | `graph/nodes/eos_pipeline.py::make_end_of_session_node` runs 7 phases sequentially via `_call`. State threaded forward with `model_copy`; LangGraph reducers applied once on the final accumulated dict. `build_end_of_session_graph` is now 1 node + 2 edges. `node_trace` fires per-phase so observability is unchanged. |
+| **4** | Adopt checkpointer for in-flight state; repositories canonical archive *(done)* | Medium | **S / S** | Sonnet | `AsyncPostgresSaver` with `thread_id = session_id`. Live `JournalState` between requests; repositories remain the queryable archive. Cleanup job for closed sessions still pending. |
 | **3** | Keep classifier-router topology — deliberate, not default | Medium | **XS / XS now, M / M later** | N/A | No work today. Note as "kept pending tool-calling comparison." Latent risk: if a future eval shows tool-calling beats the classifier, refactor touches the conversation graph spine. |
-| **5** | Streaming API: `astream_events(version="v2")` | Low | **S / S** | Sonnet | Anticipate growth (UI status indicators, possible tool calling). Consumer switches on event type; pass `on_chat_model_stream` as SSE token events; reserve other events for future UI features. |
+| **5** | Streaming API: `astream_events(version="v2")` *(done)* | Low | **S / S** | Sonnet | `api/streaming.py::graph_stream` consumes `astream_events(v2)`, filters `on_chat_model_stream` by `langgraph_node`, reads `system_message` from checkpointer state after stream. `api/main.py` lifespan builds graphs once; `POST /sessions`, `POST /chat/{id}`, `DELETE /sessions/{id}` are the three session lifecycle endpoints. |
 | **7-design** | Make the system evaluable | (supports Critical hardening) | **S / XS** | Sonnet | Audit prompts and classifiers for structured outputs. Confirm prompt versioning. Confirm stable IDs. Patch gaps. Additive, low blast radius. |
 | **8-design** | Make the system observable | (supports Critical hardening) | **M / XS** | Sonnet | Structured log fields, decision-point logs, operation-boundary entry/exit. Effort medium because of file count, not per-change difficulty. |
 
@@ -49,26 +50,42 @@ the chosen framework, but used deliberately rather than reflexively. Concretely:
 - **#9b** — DB writes inside nodes: idiomatic LangGraph, leave as is.
 - **#10** — over-decomposition: judgment call, no specific node flagged.
 
+## Known Issues (tabled)
+
+- **`No human and ai content found for exchange`** — fires from
+  `inflate_threads` during the EOS pipeline. Two suspects: (1) the
+  `/reflect` and `/recall` paths produce exchanges without a paired
+  `on_human_turn`; (2) checkpointer roundtrip of nested `Turn` fields
+  inside `Exchange` not fully reconstituting as Pydantic instances.
+  Non-blocking — pipeline still finishes. Investigate when convenient.
+
 ---
 
 ## Suggested Sequencing
 
-The matrix is ordered by severity, not build order. A reasonable build sequence:
+The matrix is ordered by severity, not build order. The build sequence we've
+been following:
 
-1. **Cheap design wins first** to settle into patterns: #4 (checkpointer wiring),
-   #1 (EOS collapse), #7-design (evaluability audit).
-2. **The big design lift**: #9a (I/O decoupling) — most attention here.
-3. **Streaming on top of the new node**: #5 (`astream_events` v2 consumer).
-4. **Cross-cutting slog**: #8-design (observability) — benefits from a stable
-   codebase to instrument.
-5. **Hardening matrix** sequenced after the API is functioning end-to-end.
+1. ~~**#4** — checkpointer wired (XS warm-up, clarifies the state model).~~ *Done.*
+2. ~~**#9a** — decouple AI output from terminal.~~ *Done.*
+3. ~~**#9c** — finish the decoupling: remove `get_user_input` from the graph
+   and run one turn per invocation. Removes the recursion-limit band-aid.
+   Prerequisite for a real API endpoint.~~ *Done.*
+4. ~~**#5** — wire the conversation graph into FastAPI as an SSE consumer of
+   `astream_events(v2)`. Mostly mechanical once #9c lands.~~ *Done.*
+5. ~~**#1** — EOS collapse (independent of the conversation work; can interleave).~~ *Done.*
+6. **#7-design** — evaluability audit (additive, low blast radius).
+7. **#8-design** — observability slog (benefits from a stable codebase).
+8. **Hardening matrix** sequenced after the API is functioning end-to-end.
 
 ---
 
 ## Why These Decisions (Summary)
 
 - **No interrupts**: couples graph execution to HTTP request lifecycle awkwardly.
-  Per-request invocation gives clean HTTP semantics.
+  Per-request invocation gives clean HTTP semantics. Per-request invocation
+  also requires the conversation graph to be one-shot (no `get_user_input`
+  node looping internally) — captured as #9c.
 - **Checkpointer kept**: simpler than building incremental session persistence.
   No "two sources of truth" because checkpointer holds in-flight state and
   repositories hold the archive — different lifecycle stages.

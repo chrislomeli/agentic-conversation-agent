@@ -1,26 +1,52 @@
-"""Entry point for the interactive journal agent."""
+"""Entry point for the interactive journal agent.
+
+The terminal runner drives a Python loop around two compiled graphs:
+
+    1. parse user input
+    2. invoke the conversation graph for ONE turn
+    3. consume token events to the terminal
+    4. print any system_message the graph emitted (e.g. /save feedback)
+    5. repeat
+
+On ``/quit`` the runner breaks the loop and invokes the end-of-session graph
+once against the same ``thread_id`` so it sees the final conversation state
+the conversation graph left in the checkpointer.
+
+The same shape works for the FastAPI endpoint — different transport, same
+backend code path.
+"""
 import asyncio
-import json
 from uuid import uuid4
 
 from langchain_core.messages import BaseMessage
 
-from journal_agent.comms.human_chat import stream_ai_response_to_terminal
+from journal_agent.comms.commands import build_turn_input, parse_user_input
+from journal_agent.comms.human_chat import (
+    get_human_input,
+    stream_ai_response_to_terminal,
+    talk_to_human,
+)
 from journal_agent.comms.llm_registry import build_llm_registry
-from journal_agent.configure.config_builder import LLM_ROLE_CONFIG, configure_environment, models
-from journal_agent.graph.journal_graph import build_journal_graph
+from journal_agent.configure.config_builder import (
+    LLM_ROLE_CONFIG,
+    configure_environment,
+    models,
+)
+from journal_agent.graph.journal_graph import (
+    build_conversation_graph,
+    build_end_of_session_graph,
+)
 from journal_agent.graph.reflection_graph import build_reflection_graph
-from journal_agent.graph.state import JournalState
-from journal_agent.model.session import ContextSpecification, StatusValue, UserProfile, UserCommandValue
+from journal_agent.model.session import Role, UserCommandValue, UserProfile
 from journal_agent.stores import (
-    TranscriptStore,
-    PgFragmentRepository,
-    JsonlGateway,
-    get_pg_gateway,
-    UserProfileRepository,
     InsightsRepository,
+    JsonlGateway,
+    PgFragmentRepository,
     ThreadsRepository,
     TranscriptRepository,
+    TranscriptStore,
+    UserProfileRepository,
+    get_pg_gateway,
     make_postgres_checkpointer,
 )
 
@@ -31,7 +57,7 @@ from journal_agent.stores import (
 
 
 def _build_stores():
-    """Return (session_store, fragment_store, profile_store,
+    """Return (session_store, fragment_store, profile_store, insights_repo,
              transcript_store, thread_store, classified_thread_store).
 
     Every write path fans out to JSONL and Postgres.
@@ -65,9 +91,8 @@ def _build_stores():
 
 
 async def main():
-    """Configure dependencies, build the graph, and run one interactive session."""
+    """Configure dependencies and run an interactive terminal session."""
     settings = configure_environment()
-
     print("Using", {k: v.value for k, v in LLM_ROLE_CONFIG.items()})
 
     registry = build_llm_registry(
@@ -89,19 +114,16 @@ async def main():
     # user profile
     try:
         user_profile = profile_store.load_profile()
-    except Exception as e:
+    except Exception:
         user_profile = UserProfile()
         profile_store.save_profile(user_profile)
 
-    # previously stored messages — assumes transcripts are retrievable
+    # previously stored messages — seeds the FIRST turn only; subsequent turns
+    # load conversation state from the checkpointer.
     seed_context: list[BaseMessage] = session_store.retrieve_transcript() or []
 
     session_id = str(uuid4())
-    initial_state = JournalState(
-        session_id=session_id,
-        recent_messages=seed_context,
-        user_profile=user_profile,
-    )
+    config = {"configurable": {"thread_id": session_id}}
 
     reflection_graph = build_reflection_graph(
         registry=registry,
@@ -109,38 +131,75 @@ async def main():
         insights_repo=insights_repo,
     )
 
-    # The checkpointer persists JournalState between super-steps so the graph
-    # can resume after a crash or be invoked per-turn from an API. thread_id
-    # is the session_id — every new run gets a fresh thread.
     async with make_postgres_checkpointer(setup=True) as checkpointer:
-        journal_graph = build_journal_graph(
+        conversation = build_conversation_graph(
             registry=registry,
             session_store=session_store,
             fragment_store=fragment_store,
             profile_store=profile_store,
             reflection_graph=reflection_graph,
+            checkpointer=checkpointer,
+        )
+        eos = build_end_of_session_graph(
+            registry=registry,
+            fragment_store=fragment_store,
             transcript_store=transcript_store,
             thread_store=thread_store,
             classified_thread_store=classified_thread_store,
             checkpointer=checkpointer,
         )
 
+        # Diagram only the conversation graph — the EOS pipeline is linear
+        # ETL and doesn't need a picture.
         with open("graph.png", "wb") as f:
-            f.write(journal_graph.get_graph().draw_mermaid_png())
+            f.write(conversation.get_graph().draw_mermaid_png())
 
-        config = {"configurable": {"thread_id": session_id}}
+        first_turn = True
         try:
-            # astream_events surfaces per-node lifecycle events plus LLM token
-            # chunks. The terminal consumer filters to get_ai_response tokens
-            # and prints them as they arrive.
-            events = journal_graph.astream_events(
-                initial_state, config=config, version="v2"
-            )
-            await stream_ai_response_to_terminal(events)
+            while True:
+                user_input = await asyncio.to_thread(get_human_input)
+                parsed = parse_user_input(user_input)
+
+                if parsed.quit:
+                    break
+
+                turn_input = build_turn_input(parsed, session_id=session_id)
+                if first_turn:
+                    # First invocation for this thread_id has no prior state
+                    # in the checkpointer — seed the bootstrap fields here.
+                    turn_input["user_profile"] = user_profile
+                    turn_input["recent_messages"] = seed_context
+                    first_turn = False
+
+                # Plain conversation turns get logged to the session buffer
+                # so on_ai_turn can pair them into Exchanges.
+                if parsed.command == UserCommandValue.NONE and parsed.message:
+                    session_store.on_human_turn(
+                        session_id=session_id,
+                        role=Role.HUMAN,
+                        content=parsed.message,
+                    )
+
+                events = conversation.astream_events(
+                    turn_input, config=config, version="v2"
+                )
+                await stream_ai_response_to_terminal(events)
+
+                # Surface any system_message the graph produced (e.g. /save
+                # confirmations from the CAPTURE node).
+                snapshot = await conversation.aget_state(config)
+                if msg := snapshot.values.get("system_message"):
+                    talk_to_human(msg)
 
         except KeyboardInterrupt:
             session_store.store_cache(session_id)
             print("\nInterrupted. Session saved.")
+            return
+
+        # End-of-session pipeline. Reads the final conversation state from
+        # the checkpointer (same thread_id, same JournalState schema).
+        print("\nClosing session...")
+        await eos.ainvoke({}, config=config)
     print("done")
 
 
