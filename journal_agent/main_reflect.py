@@ -9,7 +9,7 @@ from journal_agent.configure.config_builder import LLM_ROLE_CONFIG, configure_en
 from journal_agent.graph.journal_graph import build_journal_graph
 from journal_agent.graph.reflection_graph import build_reflection_graph
 from journal_agent.graph.state import JournalState
-from journal_agent.model.session import ContextSpecification, Status
+from journal_agent.model.session import ContextSpecification, StatusValue
 from journal_agent.stores import (
     TranscriptStore,
     PgFragmentRepository,
@@ -117,11 +117,11 @@ async def main():
         "insights": [],
         "verified_insights": [],
         "latest_insights": [],
-        "status": Status.IDLE,
+        "status": StatusValue.IDLE,
         "error_message": None,
     }
     result = await reflection_graph.ainvoke(reflection_input)
-    return {"latest_insights": result["latest_insights"], "status": Status.PROCESSING}
+    return {"latest_insights": result["latest_insights"], "status": StatusValue.PROCESSING}
     try:
         reflection_graph.invoke(initial_state)
 

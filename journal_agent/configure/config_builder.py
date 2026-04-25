@@ -12,6 +12,7 @@ the settings load without errors.
 
 import logging
 import os
+import warnings
 
 from journal_agent.configure.settings import (
     LLM_ROLE_CONFIG,
@@ -100,6 +101,9 @@ def configure_environment() -> Settings:
     # Suppress noisy HTTP logs
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
+
+    # Suppress sklearn FutureWarning about HDBSCAN `copy` default change
+    warnings.filterwarnings("ignore", category=FutureWarning, module="sklearn")
 
     # Route node_tracer output to a file so it never clutters the console chat
     node_tracer_logger = logging.getLogger("journal_agent.graph.node_tracer")

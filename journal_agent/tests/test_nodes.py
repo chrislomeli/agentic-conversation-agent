@@ -28,6 +28,7 @@ from journal_agent.graph.nodes.stores import (
     make_save_threads,
     make_save_transcript,
 )
+from journal_agent.graph.state import JournalState
 from journal_agent.model.session import (
     ContextSpecification,
     Domain,
@@ -38,12 +39,13 @@ from journal_agent.model.session import (
     PromptKey,
     Role,
     ScoreCard,
-    Status,
+    StatusValue,
     Tag,
     ThreadClassificationResponse,
     ThreadSegment,
     ThreadSegmentList,
     Turn,
+    UserCommandValue,
     UserProfile,
 )
 
@@ -100,24 +102,9 @@ def _stub_async_llm_client(return_value) -> LLMClient:
     return client
 
 
-def _base_state(**overrides) -> dict:
-    """Minimal JournalState dict with sane defaults."""
-    state = {
-        "session_id": "test-session",
-        "recent_messages": [],
-        "session_messages": [],
-        "transcript": [],
-        "threads": [],
-        "classified_threads": [],
-        "fragments": [],
-        "retrieved_history": [],
-        "context_specification": ContextSpecification(),
-        "user_profile": UserProfile(),
-        "status": Status.IDLE,
-        "error_message": None,
-    }
-    state.update(overrides)
-    return state
+def _base_state(**overrides) -> JournalState:
+    """Minimal JournalState with sane defaults."""
+    return JournalState(session_id="test-session", **overrides)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -172,7 +159,7 @@ class TestExchangeDecomposer:
         llm = LLMClient(model="stub", client=mock_chat)
         node = make_exchange_decomposer(llm)
         result = node(_base_state(transcript=[_make_exchange()]))
-        assert result["status"] == Status.ERROR
+        assert result["status"] == StatusValue.ERROR
         assert "LLM down" in result["error_message"]
 
 
@@ -201,7 +188,7 @@ class TestThreadClassifier:
         llm = LLMClient(model="stub", client=mock_chat)
         node = make_thread_classifier(llm)
         result = await node(_base_state(transcript=[exchange], threads=[thread]))
-        assert result["status"] == Status.ERROR
+        assert result["status"] == StatusValue.ERROR
 
 
 class TestFragmentExtractor:
@@ -239,7 +226,7 @@ class TestFragmentExtractor:
             transcript=[exchange],
             classified_threads=[thread],
         ))
-        assert result["status"] == Status.ERROR
+        assert result["status"] == StatusValue.ERROR
 
 
 class TestIntentClassifier:
@@ -262,7 +249,7 @@ class TestIntentClassifier:
         llm = _stub_llm_client(None)  # never reached
         node = make_intent_classifier(llm)
         result = node(_base_state(session_messages=[]))
-        assert result["status"] == Status.ERROR
+        assert result["status"] == StatusValue.ERROR
         assert "No session messages" in result["error_message"]
 
     def test_returns_error_on_llm_exception(self):
@@ -273,7 +260,7 @@ class TestIntentClassifier:
         result = node(_base_state(
             session_messages=[HumanMessage(content="hi")],
         ))
-        assert result["status"] == Status.ERROR
+        assert result["status"] == StatusValue.ERROR
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -286,7 +273,7 @@ class TestSaveTranscript:
         exchange = _make_exchange()
         node = make_save_transcript(store=mock_store)
         result = node(_base_state(transcript=[exchange]))
-        assert result["status"] == Status.TRANSCRIPT_SAVED
+        assert result["status"] == StatusValue.TRANSCRIPT_SAVED
         mock_store.save_collection.assert_called_once()
 
     def test_returns_error_on_exception(self):
@@ -294,7 +281,7 @@ class TestSaveTranscript:
         broken_store.save_collection.side_effect = RuntimeError("disk full")
         node = make_save_transcript(store=broken_store)
         result = node(_base_state(transcript=[_make_exchange()]))
-        assert result["status"] == Status.ERROR
+        assert result["status"] == StatusValue.ERROR
 
 
 class TestSaveThreads:
@@ -303,7 +290,7 @@ class TestSaveThreads:
         thread = _make_thread(["e1"])
         node = make_save_threads(store=mock_store)
         result = node(_base_state(threads=[thread]))
-        assert result["status"] == Status.THREADS_SAVED
+        assert result["status"] == StatusValue.THREADS_SAVED
         mock_store.save_collection.assert_called_once()
 
 
@@ -313,7 +300,7 @@ class TestSaveClassifiedThreads:
         thread = _make_thread(["e1"])
         node = make_save_classified_threads(store=mock_store)
         result = node(_base_state(classified_threads=[thread]))
-        assert result["status"] == Status.CLASSIFIED_THREADS_SAVED
+        assert result["status"] == StatusValue.CLASSIFIED_THREADS_SAVED
         mock_store.save_collection.assert_called_once()
 
 
@@ -323,7 +310,7 @@ class TestSaveFragments:
         fragment = _make_fragment()
         node = make_save_fragments(mock_store)
         result = node(_base_state(fragments=[fragment]))
-        assert result["status"] == Status.FRAGMENTS_SAVED
+        assert result["status"] == StatusValue.FRAGMENTS_SAVED
         mock_store.save_fragments.assert_called_once_with([fragment])
 
     def test_returns_error_on_fragment_store_exception(self):
@@ -331,5 +318,5 @@ class TestSaveFragments:
         mock_store.save_fragments.side_effect = RuntimeError("store fail")
         node = make_save_fragments(mock_store)
         result = node(_base_state(fragments=[_make_fragment()]))
-        assert result["status"] == Status.ERROR
+        assert result["status"] == StatusValue.ERROR
         assert "store fail" in result["error_message"]

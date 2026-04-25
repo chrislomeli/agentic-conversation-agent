@@ -66,7 +66,7 @@ class UserProfileTemplate(PromptTemplateBuilder):
         self.template = PromptTemplate.from_template(_TEMPLATE_TEXT)
 
     def build(self, state: JournalState) -> str:
-        user_profile = state['user_profile'].model_dump_json(indent=2)
+        user_profile = state.user_profile.model_dump_json(indent=2)
         return self.template.format(
             user_profile=user_profile,
             schema_block=_schema_block(UserProfile)

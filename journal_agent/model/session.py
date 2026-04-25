@@ -38,13 +38,18 @@ from journal_agent.configure.config_builder import (
 )
 
 
-class Status(StrEnum):
+class UserCommandValue(StrEnum):
+    NONE = "none"
+    REFLECT = "reflection"
+    RECALL = "recall"
+    SAVE = "capture"
+
+
+class StatusValue(StrEnum):
     IDLE = "idle"
     PROCESSING = "processing"
     COMPLETED = "completed"
     ERROR = "error"
-    REFLECT_REQUESTED = "reflection_requested"
-    RECALL_REQUESTED = "recall"
     TRANSCRIPT_SAVED = "transcript_saved"
     THREADS_SAVED = "threads_saved"
     CLASSIFIED_THREADS_SAVED = "classified_threads_saved"

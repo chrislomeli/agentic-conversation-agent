@@ -101,8 +101,8 @@ models: dict[LLMLabel, LLMModel | None] = {
 # If a role is absent here it falls back to the default ("conversation").
 LLM_ROLE_CONFIG: dict[str, LLMLabel] = {
     "conversation": LLMLabel.OLLAMA_LLAMA3,
-    "classifier": LLMLabel.GPT,
-    "extractor": LLMLabel.GPT,
+    "classifier": LLMLabel.HAIKU,
+    "extractor": LLMLabel.HAIKU,
 }
 
 

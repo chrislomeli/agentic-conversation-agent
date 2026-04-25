@@ -99,11 +99,10 @@ def create_llm_client(
     """
     if provider == LLMProvider.OPENAI:
         from langchain_openai import ChatOpenAI
-
         chat = ChatOpenAI(model=model, temperature=0, api_key=api_key)
+
     elif provider == LLMProvider.ANTHROPIC:
         from langchain_anthropic import ChatAnthropic
-
         key = api_key.get_secret_value() if isinstance(api_key, SecretStr) else api_key
         chat = ChatAnthropic(model_name=model, api_key=key, temperature=0)
     elif provider == LLMProvider.OLLAMA:

@@ -13,7 +13,7 @@ from journal_agent.configure.prompts import get_prompt
 from journal_agent.graph.node_tracer import node_trace, logger
 from journal_agent.graph.nodes.classifiers import DEFAULT_LLM_CONCURRENCY
 from journal_agent.graph.state import ReflectionState
-from journal_agent.model.session import Cluster, Fragment, Status, Insight, PromptKey, InsightDraft, \
+from journal_agent.model.session import Cluster, Fragment, StatusValue, Insight, PromptKey, InsightDraft, \
     InsightVerifierScore, VerifierStatus
 from journal_agent.stores import PgFragmentRepository
 
@@ -24,11 +24,11 @@ def make_collect_window(
     @node_trace("collect_window")
     def collect_window(state: ReflectionState) -> dict:
         try:
-            all_fragments = fragment_store.load_window(state.get("fetch_parameters"))
+            all_fragments = fragment_store.load_window(state.fetch_parameters)
             return {"fragments": all_fragments}
         except Exception as e:
             logger.exception("Insight generation failed")
-            return {"status": Status.ERROR, "error_message": str(e)}
+            return {"status": StatusValue.ERROR, "error_message": str(e)}
 
     return collect_window
 
@@ -53,7 +53,7 @@ def make_cluster_fragments() -> Callable[..., dict]:
     @node_trace("cluster_fragments")
     def cluster_fragments(state: ReflectionState) -> dict:
         try:
-            fragments = state["fragments"]
+            fragments = state.fragments
             if not fragments:
                 return {"clusters": []}
 
@@ -98,7 +98,7 @@ def make_cluster_fragments() -> Callable[..., dict]:
             return {"clusters": clusters}
         except Exception as e:
             logger.exception("Cluster fragments failed")
-            return {"status": Status.ERROR, "error_message": str(e)}
+            return {"status": StatusValue.ERROR, "error_message": str(e)}
 
     return cluster_fragments
 
@@ -109,11 +109,11 @@ def make_label_clusters(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CONCU
     @node_trace("label_clusters")
     async def label_clusters(state: ReflectionState) -> dict:
         try:
-            clusters = state["clusters"]
+            clusters = state.clusters
             if not clusters:
                 return {"insights": []}
 
-            frag_by_id = {f.fragment_id: f for f in state["fragments"]}
+            frag_by_id = {f.fragment_id: f for f in state.fragments}
 
             system = SystemMessage(get_prompt(PromptKey.LABEL_CLUSTERS))
             structured_llm = llm.astructured(InsightDraft)
@@ -150,7 +150,7 @@ def make_label_clusters(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CONCU
 
         except Exception as e:
             logger.exception("label_clusters failed")
-            return {"status": Status.ERROR, "error_message": str(e)}
+            return {"status": StatusValue.ERROR, "error_message": str(e)}
 
     return label_clusters
 
@@ -163,8 +163,8 @@ def make_verify_citations(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CON
             structured_llm = llm.astructured(InsightVerifierScore)
             sem = asyncio.Semaphore(max_concurrency)
 
-            fragments = state["fragments"]
-            insights = state["insights"]
+            fragments = state.fragments
+            insights = state.insights
 
             async def worker(insight: Insight) -> Insight:
                 async with sem:
@@ -206,7 +206,7 @@ def make_verify_citations(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CON
 
         except Exception as e:
             logger.exception("verify_citations failed")
-            return {"status": Status.ERROR, "error_message": str(e)}
+            return {"status": StatusValue.ERROR, "error_message": str(e)}
 
     return verify_citations
 
@@ -219,13 +219,13 @@ def make_format_result() -> Callable[..., dict]:
     def format_result(state: ReflectionState) -> dict:
         try:
             verified = [
-                i for i in state["verified_insights"]
+                i for i in state.verified_insights
                 if i.verifier_status == VerifierStatus.VERIFIED
             ]
             return {"latest_insights": verified}
         except Exception as e:
             logger.exception("format_result failed")
-            return {"status": Status.ERROR, "error_message": str(e)}
+            return {"status": StatusValue.ERROR, "error_message": str(e)}
 
     return format_result
 

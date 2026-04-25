@@ -31,7 +31,7 @@ from journal_agent.configure.score_card import resolve_scorecard_to_specificatio
 from journal_agent.graph.node_tracer import node_trace
 from journal_agent.graph.state import (
     JournalState, )
-from journal_agent.model.session import Status, UserProfile, PromptKey
+from journal_agent.model.session import StatusValue, UserProfile, PromptKey
 from journal_agent.model.session import ThreadSegmentList, ExchangeClassificationRequest, ThreadSegment, Exchange, \
     ThreadClassificationResponse, ExpandedThreadSegment, Fragment, \
     FragmentDraftList, ScoreCard, ContextSpecification
@@ -70,7 +70,7 @@ def inflate_threads(threads: list[ThreadSegment], exchanges: list[Exchange]) -> 
             exchange = exchange_map[exchange_id]
             human = getattr(getattr(exchange, 'human', None), 'content', None)
             ai = getattr(getattr(exchange, 'ai', None), 'content', None)
-            if not human and ai:
+            if not human or not ai:
                 logger.warning("No human and ai content found for exchange")
             else:
                 t = ExchangeClassificationRequest(exchange_id=exchange.exchange_id,
@@ -97,7 +97,7 @@ def make_exchange_decomposer(llm: LLMClient) -> Callable[..., dict]:
             system_message = get_prompt(PromptKey.DECOMPOSER)
             system = SystemMessage(system_message)
 
-            exchanges = state["transcript"]
+            exchanges = state.transcript
 
             human_prompt = "\n\n".join([turn.model_dump_json() for turn in exchanges])
             human = HumanMessage(content=human_prompt)
@@ -109,7 +109,7 @@ def make_exchange_decomposer(llm: LLMClient) -> Callable[..., dict]:
         except Exception as e:
             logger.exception("Failed to classify turns")
             return {
-                "status": Status.ERROR,
+                "status": StatusValue.ERROR,
                 "error_message": str(e),
             }
 
@@ -130,8 +130,8 @@ def make_thread_classifier(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CO
             system_message = get_prompt(PromptKey.THREAD_CLASSIFIER) + "\n\nTaxonomy:\n" + taxonomy_json()
             system = SystemMessage(system_message)
 
-            exchanges: list[Exchange] = state["transcript"]
-            threads: list[ThreadSegment] = state["threads"]
+            exchanges: list[Exchange] = state.transcript
+            threads: list[ThreadSegment] = state.threads
 
             expanded_threads = inflate_threads(threads, exchanges)
             if not expanded_threads:
@@ -159,7 +159,7 @@ def make_thread_classifier(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CO
         except Exception as e:
             logger.exception("Failed to classify threads")
             return {
-                "status": Status.ERROR,
+                "status": StatusValue.ERROR,
                 "error_message": str(e),
             }
 
@@ -179,9 +179,9 @@ def make_thread_fragment_extractor(llm: LLMClient, max_concurrency: int = DEFAUL
         try:
             system = SystemMessage(get_prompt(PromptKey.FRAGMENT_EXTRACTOR))
 
-            session_id: str = state["session_id"]
-            exchanges: list[Exchange] = state["transcript"]
-            threads: list[ThreadSegment] = state["classified_threads"]
+            session_id: str = state.session_id
+            exchanges: list[Exchange] = state.transcript
+            threads: list[ThreadSegment] = state.classified_threads
 
             expanded_threads = inflate_threads(threads, exchanges)
             if not expanded_threads:
@@ -218,7 +218,7 @@ def make_thread_fragment_extractor(llm: LLMClient, max_concurrency: int = DEFAUL
         except Exception as e:
             logger.exception("Failed to extract fragments")
             return {
-                "status": Status.ERROR,
+                "status": StatusValue.ERROR,
                 "error_message": str(e),
             }
 
@@ -237,7 +237,7 @@ def make_intent_classifier(llm: LLMClient, context_builder: ContextBuilder | Non
     def intent_classifier(state: JournalState) -> dict:
         try:
             # preconditions
-            if len(state["session_messages"]) < 1:
+            if len(state.session_messages) < 1:
                 raise ValueError("No session messages found while asking for AI response")
 
             # set up the messages we will pass the llm for this intent classification
@@ -251,7 +251,7 @@ def make_intent_classifier(llm: LLMClient, context_builder: ContextBuilder | Non
             messages = context_builder.get_context(
                 prompt=prompt,
                 instruction=intent_spec,
-                session_messages=state["session_messages"],
+                session_messages=state.session_messages,
             )
 
             # involve the llm
@@ -260,8 +260,8 @@ def make_intent_classifier(llm: LLMClient, context_builder: ContextBuilder | Non
 
             # handle user profile changes
             if score_card.personalization_score >= 0.5:
-                state["user_profile"].is_current = False
-                state["user_profile"].is_updated = False
+                state.user_profile.is_current = False
+                state.user_profile.is_updated = False
 
             # translate the score_card into a message specification
             specification = resolve_scorecard_to_specification(score_card)
@@ -273,7 +273,7 @@ def make_intent_classifier(llm: LLMClient, context_builder: ContextBuilder | Non
         except Exception as e:
             logger.exception("Failed to classify turns")
             return {
-                "status": Status.ERROR,
+                "status": StatusValue.ERROR,
                 "error_message": str(e),
             }
 
@@ -287,11 +287,11 @@ Callable[..., dict]:
     @node_trace("profile_scanner")
     def profile_scanner(state: JournalState) -> dict:
         try:
-            if state["user_profile"].is_current:
+            if state.user_profile.is_current:
                 return {}
 
             # preconditions
-            if len(state["session_messages"]) < 1:
+            if len(state.session_messages) < 1:
                 raise ValueError("No session messages found while asking for AI response")
 
             # The profile-scanner prompt is parametric: it needs the current
@@ -306,7 +306,7 @@ Callable[..., dict]:
             messages = context_builder.get_context(
                 prompt=prompt,
                 instruction=profile_spec,
-                session_messages=state["session_messages"],
+                session_messages=state.session_messages,
             )
 
             # involve the llm
@@ -323,7 +323,7 @@ Callable[..., dict]:
         except Exception as e:
             logger.exception("Failed to classify turns")
             return {
-                "status": Status.ERROR,
+                "status": StatusValue.ERROR,
                 "error_message": str(e),
             }
 

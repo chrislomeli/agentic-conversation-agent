@@ -1,38 +1,52 @@
 """state.py — LangGraph state definition for the journal agent.
 
-JournalState is a TypedDict that every node reads from and writes to.
 Fields annotated with ``add`` or ``add_messages`` are *append-reducers*:
 each node returns a partial dict and LangGraph merges it into the
 accumulated state using the annotated reducer function.
 """
 from datetime import datetime
 from operator import add
-from typing import Annotated, TypedDict
+from typing import Annotated
 
 from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
+from pydantic import BaseModel, ConfigDict, Field
 
-from journal_agent.model.session import Fragment, Exchange, ThreadSegment, ContextSpecification, Status, UserProfile, \
-    Cluster, Insight
-
-
-class WindowParams(TypedDict):
-    window_start: datetime | None
-    window_end: datetime | None
-    limit: int | None
-
-class ReflectionState(TypedDict):
-    fetch_parameters: WindowParams | None
-    fragments: list[Fragment]            # populated by collect_window
-    clusters: list[Cluster]              # populated (and scored) by cluster_fragments
-    insights: list[Insight]              # populated by label_clusters
-    verified_insights: list[Insight]     # populated by verify_citations
-    latest_insights: list[Insight]       # populated by format_result — the handoff slot
-    status: Status
-    error_message: str | None
+from journal_agent.model.session import (
+    Cluster,
+    ContextSpecification,
+    Exchange,
+    Fragment,
+    Insight,
+    StatusValue,
+    ThreadSegment,
+    UserCommandValue,
+    UserProfile,
+)
 
 
-class JournalState(TypedDict):
+class WindowParams(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    window_start: datetime | None = None
+    window_end: datetime | None = None
+    limit: int | None = None
+
+
+class ReflectionState(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    fetch_parameters: WindowParams | None = None
+    fragments: list[Fragment] = Field(default_factory=list)
+    clusters: list[Cluster] = Field(default_factory=list)
+    insights: list[Insight] = Field(default_factory=list)
+    verified_insights: list[Insight] = Field(default_factory=list)
+    latest_insights: list[Insight] = Field(default_factory=list)
+    status: StatusValue = StatusValue.IDLE
+    error_message: str | None = None
+
+
+class JournalState(BaseModel):
     """Shared state flowing through all graph nodes.
 
     Conversation loop (runs every turn):
@@ -51,19 +65,24 @@ class JournalState(TypedDict):
     Control flow:
         status                — routing signal: IDLE → PROCESSING → COMPLETED / ERROR
         error_message         — set alongside Status.ERROR to propagate failure info
+        system_message        — feedback string for the user; printed by the run loop, not by nodes
     """
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     session_id: str
-    recent_messages: list[BaseMessage]
-    session_messages: Annotated[list[BaseMessage], add_messages]
-    transcript: Annotated[list[Exchange], add]
-    threads: Annotated[list[ThreadSegment], add]
-    classified_threads: Annotated[list[ThreadSegment], add]
-    fragments: list[Fragment]
-    retrieved_history: list[Fragment]
-    fetch_parameters: WindowParams | None
-    recall_topic: str | None
-    latest_insights: list[Insight]   # handoff from the reflection subgraph
-    context_specification: ContextSpecification
-    user_profile: UserProfile
-    status: Status
-    error_message: str | None
+    recent_messages: list[BaseMessage] = Field(default_factory=list)
+    session_messages: Annotated[list[BaseMessage], add_messages] = Field(default_factory=list)
+    transcript: Annotated[list[Exchange], add] = Field(default_factory=list)
+    threads: Annotated[list[ThreadSegment], add] = Field(default_factory=list)
+    classified_threads: Annotated[list[ThreadSegment], add] = Field(default_factory=list)
+    fragments: list[Fragment] = Field(default_factory=list)
+    retrieved_history: list[Fragment] = Field(default_factory=list)
+    fetch_parameters: WindowParams | None = None
+    latest_insights: list[Insight] = Field(default_factory=list)
+    context_specification: ContextSpecification = Field(default_factory=ContextSpecification)
+    user_profile: UserProfile = Field(default_factory=UserProfile)
+    user_command: UserCommandValue = UserCommandValue.NONE
+    user_command_args: str | None = None
+    status: StatusValue = StatusValue.IDLE
+    error_message: str | None = None
+    system_message: str | None = None

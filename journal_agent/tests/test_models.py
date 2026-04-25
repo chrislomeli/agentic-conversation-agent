@@ -31,7 +31,7 @@ from journal_agent.model.session import (
     PromptKey,
     Role,
     ScoreCard,
-    Status,
+    StatusValue,
     Tag,
     Turn,
     UserProfile,
@@ -51,7 +51,7 @@ def _make_state(**overrides) -> dict:
         "retrieved_history": [],
         "context_specification": ContextSpecification(),
         "user_profile": UserProfile(),
-        "status": Status.IDLE,
+        "status": StatusValue.IDLE,
         "error_message": None,
     }
     state.update(overrides)
@@ -294,10 +294,10 @@ class TestPromptKeyRegistry:
 
 class TestEnums:
     def test_status_error_value(self):
-        assert Status.ERROR == "error"
+        assert StatusValue.ERROR == "error"
 
     def test_role_human_value(self):
         assert Role.HUMAN.value == "human"
 
     def test_status_is_str_enum(self):
-        assert isinstance(Status.COMPLETED, str)
+        assert isinstance(StatusValue.COMPLETED, str)

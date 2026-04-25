@@ -17,7 +17,7 @@ from collections.abc import Callable
 
 from journal_agent.graph.node_tracer import node_trace
 from journal_agent.graph.state import JournalState, ReflectionState
-from journal_agent.model.session import Status
+from journal_agent.model.session import StatusValue
 from journal_agent.stores import PgFragmentRepository, TranscriptRepository, ThreadsRepository, InsightsRepository
 
 logger = logging.getLogger(__name__)
@@ -28,17 +28,17 @@ def make_save_transcript(store: TranscriptRepository) -> Callable[..., dict]:
     @node_trace("save_transcript")
     def save_transcript(state: JournalState) -> dict:
         try:
-            session_id = state["session_id"]
-            store.save_collection(session_id, state["transcript"])
+            session_id = state.session_id
+            store.save_collection(session_id, state.transcript)
 
             return {
-                "status": Status.TRANSCRIPT_SAVED
+                "status": StatusValue.TRANSCRIPT_SAVED
             }
 
         except Exception as e:
             logger.exception("Failed to extract fragments")
             return {
-                "status": Status.ERROR,
+                "status": StatusValue.ERROR,
                 "error_message": str(e),
             }
 
@@ -51,16 +51,16 @@ def make_save_threads(store: ThreadsRepository) -> Callable[..., dict]:
     @node_trace("save_threads")
     def save_threads(state: JournalState) -> dict:
         try:
-            session_id = state["session_id"]
-            store.save_collection(session_id, state["threads"])
+            session_id = state.session_id
+            store.save_collection(session_id, state.threads)
 
             return {
-                "status": Status.THREADS_SAVED
+                "status": StatusValue.THREADS_SAVED
             }
         except Exception as e:
             logger.exception("Failed to save threads")
             return {
-                "status": Status.ERROR,
+                "status": StatusValue.ERROR,
                 "error_message": str(e),
             }
 
@@ -73,16 +73,16 @@ def make_save_classified_threads(store: ThreadsRepository) -> Callable[..., dict
     @node_trace("save_classified_threads")
     def save_classified_threads(state: JournalState) -> dict:
         try:
-            session_id = state["session_id"]
-            store.save_collection(session_id, state["classified_threads"])
+            session_id = state.session_id
+            store.save_collection(session_id, state.classified_threads)
 
             return {
-                "status": Status.CLASSIFIED_THREADS_SAVED
+                "status": StatusValue.CLASSIFIED_THREADS_SAVED
             }
         except Exception as e:
             logger.exception("Failed to save classified threads")
             return {
-                "status": Status.ERROR,
+                "status": StatusValue.ERROR,
                 "error_message": str(e),
             }
 
@@ -96,16 +96,16 @@ def make_save_fragments(fragment_store: PgFragmentRepository) -> Callable[..., d
     @node_trace("save_fragments")
     def save_fragments(state: JournalState):
         try:
-            fragment_store.save_fragments(state["fragments"])
+            fragment_store.save_fragments(state.fragments)
 
             return {
-                "status": Status.FRAGMENTS_SAVED
+                "status": StatusValue.FRAGMENTS_SAVED
             }
 
         except Exception as e:
             logger.exception("Failed to save fragments")
             return {
-                "status": Status.ERROR,
+                "status": StatusValue.ERROR,
                 "error_message": str(e),
             }
 
@@ -118,10 +118,10 @@ def make_save_insights(insights_repo: InsightsRepository) -> Callable[..., dict]
     @node_trace("save_insights")
     def save_insights(state: ReflectionState) -> dict:
         try:
-            insights_repo.save_insights(state["verified_insights"])
-            return {"status": Status.PROCESSING}
+            insights_repo.save_insights(state.verified_insights)
+            return {"status": StatusValue.PROCESSING}
         except Exception as e:
             logger.exception("Failed to save insights")
-            return {"status": Status.ERROR, "error_message": str(e)}
+            return {"status": StatusValue.ERROR, "error_message": str(e)}
 
     return save_insights

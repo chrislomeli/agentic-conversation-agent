@@ -1,5 +1,6 @@
 """Entry point for the interactive journal agent."""
 import asyncio
+import json
 from uuid import uuid4
 
 from langchain_core.messages import BaseMessage
@@ -9,7 +10,7 @@ from journal_agent.configure.config_builder import LLM_ROLE_CONFIG, configure_en
 from journal_agent.graph.journal_graph import build_journal_graph
 from journal_agent.graph.reflection_graph import build_reflection_graph
 from journal_agent.graph.state import JournalState
-from journal_agent.model.session import ContextSpecification, Status, UserProfile
+from journal_agent.model.session import ContextSpecification, StatusValue, UserProfile, UserCommandValue
 from journal_agent.stores import (
     TranscriptStore,
     PgFragmentRepository,
@@ -65,6 +66,8 @@ async def main():
     """Configure dependencies, build the graph, and run one interactive session."""
     settings = configure_environment()
 
+    print("Using", {k: v.value for k, v in LLM_ROLE_CONFIG.items()})
+
     registry = build_llm_registry(
         settings=settings,
         models=models,
@@ -89,25 +92,13 @@ async def main():
         profile_store.save_profile(user_profile)
 
     # previously stored messages — assumes transcripts are retrievable
-    seed_context: list[BaseMessage] = session_store.retrieve_transcript()
+    seed_context: list[BaseMessage] = session_store.retrieve_transcript() or []
 
     session_id = str(uuid4())
     initial_state = JournalState(
         session_id=session_id,
         recent_messages=seed_context,
-        session_messages=[],
-        transcript=[],
-        threads=[],
-        classified_threads=[],
-        fragments=[],
-        retrieved_history=[],
-        context_specification=ContextSpecification(),
         user_profile=user_profile,
-        status=Status.IDLE,
-        error_message=None,
-        latest_insights=[],
-        fetch_parameters=None,
-        recall_topic=None,
     )
 
     reflection_graph = build_reflection_graph(
