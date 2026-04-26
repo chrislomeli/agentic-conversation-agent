@@ -3,6 +3,8 @@ from __future__ import annotations
 from journal_agent.configure.prompts.helpers import _schema_block
 from journal_agent.model.session import InsightVerifierScore
 
+VERSION = "v1"
+
 TEMPLATE = f"""\
 You are verifying whether an INSIGHT is supported by the FRAGMENTS cited as its evidence.
 

@@ -29,7 +29,7 @@ the chosen framework, but used deliberately rather than reflexively. Concretely:
 | **4** | Adopt checkpointer for in-flight state; repositories canonical archive *(done)* | Medium | **S / S** | Sonnet | `AsyncPostgresSaver` with `thread_id = session_id`. Live `JournalState` between requests; repositories remain the queryable archive. Cleanup job for closed sessions still pending. |
 | **3** | Keep classifier-router topology — deliberate, not default | Medium | **XS / XS now, M / M later** | N/A | No work today. Note as "kept pending tool-calling comparison." Latent risk: if a future eval shows tool-calling beats the classifier, refactor touches the conversation graph spine. |
 | **5** | Streaming API: `astream_events(version="v2")` *(done)* | Low | **S / S** | Sonnet | `api/streaming.py::graph_stream` consumes `astream_events(v2)`, filters `on_chat_model_stream` by `langgraph_node`, reads `system_message` from checkpointer state after stream. `api/main.py` lifespan builds graphs once; `POST /sessions`, `POST /chat/{id}`, `DELETE /sessions/{id}` are the three session lifecycle endpoints. |
-| **7-design** | Make the system evaluable | (supports Critical hardening) | **S / XS** | Sonnet | Audit prompts and classifiers for structured outputs. Confirm prompt versioning. Confirm stable IDs. Patch gaps. Additive, low blast radius. |
+| **7-design** | Make the system evaluable *(done)* | (supports Critical hardening) | **S / XS** | Sonnet | 4 gaps patched: (1) `ThreadSegment` now has `thread_id` UUID — last artifact without a stable ID; (2) `PromptKey` alias bug fixed — `PROFILE_CLASSIFIER` removed, `PROFILE_SCANNER` gets own value `"profile_scanner"`; (3) every prompt module exports `VERSION = "v1"` surfaced via `get_prompt_version(key)` in the registry; (4) dead `sympy` import removed from `session.py`. All classifiers already had Pydantic structured output schemas. 19 evaluability tests added. |
 | **8-design** | Make the system observable | (supports Critical hardening) | **M / XS** | Sonnet | Structured log fields, decision-point logs, operation-boundary entry/exit. Effort medium because of file count, not per-change difficulty. |
 
 ---
@@ -38,8 +38,8 @@ the chosen framework, but used deliberately rather than reflexively. Concretely:
 
 | # | Item | Severity | Trigger to start |
 |---|---|---|---|
-| **7-hardening** | Eval harness for classifier / decomposer / extractor / fragment_extractor | Critical | Before any prompt or model swap. Before scaling user count. |
-| **8-hardening** | Cost/latency telemetry: per-role token counts, per-node latency, retry/failure metrics | Critical | Before the API serves real traffic. |
+| **7-hardening** | Eval harness for classifier / decomposer / extractor / fragment_extractor *(done)* | Critical | Before any prompt or model swap. Before scaling user count. |
+| **8-hardening** | Cost/latency telemetry: per-role token counts, per-node latency, retry/failure metrics *(done)* | Critical | Before the API serves real traffic. |
 | **6** | Diversify observability: structured logs + metrics alongside LangSmith | Medium | Same time as #8-hardening — built on the same logging substrate. |
 
 ---
@@ -74,8 +74,8 @@ been following:
 4. ~~**#5** — wire the conversation graph into FastAPI as an SSE consumer of
    `astream_events(v2)`. Mostly mechanical once #9c lands.~~ *Done.*
 5. ~~**#1** — EOS collapse (independent of the conversation work; can interleave).~~ *Done.*
-6. **#7-design** — evaluability audit (additive, low blast radius).
-7. **#8-design** — observability slog (benefits from a stable codebase).
+6. ~~**#7-design** — evaluability audit (additive, low blast radius).~~ *Done.*
+7. ~~**#8-design** — observability slog (benefits from a stable codebase).~~ *Done.*
 8. **Hardening matrix** sequenced after the API is functioning end-to-end.
 
 ---

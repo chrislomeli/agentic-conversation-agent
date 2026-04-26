@@ -5,6 +5,8 @@ from langchain_core.prompts import PromptTemplate
 from journal_agent.configure.prompts.base_prompt_template import PromptTemplateBuilder
 from journal_agent.graph.state import JournalState
 
+VERSION = "v1"
+
 _TEMPLATE_TEXT = (
 """ 
 <instructions>

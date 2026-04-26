@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from journal_agent.model.session import Exchange, ThreadSegment, ThreadSegmentList
 
+VERSION = "v1"
+
 from .helpers import _schema_block
 
 TEMPLATE = f"""

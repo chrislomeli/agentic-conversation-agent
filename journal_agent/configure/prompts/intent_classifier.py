@@ -4,6 +4,8 @@ import json
 
 from journal_agent.model.session import Domain, ScoreCard
 
+VERSION = "v1"
+
 from .helpers import TAXONOMY, _schema_block
 
 TEMPLATE = f"""

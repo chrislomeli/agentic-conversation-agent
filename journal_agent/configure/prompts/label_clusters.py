@@ -3,6 +3,8 @@ from __future__ import annotations
 from journal_agent.configure.prompts.helpers import _schema_block
 from journal_agent.model.session import InsightDraft
 
+VERSION = "v1"
+
 TEMPLATE = f"""\
 You are an analytical synthesis engine for a personal memory system.
 

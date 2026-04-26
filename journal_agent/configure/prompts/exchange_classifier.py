@@ -8,6 +8,8 @@ from journal_agent.model.session import (
 
 from .helpers import _schema_block
 
+VERSION = "v1"
+
 TEMPLATE = f"""
 You are a classification engine for a journaling AI.
 

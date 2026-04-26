@@ -20,7 +20,6 @@ from enum import Enum, StrEnum
 from typing import Any, Literal, Annotated, Union
 
 from pydantic import BaseModel, Field
-from sympy.crypto.crypto import decipher_affine
 
 from journal_agent.configure.config_builder import (
     DEFAULT_RECENT_MESSAGES_COUNT,
@@ -115,6 +114,7 @@ class ClassifiedExchangeList(BaseModel):
 
 
 class ThreadSegment(BaseModel):
+    thread_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     thread_name: str  # free-form snake_case, 2-6 words
     exchange_ids: list[str]  # which exchanges belong
     tags: list[Tag]  # from TAXONOMY classify this record using the TAXONOMY provided
@@ -175,18 +175,17 @@ class ScoreCard(BaseModel):
 
 
 class PromptKey(Enum):
-    INTENT_CLASSIFIER = "intent_classifier"
-    PROFILE_CLASSIFIER = "profile_classifier"
-    PROFILE_SCANNER = "profile_classifier"
-    CONVERSATION = "conversation"
-    SOCRATIC = "socratic"
-    GUIDANCE = "guidance"
-    DECOMPOSER = "decomposer"
-    THREAD_CLASSIFIER = "thread_classifier"
+    INTENT_CLASSIFIER  = "intent_classifier"
+    PROFILE_SCANNER    = "profile_scanner"
+    CONVERSATION       = "conversation"
+    SOCRATIC           = "socratic"
+    GUIDANCE           = "guidance"
+    DECOMPOSER         = "decomposer"
+    THREAD_CLASSIFIER  = "thread_classifier"
     EXCHANGE_CLASSIFIER = "exchange_classifier"
     FRAGMENT_EXTRACTOR = "extractor"
-    LABEL_CLUSTERS = "label_cluster"
-    VERIFY_INSIGHTS = "verify_insights"
+    LABEL_CLUSTERS     = "label_cluster"
+    VERIFY_INSIGHTS    = "verify_insights"
 
 
 class ContextSpecification(BaseModel):

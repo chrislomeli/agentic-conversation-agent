@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 from collections.abc import Callable
 from functools import wraps
 from time import perf_counter
@@ -12,46 +11,45 @@ from journal_agent.model.session import StatusValue
 
 logger = logging.getLogger(__name__)
 
-_ENABLED = os.getenv("NODE_TRACE_ENABLED", "false").lower() in ("1", "true", "yes")
-
 # ── Node tracing decorator ───────────────────────────────────────────────────
 
 
 def _log_result(name: str, elapsed: float, session_id: str, result: dict | None) -> None:
     """Shared logging for both sync and async wrappers."""
     status = result.get("status") if isinstance(result, dict) else None
+    elapsed_ms = round(elapsed * 1000)
     if status == StatusValue.ERROR:
         logger.warning(
-            "Node %s completed with error in %.3fs (session_id=%s, status=%s, error_message=%s)",
-            name,
-            elapsed,
-            session_id,
-            status,
-            result.get("error_message") if isinstance(result, dict) else None,
+            "node completed with error",
+            extra={
+                "node": name,
+                "session_id": session_id,
+                "elapsed_ms": elapsed_ms,
+                "status": str(status),
+                "error_message": result.get("error_message") if isinstance(result, dict) else None,
+            },
         )
     else:
         logger.info(
-            "Node %s completed in %.3fs (session_id=%s, status=%s)",
-            name,
-            elapsed,
-            session_id,
-            status,
+            "node completed",
+            extra={
+                "node": name,
+                "session_id": session_id,
+                "elapsed_ms": elapsed_ms,
+                "status": str(status),
+            },
         )
 
 
 def node_trace(node_name: str | None = None):
     """Timing / logging decorator for LangGraph nodes.
 
-    Automatically detects whether the wrapped function is sync or async
-    and produces the appropriate wrapper, so both ``def`` and ``async def``
-    nodes can use the same ``@node_trace(...)`` decorator.
-
-    Set NODE_TRACE_ENABLED=true to activate; disabled by default so output
-    doesn't pollute the console chat interface (use LangSmith instead).
+    Wraps both sync and async node functions; records elapsed time,
+    session_id, and status in structured ``extra`` fields so log
+    aggregators can filter and group by node or session without parsing
+    the message string.
     """
     def decorator(func: Callable[..., dict]) -> Callable[..., dict]:
-        if not _ENABLED:
-            return func
         name = node_name or func.__name__
 
         if asyncio.iscoroutinefunction(func):
@@ -65,10 +63,9 @@ def node_trace(node_name: str | None = None):
                     return result
                 except Exception:
                     logger.exception(
-                        "Node %s failed in %.3fs (session_id=%s)",
-                        name,
-                        perf_counter() - start,
-                        session_id,
+                        "node raised exception",
+                        extra={"node": name, "session_id": session_id,
+                               "elapsed_ms": round((perf_counter() - start) * 1000)},
                     )
                     raise
 
@@ -84,10 +81,9 @@ def node_trace(node_name: str | None = None):
                 return result
             except Exception:
                 logger.exception(
-                    "Node %s failed in %.3fs (session_id=%s)",
-                    name,
-                    perf_counter() - start,
-                    session_id,
+                    "node raised exception",
+                    extra={"node": name, "session_id": session_id,
+                           "elapsed_ms": round((perf_counter() - start) * 1000)},
                 )
                 raise
 

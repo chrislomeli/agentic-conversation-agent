@@ -7,6 +7,8 @@ from journal_agent.configure.prompts.base_prompt_template import PromptTemplateB
 from journal_agent.graph.state import JournalState
 from journal_agent.model.session import UserProfile
 
+VERSION = "v1"
+
 _TEMPLATE_TEXT = """
 You are a personalization evaluator for a journaling AI
  The journaling AI is an LLM that responds to user comments, ideas, and requests.

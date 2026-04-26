@@ -105,6 +105,10 @@ def make_exchange_decomposer(llm: LLMClient) -> Callable[..., dict]:
             structured_llm = llm.structured(ThreadSegmentList)
             thread_list = structured_llm.invoke([system, human])
 
+            logger.info(
+                "exchange_decomposer decision",
+                extra={"session_id": state.session_id, "thread_count": len(thread_list.threads)},
+            )
             return {"threads": thread_list.threads}
         except Exception as e:
             logger.exception("Failed to classify turns")
@@ -154,6 +158,10 @@ def make_thread_classifier(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CO
                 *(classify_one(t) for t in expanded_threads)
             )
 
+            logger.info(
+                "thread_classifier decision",
+                extra={"session_id": state.session_id, "thread_count": len(classified_threads)},
+            )
             return {"classified_threads": list(classified_threads)}
 
         except Exception as e:
@@ -213,6 +221,10 @@ def make_thread_fragment_extractor(llm: LLMClient, max_concurrency: int = DEFAUL
             # flatten list-of-lists into a single fragment list
             fragments = [f for batch in nested for f in batch]
 
+            logger.info(
+                "thread_fragment_extractor decision",
+                extra={"session_id": state.session_id, "fragment_count": len(fragments)},
+            )
             return {"fragments": fragments}
 
         except Exception as e:
@@ -266,7 +278,18 @@ def make_intent_classifier(llm: LLMClient, context_builder: ContextBuilder | Non
             # translate the score_card into a message specification
             specification = resolve_scorecard_to_specification(score_card)
 
-            # update the state
+            logger.info(
+                "intent_classifier decision",
+                extra={
+                    "session_id": state.session_id,
+                    "question_score": score_card.question_score,
+                    "first_person_score": score_card.first_person_score,
+                    "personalization_score": score_card.personalization_score,
+                    "task_score": score_card.task_score,
+                    "prompt_key": specification.prompt_key.value,
+                },
+            )
+
             return {"context_specification": specification}
 
 

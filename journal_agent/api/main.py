@@ -32,6 +32,7 @@ from fastapi.responses import StreamingResponse
 
 from journal_agent.api.models import ChatRequest, SessionResponse, SseEvent
 from journal_agent.api.streaming import format_sse, graph_stream
+from journal_agent.telemetry import TelemetryCallbackHandler
 from journal_agent.comms.commands import build_turn_input, parse_user_input
 from journal_agent.comms.llm_registry import build_llm_registry
 from journal_agent.configure.config_builder import (
@@ -168,7 +169,7 @@ async def create_session() -> SessionResponse:
     """
     session_id = str(uuid4())
     app.state.new_sessions.add(session_id)
-    logger.info("Created session: %s", session_id)
+    logger.info("session created", extra={"session_id": session_id})
     return SessionResponse(session_id=session_id)
 
 
@@ -192,7 +193,7 @@ async def chat(session_id: str, request: ChatRequest) -> StreamingResponse:
     Sending ``/quit`` returns a ``system`` event advising the client to call
     ``DELETE /sessions/{session_id}`` to run the end-of-session pipeline.
     """
-    logger.info("Chat: session=%s message=%r", session_id, request.message)
+    logger.info("turn received", extra={"session_id": session_id, "message_len": len(request.message)})
 
     parsed = parse_user_input(request.message)
 
@@ -220,7 +221,10 @@ async def chat(session_id: str, request: ChatRequest) -> StreamingResponse:
             content=parsed.message,
         )
 
-    config = {"configurable": {"thread_id": session_id}}
+    config = {
+        "configurable": {"thread_id": session_id},
+        "callbacks": [TelemetryCallbackHandler()],
+    }
     events = app.state.conversation.astream_events(turn_input, config=config, version="v2")
 
     return StreamingResponse(
@@ -246,14 +250,18 @@ async def end_session(session_id: str) -> dict:
     Returns 202 once the pipeline completes (it runs synchronously before
     returning — the pipeline is fast relative to a user-initiated quit).
     """
-    logger.info("Ending session: %s", session_id)
+    logger.info("eos triggered", extra={"session_id": session_id})
     app.state.new_sessions.discard(session_id)
-    config = {"configurable": {"thread_id": session_id}}
+    config = {
+        "configurable": {"thread_id": session_id},
+        "callbacks": [TelemetryCallbackHandler()],
+    }
     try:
         await app.state.eos.ainvoke({}, config=config)
     except Exception as exc:
-        logger.error("EOS pipeline failed for session %s: %s", session_id, exc)
+        logger.error("eos pipeline failed", extra={"session_id": session_id, "error": str(exc)})
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+    logger.info("eos completed", extra={"session_id": session_id})
     return {"status": "saved", "session_id": session_id}
 
 
