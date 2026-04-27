@@ -58,6 +58,9 @@ from journal_agent.stores import (
     get_pg_gateway,
     make_postgres_checkpointer,
 )
+import warnings
+
+warnings.filterwarnings("ignore", category=UserWarning, module="pydantic.*")
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +133,7 @@ async def lifespan(app: FastAPI):
         app.state.seed_context = seed_context
         # Set of session_ids that still need first-turn bootstrap injection.
         # Discarded once the first /chat call for that session is processed.
-        app.state.new_sessions: set[str] = set()
+        app.state.new_sessions = set()
 
         yield
         # Checkpointer connection pool closes here on shutdown.

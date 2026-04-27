@@ -211,7 +211,8 @@ def make_reflect_node(reflection_graph: CompiledStateGraph, fragment_store: Frag
                     status=StatusValue.IDLE,
                     error_message=None
                 )
-                await reflection_graph.ainvoke(reflection_input)
+                response = await reflection_graph.ainvoke(reflection_input)
+                insights_store.save_insights(response["verified_insights"])
                 cursor = fragments[-1].timestamp
 
             # -- now just get the latest insights --------------

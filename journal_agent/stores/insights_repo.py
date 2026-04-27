@@ -40,5 +40,5 @@ class InsightsRepository:
         self._jsonl.save_json(file_name, items)
         self._pg.upsert_insights(items)
 
-    def load_insights(self, fetch_params: WindowParams | None = None ) -> list[Insight]:
-        return self._pg.fetch_insights(fetch_params) or []
+    def load_insights(self) -> list[Insight]:
+        return self._pg.fetch_insights() or []

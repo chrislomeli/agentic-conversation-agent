@@ -96,66 +96,54 @@ class ContextBuilder:
         insights
         """
         # truncate based on the instruction limits
-        session_messages = list(
-            session_messages[-instruction.last_k_session_messages:]      # truncate to the last N messages based on the instruction passed in
-        ) if session_messages and instruction.last_k_session_messages else []  # guard against zeros and Nones
+        session_messages = session_messages[-instruction.last_k_session_messages:] \
+            if session_messages and instruction.last_k_session_messages else []  # guard against zeros and Nones
 
-        recent_messages = list(
-            recent_messages[-instruction.last_k_recent_messages:]  # truncate to the last N messages based on the instruction passed in
-        ) if recent_messages and instruction.last_k_recent_messages else [] # guard against zeros and Nones
+        recent_messages = recent_messages[-instruction.last_k_recent_messages:]\
+            if recent_messages and instruction.last_k_recent_messages else [] # guard against zeros and Nones
 
-        retrieved_fragments = list(
-            retrieved_fragments[:instruction.top_k_retrieved_history]   # truncate to the TOP N messages based on the instruction passed in
-        ) if retrieved_fragments and instruction.top_k_retrieved_history else []
+        retrieved_fragments = [
+            {"content": f.content, "tag": [t.tag for t in f.tags]}
+            for f in retrieved_fragments[:instruction.top_k_retrieved_history]
+        ] if retrieved_fragments and instruction.top_k_retrieved_history else []
 
-        # build the retrieved context to a json string
-        retrieved_context: str = json.dumps(
-            [{"content": f.content, "tag": [t.tag for t in f.tags]} for f in retrieved_fragments], indent=2)
+        retrieved_insights = sorted([{"label": i.label, "body": i.body, "verifier_score": i.verifier_score} for i in insights  or [] ], key=lambda d: d['verifier_score'])
 
-        # build the insights context block
-        insights_context: str = json.dumps([
-            {"label": i.label, "body": i.body, "verifier_score": i.verifier_score}
-            for i in (insights or [])
-        ]) if insights else ""
 
         # perform a calculation of the token count
         effective_max = self.max_tokens * (1 - self.threshold)
-        count_prompt_tokens = self.count_string_tokens(prompt)
-        count_retrieved_context = self.count_string_tokens(retrieved_context)
-        count_insights_tokens = self.count_string_tokens(insights_context) if insights_context else 0
-        count_recent_tokens = self.count_message_tokens(recent_messages)
-        count_session_tokens = self.count_message_tokens(session_messages)
-        count_all_tokens = count_prompt_tokens + count_retrieved_context + count_insights_tokens + count_recent_tokens + count_session_tokens
-        overage_tokens = count_all_tokens - effective_max
+        def calculate_tokens():
+            count_prompt_tokens = self.count_string_tokens(prompt)
+            count_retrieved_fragments_tokens = self.count_string_tokens(json.dumps(retrieved_fragments))
+            count_retrieved_insights_tokens = self.count_string_tokens(json.dumps(retrieved_insights)) if insights else 0
+            count_recent_tokens = self.count_message_tokens(recent_messages)
+            count_session_tokens = self.count_message_tokens(session_messages)
+            _count_all_tokens = count_prompt_tokens + count_retrieved_fragments_tokens + count_retrieved_insights_tokens + count_recent_tokens + count_session_tokens
+            _overage_tokens = _count_all_tokens - effective_max
+            return _count_all_tokens, _overage_tokens
 
         # if we are over - drop retrieved context and insights first (same pruning priority)
-        if overage_tokens > 0:
-            retrieved_context = ""
-            insights_context = ""
-            count_all_tokens -= (count_retrieved_context + count_insights_tokens)
-            overage_tokens = max(count_all_tokens - effective_max, 0)
-            logger.debug(f"Removing retrieved context reduced overage tokes to {overage_tokens}")
+        count_all_tokens, overage_tokens = calculate_tokens()
+        while overage_tokens > 0 and retrieved_fragments:
+            removed = retrieved_fragments.pop()  # pop from the end — lowest score since sorted desc
+            overage_tokens -= self.count_string_tokens(json.dumps(removed))
 
-        # truncate recent messages next
-        if overage_tokens > 0:
-            if count_recent_tokens < overage_tokens:
-                recent_messages = []
-                count_all_tokens -= count_recent_tokens
-                overage_tokens = max(count_all_tokens - effective_max, 0)
-                logger.debug(f"Removing recent_messages reduced overage tokes to {overage_tokens}")
-            else:
-                while overage_tokens > 0 and recent_messages:
-                    removed = recent_messages.pop(0)
-                    overage_tokens -= self.count_message_tokens([removed])
+        while overage_tokens > 0 and retrieved_insights:
+            removed = retrieved_insights.pop()  # pop from the end — lowest score since sorted desc
+            overage_tokens -= self.count_string_tokens(json.dumps(removed))
 
-        if overage_tokens > 0:
-            while overage_tokens > 0 and session_messages:
-                removed = session_messages.pop(0)
-                overage_tokens -= self.count_message_tokens([removed])
+        count_all_tokens, overage_tokens = calculate_tokens()
+        while overage_tokens > 0 and recent_messages:
+            removed = recent_messages.pop()  # pop from the end — lowest score since sorted desc
+            overage_tokens -=  self.count_message_tokens([removed])
 
-            logger.debug(f"Removing session_messages reduced overage tokens to {overage_tokens}")
+        count_all_tokens, overage_tokens = calculate_tokens()
+        while overage_tokens > 0 and session_messages:
+            removed = session_messages.pop()  # pop from the end — lowest score since sorted desc
+            overage_tokens -=  self.count_message_tokens([removed])
 
         # if we've pruned everything we can and are still over, bail
+        count_all_tokens, overage_tokens = calculate_tokens()
         if overage_tokens > 0:
             logger.debug(
                 f"After removing session_messages we are still {overage_tokens} tokens too big - throw an exception")
@@ -164,13 +152,13 @@ class ContextBuilder:
         # Construct the System message
         logger.debug(f"System context: \n{prompt}")
 
-        if retrieved_context and retrieved_fragments:
-            rc = f"\n\n<retrieved_context>\n{retrieved_context}\n</retrieved_context>"
+        if retrieved_fragments:
+            rc = f"\n\n<retrieved_context>\n{json.dumps(retrieved_fragments, indent=2)}\n</retrieved_context>"
             logger.debug(f"Retrieved Context: \n{rc}")
             prompt += rc
 
-        if insights_context:
-            prompt += f"\n\n<reflection_insights>\n{insights_context}\n</reflection_insights>"
+        if retrieved_insights:
+            prompt += f"\n\n<reflection_insights>\n{json.dumps(retrieved_insights, indent=2)}\n</reflection_insights>"
 
         system_message = SystemMessage(
             content=prompt

@@ -38,7 +38,7 @@ from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool
 
-from journal_agent.configure.config_builder import INSIGHTS_FETCH_LIMIT
+from journal_agent.configure.config_builder import FRAGMENTS_FETCH_LIMIT, INSIGHTS_FETCH_LIMIT
 from journal_agent.configure.settings import get_settings
 from journal_agent.graph.state import WindowParams
 from journal_agent.model.session import Exchange, Fragment, Role, Tag, ThreadSegment, Turn, UserProfile, Insight
@@ -274,12 +274,13 @@ class PgGateway:
 
         # Upsert insights
         sql = """
-              INSERT INTO insights (insight_id, label, body, verifier_status, confidence, embedding)
-              VALUES (%s, %s, %s, %s, %s, %s::vector)
+              INSERT INTO insights (insight_id, label, body, verifier_status, verifier_score, label_confidence, embedding)
+              VALUES (%s, %s, %s, %s, %s, %s, %s::vector)
               ON CONFLICT (insight_id) DO UPDATE SET label           = EXCLUDED.label,
                                                      body            = EXCLUDED.body,
                                                      verifier_status = EXCLUDED.verifier_status,
-                                                     confidence      = EXCLUDED.confidence,
+                                                     verifier_score = EXCLUDED.verifier_score,
+                                                     label_confidence      = EXCLUDED.label_confidence,
                                                      embedding       = COALESCE(EXCLUDED.embedding, insights.embedding);
               """
         rows = [
@@ -288,6 +289,7 @@ class PgGateway:
                 i.label,
                 i.body,
                 i.verifier_status,
+                i.verifier_score,
                 i.label_confidence,
                 i.embedding if i.embedding else None,
             )
@@ -376,7 +378,7 @@ class PgGateway:
         try:
             window_start = fetch_params["window_start"] if fetch_params else None
             window_end = fetch_params["window_end"] if fetch_params else None
-            limit = (fetch_params["limit"] if fetch_params else None) or INSIGHTS_FETCH_LIMIT
+            limit = (fetch_params["limit"] if fetch_params else None) or FRAGMENTS_FETCH_LIMIT
 
             rows = self.fetch_rows(
                 """
@@ -500,7 +502,7 @@ class PgGateway:
 
             window_start = fetch_params["window_start"] if fetch_params else None
             window_end = fetch_params["window_end"] if fetch_params else None
-            limit = (fetch_params["limit"] if fetch_params else None) or INSIGHTS_FETCH_LIMIT
+            limit = (fetch_params["limit"] if fetch_params else None) or FRAGMENTS_FETCH_LIMIT
 
             sql = """
                   SELECT f.fragment_id,
@@ -548,7 +550,6 @@ class PgGateway:
                 results.append(Fragment(
                     fragment_id=r["fragment_id"],
                     embedding=list(raw_embedding) if raw_embedding is not None else [],
-                    insight_id=r["insight_id"] or None,
                     session_id=r["session_id"],
                     content=r["content"],
                     exchange_ids=list(r["exchange_ids"]) if r["exchange_ids"] else [],
@@ -561,19 +562,20 @@ class PgGateway:
             logger.exception("fetch_fragments failed")
             return []
 
-    def fetch_insights(self, fetch_params: WindowParams | None = None) -> list[Insight]:
+    def fetch_insights(self) -> list[Insight]:
         """Return Insights with their associated fragment_ids from the junction table."""
         try:
-            window_start = fetch_params["window_start"] if fetch_params else None
-            window_end = fetch_params["window_end"] if fetch_params else None
-            limit = (fetch_params["limit"] if fetch_params else None) or INSIGHTS_FETCH_LIMIT
+            # there may  be a case were we want to pass these in - but not yet
+            limit =  INSIGHTS_FETCH_LIMIT
+            verifier_score_threshold = 0.5
 
             rows = self.fetch_rows("""
                                    SELECT t.insight_id,
                                           t.label,
                                           t.body,
                                           t.verifier_status,
-                                          t.confidence,
+                                          t.verifier_score,
+                                          t.label_confidence,
                                           t.created_at,
                                           COALESCE(
                                                           array_agg(te.fragment_id)
@@ -581,14 +583,13 @@ class PgGateway:
                                                           ARRAY []::text[]
                                           ) AS fragment_ids
                                    FROM insights t
-                                            LEFT JOIN insight_fragments te ON te.insight_id = t.insight_id
-                                   WHERE (%s IS NULL OR t.created_at >= %s)
-                                     AND (%s IS NULL OR t.created_at <= %s)
-                                   GROUP BY t.insight_id, t.label, t.body, t.verifier_status, t.confidence, t.created_at
-                                   ORDER BY t.created_at
+                                     LEFT JOIN insight_fragments te ON te.insight_id = t.insight_id
+                                   WHERE t.verifier_score > %s
+                                   GROUP BY t.insight_id, t.label, t.body, t.verifier_status, t.verifier_score, t.label_confidence, t.created_at
+                                   ORDER BY t.created_at DESC
                                    LIMIT %s;
                                    """,
-                                   (window_start, window_start, window_end, window_end, limit)
+                                   (verifier_score_threshold,limit,)
                                    )
             if not rows:
                 return []
@@ -598,14 +599,14 @@ class PgGateway:
                     label=r["label"],
                     body=r["body"],
                     verifier_status=r["verifier_status"],
-                    label_confidence=r["confidence"],
+                    label_confidence=r["label_confidence"],
                     created_at=r["created_at"],
                     fragment_ids=list(r["fragment_ids"]) if r["fragment_ids"] else []
                 )
                 for r in rows
             ]
         except Exception:
-            logger.exception("fetch_insights failed for window_start=%s, window_end=%s", window_start, window_end)
+            logger.exception("fetch_insights failed ")
             return []
 
     # ══════════════════════════════════════════════════════════════════════════

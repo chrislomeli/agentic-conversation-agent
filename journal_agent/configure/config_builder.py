@@ -28,7 +28,9 @@ from journal_agent.configure.settings import (
 # These constants are the starting values for ContextSpecification and
 # UserProfile fields.  They live here (not in settings.py) because they
 # are domain-level choices, not deployment/infra configuration.
-INSIGHTS_FETCH_LIMIT = 500
+FRAGMENTS_FETCH_LIMIT = 500
+INSIGHTS_FETCH_LIMIT = 50
+INSIGHTS_TOKEN_LIMIT = 1000
 MINIMUM_CLUSTER_SCORE = 4.0          # cluster-level: size + 0.5*span_days
 MINIMUM_CLUSTER_LABEL_SCORE = 0.5   # InsightDraft.confidence threshold
 MINIMUM_VERIFIER_SCORE = 0.5

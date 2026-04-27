@@ -17,6 +17,10 @@ from journal_agent.graph.state import ReflectionState
 from journal_agent.model.session import Cluster, Fragment, StatusValue, Insight, PromptKey, InsightDraft, \
     InsightVerifierScore, VerifierStatus
 
+import warnings
+
+warnings.filterwarnings("ignore", message=".*Expected `none`.*", category=UserWarning, module="pydantic")
+
 
 def score_cluster(
         cluster: Cluster,
@@ -125,7 +129,7 @@ def make_label_clusters(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CONCU
                     return Insight(
                         label=draft.label,
                         body=draft.body,
-                        label_confidence=draft.confidence,
+                        label_confidence=draft.vector_score,
                         fragment_ids=cluster.fragment_ids,
                     )
 
@@ -186,9 +190,9 @@ def make_verify_citations(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CON
                 *(worker(i) for i in insights)
             )
 
-            print("\nVerified insights:\n")
-            for insight in verified_insights:
-                print(json.dumps(insight.model_dump(), indent=2, default=str))
+            # print("\nVerified insights:\n")
+            # for insight in verified_insights:
+            #     print(json.dumps(insight.model_dump(), indent=2, default=str))
 
             return {"verified_insights": verified_insights}
 

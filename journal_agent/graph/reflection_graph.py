@@ -32,14 +32,13 @@ def build_reflection_graph(
     builder.add_node("cluster_fragments", make_cluster_fragments())
     builder.add_node("label_clusters", make_label_clusters(llm=reflection_llm))
     builder.add_node("verify_citations", make_verify_citations(llm=reflection_llm, max_concurrency=3))
-    builder.add_node("save_insights", make_save_insights(insights_repo=insights_repo))
+
 
     # Wiring
     builder.add_edge(START, "cluster_fragments")
     builder.add_conditional_edges("cluster_fragments", goto("label_clusters"))
     builder.add_conditional_edges("label_clusters", goto("verify_citations"))
-    builder.add_conditional_edges("verify_citations", goto("save_insights"))
-    builder.add_conditional_edges("save_insights", END)
+    builder.add_edge("verify_citations", END)
 
     compiled = builder.compile()
     return compiled

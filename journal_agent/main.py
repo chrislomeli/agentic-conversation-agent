@@ -51,6 +51,9 @@ from journal_agent.stores import (
     make_postgres_checkpointer,
 )
 
+import warnings
+
+warnings.filterwarnings("ignore", category=UserWarning, module="pydantic.*")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SECTION 1: STORE WIRING
@@ -136,6 +139,7 @@ async def main():
             registry=registry,
             session_store=session_store,
             fragment_store=fragment_store,
+            insights_store=insights_repo,
             profile_store=profile_store,
             reflection_graph=reflection_graph,
             checkpointer=checkpointer,

@@ -3,6 +3,10 @@ from __future__ import annotations
 from journal_agent.configure.prompts.helpers import _schema_block
 from journal_agent.model.session import InsightDraft
 
+import warnings
+
+warnings.filterwarnings("ignore", message=".*Expected `none`.*", category=UserWarning, module="pydantic")
+
 VERSION = "v1"
 
 TEMPLATE = f"""\
