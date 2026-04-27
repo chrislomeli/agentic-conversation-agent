@@ -22,9 +22,9 @@ from langchain_core.messages import BaseMessage
 
 from journal_agent.comms.commands import build_turn_input, parse_user_input
 from journal_agent.comms.human_chat import (
-    get_human_input,
+    get_console_input,
     stream_ai_response_to_terminal,
-    talk_to_human,
+    display_console_output,
 )
 from journal_agent.comms.llm_registry import build_llm_registry
 from journal_agent.configure.config_builder import (
@@ -41,11 +41,12 @@ from journal_agent.model.session import Role, UserCommandValue, UserProfile
 from journal_agent.stores import (
     InsightsRepository,
     JsonlGateway,
-    PgFragmentRepository,
+    FragmentRepository,
     ThreadsRepository,
     TranscriptRepository,
     TranscriptStore,
     UserProfileRepository,
+    exchanges_to_messages,
     get_pg_gateway,
     make_postgres_checkpointer,
 )
@@ -67,7 +68,7 @@ def _build_stores():
     transcript_store = TranscriptRepository(JsonlGateway("transcripts"), pg)
     thread_store = ThreadsRepository(JsonlGateway("threads"), pg)
     classified_thread_store = ThreadsRepository(JsonlGateway("classified_threads"), pg)
-    fragment_store = PgFragmentRepository(pg_gateway=pg)
+    fragment_store = FragmentRepository(pg_gateway=pg)
     profile_store = UserProfileRepository(JsonlGateway("user_profile"), pg)
     insights_repo = InsightsRepository(JsonlGateway("insights"), pg)
 
@@ -120,7 +121,7 @@ async def main():
 
     # previously stored messages — seeds the FIRST turn only; subsequent turns
     # load conversation state from the checkpointer.
-    seed_context: list[BaseMessage] = session_store.retrieve_transcript() or []
+    seed_context: list[BaseMessage] = exchanges_to_messages(session_store.retrieve_transcript() or [])
 
     session_id = str(uuid4())
     config = {"configurable": {"thread_id": session_id}}
@@ -157,7 +158,7 @@ async def main():
         first_turn = True
         try:
             while True:
-                user_input = await asyncio.to_thread(get_human_input)
+                user_input = await asyncio.to_thread(get_console_input)
                 parsed = parse_user_input(user_input)
 
                 if parsed.quit:
@@ -189,13 +190,14 @@ async def main():
                 # confirmations from the CAPTURE node).
                 snapshot = await conversation.aget_state(config)
                 if msg := snapshot.values.get("system_message"):
-                    talk_to_human(msg)
+                    display_console_output(msg)
 
         except KeyboardInterrupt:
             session_store.store_cache(session_id)
             print("\nInterrupted. Session saved.")
             return
-
+        except Exception as e:
+            raise(e)
         # End-of-session pipeline. Reads the final conversation state from
         # the checkpointer (same thread_id, same JournalState schema).
         print("\nClosing session...")

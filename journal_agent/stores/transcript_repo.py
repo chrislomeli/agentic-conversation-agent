@@ -7,6 +7,7 @@ from typing import TypeVar
 from langchain_core.messages import BaseMessage
 from pydantic import BaseModel
 
+from journal_agent.graph.state import WindowParams
 from journal_agent.model.session import Exchange
 from journal_agent.stores.jsonl_gateway import JsonlGateway
 from journal_agent.stores.pg_gateway import PgGateway
@@ -26,19 +27,19 @@ class TranscriptRepository:
         self._jsonl.save_json(name, items)
         self._pg.upsert_exchanges(name, items)
 
-    def load_collection(self, name: str, model: type[T] = Exchange) -> list[T] | None:
-        rows = self._pg.fetch_exchanges(name)
+    def load_collection(self, fetch_params: WindowParams | None = None) -> list[T] | None:
+        rows = self._pg.fetch_exchanges(fetch_params)  # get last 500
         return rows or None
 
-    def get_last_session_id(self) -> str | None:
-        return self._pg.get_last_session_id()
-
-    def retrieve_transcript(self) -> list[BaseMessage] | None:
-        """Load the most recent saved session as LangChain messages, or None."""
-        latest = self.get_last_session_id()
-        if latest is None:
-            return None
-        exchanges = self.load_collection(latest)
-        if exchanges is None:
-            return None
-        return exchanges_to_messages(exchanges)
+    # def get_last_session_id(self) -> str | None:
+    #     return self._pg.get_last_session_id()
+    #
+    # def retrieve_transcript(self) -> list[BaseMessage] | None:
+    #     """Load the most recent saved session as LangChain messages, or None."""
+    #     latest = self.get_last_session_id()
+    #     if latest is None:
+    #         return None
+    #     exchanges = self.load_collection(latest)
+    #     if exchanges is None:
+    #         return None
+    #     return exchanges_to_messages(exchanges)

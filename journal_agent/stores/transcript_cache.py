@@ -37,7 +37,7 @@ class TranscriptStore:
     def retrieve_transcript(self, criteria: str | None = None) -> list | None:
         """Load the most recent saved session as LangChain messages, or None."""
         if self._repository is not None:
-            return self._repository.retrieve_transcript()
+            return self._repository.load_collection()
         return None
 
     def store_cache(self, session_id: str):

@@ -24,7 +24,7 @@ _PREFIX = {
 _AI_RESPONSE_NODE = "get_ai_response"
 
 
-def get_human_input() -> str:
+def get_console_input() -> str:
     while True:
         print("You (blank line to send):")
         lines = []
@@ -38,7 +38,7 @@ def get_human_input() -> str:
             return text
 
 
-def talk_to_human(message: str, speaker: Speaker = Speaker.SYSTEM) -> None:
+def display_console_output(message: str, speaker: Speaker = Speaker.SYSTEM) -> None:
     color = _ANSI[speaker]
     prefix = _PREFIX[speaker]
     print(f"{color}{prefix}: {message}{_RESET}")
@@ -56,6 +56,7 @@ async def stream_ai_response_to_terminal(
     the stream is cancelled or errors mid-response so the terminal isn't
     left with dangling color state.
     """
+
     color = _ANSI[Speaker.AI]
     prefix = _PREFIX[Speaker.AI]
     in_response = False

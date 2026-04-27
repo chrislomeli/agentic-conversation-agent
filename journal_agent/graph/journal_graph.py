@@ -34,6 +34,7 @@ Routing functions inspect ``JournalState.status``:
 
 import logging
 from collections.abc import Callable
+from datetime import datetime
 from typing import Any, Coroutine
 
 from langchain_core.messages import AIMessage, HumanMessage
@@ -52,14 +53,14 @@ from journal_agent.graph.nodes.classifiers import (
 )
 from journal_agent.graph.nodes.eos_pipeline import make_end_of_session_node
 from journal_agent.graph.routing import _route_base, goto
-from journal_agent.graph.state import JournalState
+from journal_agent.graph.state import JournalState, ReflectionState
 from journal_agent.model.session import Fragment, Role, StatusValue, Tag, UserCommandValue
 from journal_agent.stores import (
-    PgFragmentRepository,
+    FragmentRepository,
     ThreadsRepository,
     TranscriptRepository,
     TranscriptStore,
-    UserProfileRepository,
+    UserProfileRepository, InsightsRepository,
 )
 
 logger = logging.getLogger(__name__)
@@ -82,7 +83,7 @@ class Node:
 # ── Graph nodes ──────────────────────────────────────────────────────────────
 
 
-def make_retrieve_history(fragment_store: PgFragmentRepository) -> Callable[..., dict]:
+def make_retrieve_history(fragment_store: FragmentRepository) -> Callable[..., dict]:
     """Factory: node that queries the fragment store for fragments similar
     to the latest human message, enriched with intent-derived tags."""
     @node_trace("retrieve_history")
@@ -183,27 +184,58 @@ def make_get_ai_response(llm: LLMClient, session_store: TranscriptStore, context
 
     return get_ai_response
 
-def make_reflect_node(reflection_graph) ->  Callable[..., Coroutine[Any, Any, dict]]:
+
+
+
+def make_reflect_node(reflection_graph: CompiledStateGraph, fragment_store: FragmentRepository, insights_store: InsightsRepository) ->  Callable[..., Coroutine[Any, Any, dict]]:
 
     @node_trace("reflect_node")
     async def reflect_node(state: JournalState) -> dict:
+        try:
 
-        reflection_input = {
-            "fetch_parameters": state.fetch_parameters,
-            "fragments": [],
-            "clusters": [],
-            "insights": [],
-            "verified_insights": [],
-            "latest_insights": [],
-            "status": StatusValue.IDLE,
-            "error_message": None,
-        }
-        result = await reflection_graph.ainvoke(reflection_input)
-        return {"latest_insights": result["latest_insights"], "status": StatusValue.PROCESSING}
+            # ---Process any new insights ----------------
+            cursor = datetime.min
+            while True:
+                fragments = fragment_store.fetch_unprocessed_batch(after=cursor, limit=500)
+                if not fragments:
+                    break
+
+                reflection_input = ReflectionState(
+                    session_id=state.session_id,
+                    fetch_parameters=state.fetch_parameters,
+                    fragments=fragments,
+                    clusters=[],
+                    insights=[],
+                    verified_insights=[],
+                    latest_insights=[],
+                    status=StatusValue.IDLE,
+                    error_message=None
+                )
+                await reflection_graph.ainvoke(reflection_input)
+                cursor = fragments[-1].timestamp
+
+
+            # -- now just get the latest insights
+            latest_insights = insights_store.load_insights() or []
+
+            return {
+                "latest_insights": latest_insights,
+                "status": StatusValue.PROCESSING
+            }
+
+        except Exception as e:
+            logger.exception("Failed to retrieve history")
+            return {
+                "status": StatusValue.ERROR,
+                "error_message": str(e),
+            }
+
+
+
 
     return reflect_node
 
-def make_recall_node(fragment_store: PgFragmentRepository) -> Callable[..., dict]:
+def make_recall_node(fragment_store: FragmentRepository) -> Callable[..., dict]:
     """Factory: node that searches FragmentStore by topic and surfaces matches as retrieved history."""
 
     @node_trace("recall_node")
@@ -253,7 +285,7 @@ def _fragment_from_inline(topic: str, content: str, session_id: str) -> tuple[Fr
     return fragment, f"Saved note as '{topic}'."
 
 
-def make_capture_node(fragment_store: PgFragmentRepository) -> Callable[..., dict]:
+def make_capture_node(fragment_store: FragmentRepository) -> Callable[..., dict]:
     """Factory: save exchanges or inline text as a named fragment in the vector store.
 
     Syntax:
@@ -358,7 +390,8 @@ def route_on_profile(state: JournalState) -> str:
 def build_conversation_graph(
         registry: LLMRegistry,
         session_store: TranscriptStore,
-        fragment_store: PgFragmentRepository,
+        fragment_store: FragmentRepository,
+        insights_store: InsightsRepository,
         profile_store: UserProfileRepository,
         reflection_graph: CompiledStateGraph,
         checkpointer: BaseCheckpointSaver | None = None,
@@ -381,7 +414,7 @@ def build_conversation_graph(
     builder.add_node(Node.INTENT_CLASSIFIER, make_intent_classifier(llm=classifier_llm))
     builder.add_node(Node.PROFILE_SCANNER,   make_profile_scanner(llm=classifier_llm, profile_store=profile_store))
 
-    builder.add_node(Node.REFLECT, make_reflect_node(reflection_graph))
+    builder.add_node(Node.REFLECT, make_reflect_node(reflection_graph, fragment_store=fragment_store, insights_store=insights_store))
     builder.add_node(Node.RECALL,  make_recall_node(fragment_store=fragment_store))
     builder.add_node(Node.CAPTURE, make_capture_node(fragment_store=fragment_store))
 
@@ -415,7 +448,7 @@ def build_conversation_graph(
 
 def build_end_of_session_graph(
         registry: LLMRegistry,
-        fragment_store: PgFragmentRepository,
+        fragment_store: FragmentRepository,
         transcript_store: TranscriptRepository | None = None,
         thread_store: ThreadsRepository | None = None,
         classified_thread_store: ThreadsRepository | None = None,

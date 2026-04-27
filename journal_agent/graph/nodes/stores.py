@@ -18,7 +18,7 @@ from collections.abc import Callable
 from journal_agent.graph.node_tracer import node_trace
 from journal_agent.graph.state import JournalState, ReflectionState
 from journal_agent.model.session import StatusValue
-from journal_agent.stores import PgFragmentRepository, TranscriptRepository, ThreadsRepository, InsightsRepository
+from journal_agent.stores import FragmentRepository, TranscriptRepository, ThreadsRepository, InsightsRepository
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +89,7 @@ def make_save_classified_threads(store: ThreadsRepository) -> Callable[..., dict
     return save_classified_threads
 
 
-def make_save_fragments(fragment_store: PgFragmentRepository) -> Callable[..., dict]:
+def make_save_fragments(fragment_store: FragmentRepository) -> Callable[..., dict]:
     """Factory: persist Fragments via PgFragmentStore (handles both structured
     persistence and vector indexing in a single call)."""
 

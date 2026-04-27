@@ -10,7 +10,7 @@ invoke/response shape, so our wrapper just holds the underlying chat model
 and forwards calls to it. The factory function is the single place that
 knows how to build each provider.
 """
-
+import warnings
 from dataclasses import dataclass
 from typing import Any
 
@@ -19,6 +19,12 @@ from pydantic import SecretStr
 
 from journal_agent.configure.settings import LLMProvider
 
+warnings.filterwarnings(
+    "ignore",
+    message=".*Expected `none`.*",
+    category=UserWarning,
+    module="pydantic",
+)
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # THE UNIFIED INTERFACE
@@ -77,14 +83,14 @@ class LLMClient:
 
     def structured(self, schema: type):
         """Return a runnable that outputs instances of *schema*."""
-        return self._client.with_structured_output(schema)
+        return self._client.with_structured_output(schema, method="json_schema")
 
     def astructured(self, schema: type):
         """Return an async-capable runnable that outputs instances of *schema*.
 
         The returned runnable exposes ``.ainvoke()`` for use with asyncio.
         """
-        return self._client.with_structured_output(schema)
+        return self._client.with_structured_output(schema, method="json_schema")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

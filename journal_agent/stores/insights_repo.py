@@ -7,6 +7,7 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 
+from journal_agent.graph.state import WindowParams
 from journal_agent.model.session import Insight
 from journal_agent.stores.embedder import Embedder
 from journal_agent.stores.jsonl_gateway import JsonlGateway
@@ -39,5 +40,5 @@ class InsightsRepository:
         self._jsonl.save_json(file_name, items)
         self._pg.upsert_insights(items)
 
-    def load_insights(self, window_start: datetime | None = None, window_end: datetime | None = None) -> list[Insight]:
-        return self._pg.fetch_insights(window_start, window_end) or []
+    def load_insights(self, fetch_params: WindowParams | None = None ) -> list[Insight]:
+        return self._pg.fetch_insights(fetch_params) or []

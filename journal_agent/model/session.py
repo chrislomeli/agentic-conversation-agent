@@ -83,6 +83,7 @@ class Tag(BaseModel):
 
 class Fragment(BaseModel):
     fragment_id: str = Field(default_factory=lambda: str(uuid.uuid4()))  # a unique uuid
+    insight_id: str | None = None  # back-reference to intent record
     session_id: str  # (which session this came from)
     content: str  # your summary for searchable embedding
     exchange_ids: list[str]  # a list of exchange_id from the Exchange records that comprised this summary

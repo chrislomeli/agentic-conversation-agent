@@ -5,7 +5,7 @@ from functools import wraps
 from time import perf_counter
 
 from journal_agent.graph.state import (
-    JournalState,
+    JournalState, ReflectionState,
 )
 from journal_agent.model.session import StatusValue
 
@@ -56,7 +56,11 @@ def node_trace(node_name: str | None = None):
             @wraps(func)
             async def async_wrapper(state: JournalState) -> dict:
                 start = perf_counter()
-                session_id = state.session_id
+                state_type = state.__class__.__name__
+                if 'session_id' in state.model_fields:
+                    session_id = state.session_id or f"<{state_type}>"
+                else:
+                    session_id = f"<{state_type}>"
                 try:
                     result = await func(state)
                     _log_result(name, perf_counter() - start, session_id, result)
@@ -72,9 +76,14 @@ def node_trace(node_name: str | None = None):
             return async_wrapper
 
         @wraps(func)
-        def wrapper(state: JournalState) -> dict:
+        def wrapper(state: JournalState|ReflectionState) -> dict:
             start = perf_counter()
-            session_id = state.session_id
+            state_type = state.__class__.__name__
+            if 'session_id' in state.model_fields:
+                session_id = state.session_id or f"<{state_type}>"
+            else:
+                session_id = f"<{state_type}>"
+
             try:
                 result = func(state)
                 _log_result(name, perf_counter() - start, session_id, result)

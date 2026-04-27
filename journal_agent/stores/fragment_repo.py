@@ -22,7 +22,7 @@ from journal_agent.stores.pg_gateway import PgGateway, get_pg_gateway
 logger = logging.getLogger(__name__)
 
 
-class PgFragmentRepository:
+class FragmentRepository:
     """Fragment stores backed entirely by Postgres + pgvector."""
 
     def __init__(self, pg_gateway: PgGateway | None = None, embedder: Embedder | None = None):
@@ -47,6 +47,10 @@ class PgFragmentRepository:
         """Embed the query, then return cosine top-k from pgvector."""
         query_vec = self._embedder.embed(query_text)
         return self._pg.search_similar(query_vec, top_k=top_k, min_score=min_relevance)
+
+    def load_unprocessed_fragments(self) -> list[Fragment]:
+        """Return all fragments."""
+        return self._pg.fetch_unprocessed_fragments()
 
     def load_window(self, fetch_params: WindowParams | None = None) -> list[Fragment]:
         """Return all fragments."""

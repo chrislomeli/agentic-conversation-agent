@@ -12,7 +12,7 @@ from journal_agent.graph.state import JournalState
 from journal_agent.model.session import ContextSpecification, StatusValue
 from journal_agent.stores import (
     TranscriptStore,
-    PgFragmentRepository,
+    FragmentRepository,
     JsonlGateway,
     get_pg_gateway,
     UserProfileRepository,
@@ -37,7 +37,7 @@ def _build_stores():
     transcript_store = TranscriptRepository(JsonlGateway("transcripts"), pg)
     thread_store = ThreadsRepository(JsonlGateway("threads"), pg)
     classified_thread_store = ThreadsRepository(JsonlGateway("classified_threads"), pg)
-    fragment_store = PgFragmentRepository(pg_gateway=pg)
+    fragment_store = FragmentRepository(pg_gateway=pg)
     profile_store = UserProfileRepository(JsonlGateway("user_profile"), pg)
     insights_repo = InsightsRepository(JsonlGateway("insights"), pg)
 

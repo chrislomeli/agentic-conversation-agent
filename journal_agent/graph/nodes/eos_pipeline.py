@@ -44,7 +44,7 @@ from journal_agent.graph.nodes.stores import (
 from journal_agent.graph.state import JournalState
 from journal_agent.model.session import StatusValue
 from journal_agent.stores import (
-    PgFragmentRepository,
+    FragmentRepository,
     ThreadsRepository,
     TranscriptRepository,
 )
@@ -65,7 +65,7 @@ def make_end_of_session_node(
     transcript_store: TranscriptRepository,
     thread_store: ThreadsRepository,
     classified_thread_store: ThreadsRepository,
-    fragment_store: PgFragmentRepository,
+    fragment_store: FragmentRepository,
     classifier_llm: LLMClient,
     extractor_llm: LLMClient,
 ) -> Callable[..., Coroutine[Any, Any, dict]]:

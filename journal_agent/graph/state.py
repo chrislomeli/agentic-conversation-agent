@@ -34,8 +34,8 @@ class WindowParams(BaseModel):
 
 
 class ReflectionState(BaseModel):
+    session_id: str
     model_config = ConfigDict(arbitrary_types_allowed=True)
-
     fetch_parameters: WindowParams | None = None
     fragments: list[Fragment] = Field(default_factory=list)
     clusters: list[Cluster] = Field(default_factory=list)

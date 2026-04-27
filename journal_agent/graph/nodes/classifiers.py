@@ -264,6 +264,9 @@ def make_intent_classifier(llm: LLMClient, context_builder: ContextBuilder | Non
                 prompt=prompt,
                 instruction=intent_spec,
                 session_messages=state.session_messages,
+                recent_messages=state.recent_messages,
+                retrieved_fragments=state.retrieved_history,
+                insights=state.latest_insights,
             )
 
             # involve the llm

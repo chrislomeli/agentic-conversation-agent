@@ -49,11 +49,12 @@ from journal_agent.model.session import Role, UserCommandValue, UserProfile
 from journal_agent.stores import (
     InsightsRepository,
     JsonlGateway,
-    PgFragmentRepository,
+    FragmentRepository,
     ThreadsRepository,
     TranscriptRepository,
     TranscriptStore,
     UserProfileRepository,
+    exchanges_to_messages,
     get_pg_gateway,
     make_postgres_checkpointer,
 )
@@ -82,7 +83,7 @@ async def lifespan(app: FastAPI):
     transcript_repo = TranscriptRepository(JsonlGateway("transcripts"), pg)
     thread_store = ThreadsRepository(JsonlGateway("threads"), pg)
     classified_thread_store = ThreadsRepository(JsonlGateway("classified_threads"), pg)
-    fragment_store = PgFragmentRepository(pg_gateway=pg)
+    fragment_store = FragmentRepository(pg_gateway=pg)
     profile_store = UserProfileRepository(JsonlGateway("user_profile"), pg)
     insights_repo = InsightsRepository(JsonlGateway("insights"), pg)
 
@@ -93,21 +94,21 @@ async def lifespan(app: FastAPI):
         user_profile = profile_store.load_profile()
     except Exception:
         user_profile = UserProfile()
-        profile_store.save_profile(user_profile)
+        # profile_store.save_profile(user_profile)  todo make sure we don't need to store first
 
     # Seed context is loaded once; it primes the FIRST turn of every session.
-    seed_context = session_store.retrieve_transcript() or []
+    seed_context = exchanges_to_messages(session_store.retrieve_transcript() or [])
 
     async with make_postgres_checkpointer(setup=True) as checkpointer:
         reflection_graph = build_reflection_graph(
             registry=registry,
-            fragment_store=fragment_store,
             insights_repo=insights_repo,
         )
         conversation = build_conversation_graph(
             registry=registry,
             session_store=session_store,
             fragment_store=fragment_store,
+            insights_store=insights_repo,
             profile_store=profile_store,
             reflection_graph=reflection_graph,
             checkpointer=checkpointer,

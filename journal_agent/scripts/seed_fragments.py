@@ -33,7 +33,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 
 from journal_agent.model.session import Fragment, Tag
-from journal_agent.stores.fragment_repo import PgFragmentRepository
+from journal_agent.stores.fragment_repo import FragmentRepository
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
 logger = logging.getLogger(__name__)
@@ -386,7 +386,7 @@ def main() -> None:
         len({f.session_id for f in fragments}),
     )
 
-    repo = PgFragmentRepository()
+    repo = FragmentRepository()
     repo.save_fragments(fragments)
 
     logger.info("Done. Fragments and session rows written.")

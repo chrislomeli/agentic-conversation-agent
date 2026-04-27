@@ -8,29 +8,14 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from sklearn.cluster import HDBSCAN
 
 from journal_agent.comms.llm_client import LLMClient
-from journal_agent.configure.config_builder import MINIMUM_VERIFIER_SCORE, MINIMUM_CLUSTER_LABEL_SCORE, MINIMUM_CLUSTER_SCORE
+from journal_agent.configure.config_builder import MINIMUM_VERIFIER_SCORE, MINIMUM_CLUSTER_LABEL_SCORE, \
+    MINIMUM_CLUSTER_SCORE
 from journal_agent.configure.prompts import get_prompt
 from journal_agent.graph.node_tracer import node_trace, logger
 from journal_agent.graph.nodes.classifiers import DEFAULT_LLM_CONCURRENCY
 from journal_agent.graph.state import ReflectionState
 from journal_agent.model.session import Cluster, Fragment, StatusValue, Insight, PromptKey, InsightDraft, \
     InsightVerifierScore, VerifierStatus
-from journal_agent.stores import PgFragmentRepository
-
-
-def make_collect_window(
-        fragment_store: PgFragmentRepository,
-) -> Callable[..., dict]:
-    @node_trace("collect_window")
-    def collect_window(state: ReflectionState) -> dict:
-        try:
-            all_fragments = fragment_store.load_window(state.fetch_parameters)
-            return {"fragments": all_fragments}
-        except Exception as e:
-            logger.exception("Insight generation failed")
-            return {"status": StatusValue.ERROR, "error_message": str(e)}
-
-    return collect_window
 
 
 def score_cluster(
@@ -95,7 +80,10 @@ def make_cluster_fragments() -> Callable[..., dict]:
                 for f in frags:
                     logger.info("    [%s] %s", f.fragment_id, f.content[:80])
 
-            return {"clusters": clusters}
+            return {
+                "fragments": fragments,
+                "clusters": clusters
+            }
         except Exception as e:
             logger.exception("Cluster fragments failed")
             return {"status": StatusValue.ERROR, "error_message": str(e)}
@@ -133,7 +121,7 @@ def make_label_clusters(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CONCU
                         ],
                     }
                     human = HumanMessage(content=json.dumps(payload))
-                    draft: InsightDraft = await structured_llm.ainvoke([system, human])
+                    draft = await structured_llm.ainvoke([system, human])
                     return Insight(
                         label=draft.label,
                         body=draft.body,
@@ -211,21 +199,4 @@ def make_verify_citations(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CON
     return verify_citations
 
 
-def make_format_result() -> Callable[..., dict]:
-    """Filter verified_insights to VERIFIED only and place them on the handoff slot
-    the parent graph reads (``latest_insights``). Deterministic — no LLM call."""
-
-    @node_trace("format_result")
-    def format_result(state: ReflectionState) -> dict:
-        try:
-            verified = [
-                i for i in state.verified_insights
-                if i.verifier_status == VerifierStatus.VERIFIED
-            ]
-            return {"latest_insights": verified}
-        except Exception as e:
-            logger.exception("format_result failed")
-            return {"status": StatusValue.ERROR, "error_message": str(e)}
-
-    return format_result
 
