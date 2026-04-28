@@ -7,6 +7,7 @@ from journal_agent.stores.transcript_repo import TranscriptRepository
 from journal_agent.stores.threads_repo import ThreadsRepository
 from journal_agent.stores.profile_repo import UserProfileRepository
 from journal_agent.stores.insights_repo import InsightsRepository
+from journal_agent.stores.subjects_repo import SubjectsRepository
 from journal_agent.stores.fragment_repo import FragmentRepository
 from journal_agent.stores.transcript_cache import TranscriptStore
 from journal_agent.stores.jsonl_gateway import JsonlGateway
@@ -20,6 +21,7 @@ __all__ = [
     "ThreadsRepository",
     "UserProfileRepository",
     "InsightsRepository",
+    "SubjectsRepository",
     "FragmentRepository",
     "TranscriptStore",
     "JsonlGateway",

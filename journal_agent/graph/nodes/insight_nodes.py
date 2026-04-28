@@ -15,8 +15,10 @@ from journal_agent.configure.prompts import get_prompt
 from journal_agent.graph.node_tracer import node_trace, logger
 from journal_agent.graph.nodes.classifiers import DEFAULT_LLM_CONCURRENCY
 from journal_agent.graph.state import ReflectionState
+from journal_agent.model.insights import ProposedSubject, Subject, Vote
 from journal_agent.model.session import Cluster, Fragment, StatusValue, Insight, PromptKey, InsightDraft, \
     InsightVerifierScore, VerifierStatus, ContextSpecification, ClusterList, FragmentClusterRequest
+from journal_agent.stores.subjects_repo import SubjectsRepository
 
 import warnings
 
@@ -245,4 +247,144 @@ def make_verify_citations(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CON
     return verify_citations
 
 
+# ═════════════════════════════════════════════════════════════════════════════
+# Phase 11 — Claim-based insights (do-nothing skeleton)
+#
+# These factories establish the shape of the new reflection pipeline. Bodies
+# return shape-correct empty state so the graph compiles and runs end-to-end
+# without LLM calls or DB writes. Real implementations land in subsequent PRs.
+#
+# Design doc: design/phase11-claim-based-insights.md
+# ═════════════════════════════════════════════════════════════════════════════
 
+
+def make_route_candidates(
+    subjects_repo: SubjectsRepository,
+) -> Callable[..., Coroutine[Any, Any, dict]]:
+    """Build the route_candidates node.
+
+    Real behavior (TODO):
+        For each fragment in state.fragments, embed its content (or use its
+        existing embedding) and search the `claims` table by cosine similarity
+        on the current claim embeddings. Return the top-K candidate Subjects
+        whose current claims sit above ROUTE_CANDIDATES_MIN_SIMILARITY.
+
+    Skeleton behavior:
+        Return an empty candidate_subjects list.
+    """
+
+    @node_trace("route_candidates")
+    async def route_candidates(state: ReflectionState) -> dict:
+        # TODO(phase11): vector search over current claim embeddings.
+        return {"candidate_subjects": []}
+
+    return route_candidates
+
+
+def make_classify_stance(
+    llm: LLMClient,
+    max_concurrency: int = DEFAULT_LLM_CONCURRENCY,
+) -> Callable[..., Coroutine[Any, Any, dict]]:
+    """Build the classify_stance node.
+
+    Real behavior (TODO):
+        For each (fragment, candidate_subject) pair, call the LLM with the
+        stance_classifier prompt and parse a StanceResponse. Filter votes
+        below MIN_VOTE_STRENGTH. Convert each StanceVote into a persisted
+        Vote (filling fragment_id, fragment_dated_at, processed_at,
+        model_signature, claim_version_at_vote). Append to state.votes.
+
+    Skeleton behavior:
+        Return an empty votes list.
+    """
+
+    @node_trace("classify_stance")
+    async def classify_stance(state: ReflectionState) -> dict:
+        # TODO(phase11): per-fragment LLM call → StanceResponse → Vote rows.
+        return {"votes": []}
+
+    return classify_stance
+
+
+def make_propose_subject(
+    llm: LLMClient,
+    subjects_repo: SubjectsRepository,
+) -> Callable[..., Coroutine[Any, Any, dict]]:
+    """Build the propose_subject node.
+
+    Real behavior (TODO):
+        Run only when state.votes contains no vote with strength above
+        SUBJECT_PROPOSER_TRIGGER_MAX_STRENGTH. Call the LLM with the
+        subject_proposer prompt over (existing_subjects, fragment); parse
+        a ProposerResponse. If non-null, set state.proposed_subject and
+        append the bundled initial_vote to state.votes.
+
+    Skeleton behavior:
+        Leave proposed_subject None and votes unchanged.
+    """
+
+    @node_trace("propose_subject")
+    async def propose_subject(state: ReflectionState) -> dict:
+        # TODO(phase11): conditional LLM call → ProposerResponse → optional new Subject + Vote.
+        return {"proposed_subject": None}
+
+    return propose_subject
+
+
+def make_persist_votes(
+    subjects_repo: SubjectsRepository,
+) -> Callable[..., Coroutine[Any, Any, dict]]:
+    """Build the persist_votes node.
+
+    Real behavior (TODO):
+        - If proposed_subject is set: create the Subject + first Claim in DB.
+        - Insert all rows in state.votes (subjects.last_activity_at updates).
+        - Insert one fragment_processing row per processed fragment with the
+          model_signature and the resulting vote_count.
+        - Update state.status = StatusValue.PROCESSING on success.
+
+    Skeleton behavior:
+        Set status to PROCESSING; do not touch the DB.
+    """
+
+    @node_trace("persist_votes")
+    async def persist_votes(state: ReflectionState) -> dict:
+        # TODO(phase11): write subjects/claims/votes/fragment_processing rows.
+        return {"status": StatusValue.PROCESSING}
+
+    return persist_votes
+
+
+# ── Vote weighting strategy (stub) ────────────────────────────────────────
+
+
+def compute_traction(votes: list[Vote], strategy: str = "simple_sum") -> float:
+    """Aggregate a vote stream into a scalar traction score.
+
+    This is the policy plug point. v1 will implement `simple_sum`. Future
+    strategies can layer in:
+        - recency decay (exponential or half-life)
+        - stance-strength weighting (already in vote.strength)
+        - fragment-quality weighting (length, specificity)
+        - independence (down-weight votes from same journal entry)
+        - asymmetric sensitivity (contradicts may matter more than supports)
+        - source/context (signals dict carries the raw data)
+
+    The data model stores raw votes; this function decides what they mean.
+    Keeping it pluggable means future improvements compound on existing data
+    without migration.
+
+    Args:
+        votes: Active (non-invalidated) votes to aggregate. Caller filters
+            by subject_id and fragment_dated_at <= as_of.
+        strategy: Identifier for the weighting strategy to apply. Currently
+            only "simple_sum" is supported; raises NotImplementedError otherwise.
+
+    Returns:
+        Scalar traction score. Sign indicates net stance; magnitude indicates
+        accumulated evidence weight.
+    """
+    # TODO(phase11): implement simple_sum and the strategies above.
+    raise NotImplementedError(
+        f"compute_traction({strategy=!r}) not yet implemented in skeleton."
+    )

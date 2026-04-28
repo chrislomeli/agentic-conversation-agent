@@ -121,3 +121,95 @@ create table insight_fragments
 );
 
 
+-- ═════════════════════════════════════════════════════════════════════════════
+-- Phase 11 — Claim-based insights (subject / claim / vote model)
+--
+-- Coexists with the Phase 10 `insights` / `insight_fragments` tables above.
+-- Design doc: design/phase11-claim-based-insights.md
+-- ═════════════════════════════════════════════════════════════════════════════
+
+-- ── subjects ──────────────────────────────────────────────────────────────────
+-- Stable handles for tracked ideas. label/status/last_activity_at mutate;
+-- identity (subject_id) is stable across the subject's lifetime.
+CREATE TABLE IF NOT EXISTS subjects (
+    subject_id        TEXT PRIMARY KEY,
+    label             TEXT NOT NULL,
+    description       TEXT,
+    status            TEXT NOT NULL DEFAULT 'active',  -- active|dormant|superseded|merged
+    parent_subject_id TEXT REFERENCES subjects(subject_id),
+    merged_into_id    TEXT REFERENCES subjects(subject_id),
+    created_at        TIMESTAMPTZ DEFAULT now(),
+    last_activity_at  TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS subjects_status_idx ON subjects (status);
+CREATE INDEX IF NOT EXISTS subjects_last_activity_idx ON subjects (last_activity_at);
+
+-- ── claims ────────────────────────────────────────────────────────────────────
+-- Versioned phrasing of the user's position on a subject. The LLM regenerates
+-- the text as evidence accumulates; old versions are kept for audit. Exactly
+-- one row per subject has is_current = true. Embedding is over (label || text)
+-- and is used for routing new fragments to candidate subjects.
+CREATE TABLE IF NOT EXISTS claims (
+    claim_id                  TEXT PRIMARY KEY,
+    subject_id                TEXT NOT NULL REFERENCES subjects(subject_id) ON DELETE CASCADE,
+    text                      TEXT NOT NULL,
+    version                   INT  NOT NULL,
+    is_current                BOOLEAN NOT NULL DEFAULT FALSE,
+    embedding                 vector(384),  -- NULL until embedded
+    regenerated_at_vote_count INT  NOT NULL DEFAULT 0,
+    created_at                TIMESTAMPTZ DEFAULT now(),
+    UNIQUE (subject_id, version)
+);
+-- Enforce single current claim per subject via partial unique index.
+CREATE UNIQUE INDEX IF NOT EXISTS claims_one_current_per_subject_idx
+    ON claims (subject_id) WHERE is_current = TRUE;
+CREATE INDEX IF NOT EXISTS claims_embedding_idx
+    ON claims USING hnsw (embedding vector_cosine_ops);
+
+-- ── votes ─────────────────────────────────────────────────────────────────────
+-- Append-only timestamped evidence. Votes attach to subject (stable), not to
+-- claim (mutable). claim_version_at_vote records which phrasing was evaluated
+-- against. fragment_dated_at is the user-write timestamp and drives all
+-- "as-of" belief queries; processed_at is for audit only.
+CREATE TABLE IF NOT EXISTS votes (
+    vote_id               TEXT PRIMARY KEY,
+    subject_id            TEXT NOT NULL REFERENCES subjects(subject_id) ON DELETE CASCADE,
+    fragment_id           TEXT NOT NULL REFERENCES fragments(fragment_id) ON DELETE CASCADE,
+    stance                TEXT NOT NULL,  -- support|contradict
+    strength              DOUBLE PRECISION NOT NULL CHECK (strength >= 0.0 AND strength <= 1.0),
+    reasoning             TEXT NOT NULL,
+    claim_version_at_vote INT  NOT NULL,
+    fragment_dated_at     TIMESTAMPTZ NOT NULL,
+    processed_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    model_signature       TEXT NOT NULL,
+    signals               JSONB,
+    invalidated_at        TIMESTAMPTZ,
+    invalidation_reason   TEXT
+);
+-- One active vote per (subject, fragment, stance). Allows ambivalence
+-- (support+contradict on the same subject from one fragment) but not duplicates.
+CREATE UNIQUE INDEX IF NOT EXISTS votes_unique_active_idx
+    ON votes (subject_id, fragment_id, stance) WHERE invalidated_at IS NULL;
+CREATE INDEX IF NOT EXISTS votes_subject_dated_idx
+    ON votes (subject_id, fragment_dated_at);
+CREATE INDEX IF NOT EXISTS votes_fragment_idx
+    ON votes (fragment_id);
+
+-- ── fragment_processing ───────────────────────────────────────────────────────
+-- Bookkeeping: "we looked at fragment F with model M at time T". A run that
+-- produced zero votes is still a successful processing — distinguishable from
+-- "haven't looked yet". Used by the reflect node's loop to skip processed work.
+CREATE TABLE IF NOT EXISTS fragment_processing (
+    processing_id    TEXT PRIMARY KEY,
+    fragment_id      TEXT NOT NULL REFERENCES fragments(fragment_id) ON DELETE CASCADE,
+    processed_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    model_signature  TEXT NOT NULL,
+    vote_count       INT  NOT NULL DEFAULT 0,
+    status           TEXT NOT NULL,  -- success|error|partial
+    error_detail     TEXT
+);
+CREATE INDEX IF NOT EXISTS fragment_processing_fragment_idx
+    ON fragment_processing (fragment_id);
+CREATE INDEX IF NOT EXISTS fragment_processing_processed_at_idx
+    ON fragment_processing (processed_at);
+

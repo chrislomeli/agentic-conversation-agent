@@ -12,6 +12,11 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, ConfigDict, Field
 
+from journal_agent.model.insights import (
+    ProposedSubject,
+    Subject,
+    Vote,
+)
 from journal_agent.model.session import (
     Cluster,
     ContextSpecification,
@@ -38,11 +43,28 @@ class ReflectionState(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     fetch_parameters: WindowParams | None = None
     fragments: list[Fragment] = Field(default_factory=list)
+
+    # Phase 10 (cluster-based) — kept for coexistence with the old reflection graph.
     clusters: list[Cluster] = Field(default_factory=list)
     uncategorized_fragments: list[str] = Field(default_factory=list)
     insights: list[Insight] = Field(default_factory=list)
     verified_insights: list[Insight] = Field(default_factory=list)
     latest_insights: list[Insight] = Field(default_factory=list)
+
+    # Phase 11 (claim-based) — populated by the new reflection graph.
+    candidate_subjects: list[Subject] = Field(
+        default_factory=list,
+        description="Subjects routed as candidates for the current fragment(s) by route_candidates.",
+    )
+    votes: list[Vote] = Field(
+        default_factory=list,
+        description="Votes produced by classify_stance, ready to persist.",
+    )
+    proposed_subject: ProposedSubject | None = Field(
+        default=None,
+        description="A new subject proposed by the proposer node, if any.",
+    )
+
     status: StatusValue = StatusValue.IDLE
     error_message: str | None = None
 

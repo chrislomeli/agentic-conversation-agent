@@ -10,6 +10,8 @@ from journal_agent.graph.state import JournalState
 from .helpers import _schema_block
 from journal_agent.model.session import Cluster, ClusterList, FragmentClusterRequest
 
+VERSION = "v1"
+
 TEMPLATE = f"""
 You are a data organizer, grouping a list of Fragment objects that were extracted from a conversation into larger themes.
 

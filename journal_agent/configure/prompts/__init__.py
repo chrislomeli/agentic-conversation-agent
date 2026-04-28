@@ -15,6 +15,7 @@ and versions via ``get_prompt_version(key)``.
 """
 
 from journal_agent.configure.prompts import (
+    claim_regenerator,
     conversation,
     decomposer,
     exchange_classifier,
@@ -24,6 +25,8 @@ from journal_agent.configure.prompts import (
     label_clusters,
     profile_scanner,
     socratic,
+    stance_classifier,
+    subject_proposer,
     thread_classifier,
     verify_insights, cluster_fragments,
 )
@@ -47,6 +50,9 @@ _STATIC_REGISTRY: dict[str, str] = {
     PromptKey.VERIFY_INSIGHTS.value:     verify_insights.TEMPLATE,
     PromptKey.LABEL_CLUSTERS.value:      label_clusters.TEMPLATE,
     PromptKey.CREATE_CLUSTERS.value:     cluster_fragments.TEMPLATE,
+    PromptKey.STANCE_CLASSIFIER.value:   stance_classifier.TEMPLATE,
+    PromptKey.SUBJECT_PROPOSER.value:    subject_proposer.TEMPLATE,
+    PromptKey.CLAIM_REGENERATOR.value:   claim_regenerator.TEMPLATE,
 }
 
 _TEMPLATE_REGISTRY: dict[str, PromptTemplateBuilder] = {
@@ -65,10 +71,14 @@ _VERSION_REGISTRY: dict[str, str] = {
     PromptKey.FRAGMENT_EXTRACTOR.value:  extractor.VERSION,
     PromptKey.VERIFY_INSIGHTS.value:     verify_insights.VERSION,
     PromptKey.LABEL_CLUSTERS.value:      label_clusters.VERSION,
+    PromptKey.CREATE_CLUSTERS.value:     cluster_fragments.VERSION,
     PromptKey.PROFILE_SCANNER.value:     profile_scanner.VERSION,
     PromptKey.CONVERSATION.value:        conversation.VERSION,
     PromptKey.SOCRATIC.value:            socratic.VERSION,
     PromptKey.GUIDANCE.value:            guidance.VERSION,
+    PromptKey.STANCE_CLASSIFIER.value:   stance_classifier.VERSION,
+    PromptKey.SUBJECT_PROPOSER.value:    subject_proposer.VERSION,
+    PromptKey.CLAIM_REGENERATOR.value:   claim_regenerator.VERSION,
 }
 
 

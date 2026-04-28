@@ -34,6 +34,14 @@ INSIGHTS_TOKEN_LIMIT = 1000
 MINIMUM_CLUSTER_SCORE = 4.0          # cluster-level: size + 0.5*span_days
 MINIMUM_CLUSTER_LABEL_SCORE = 0.5   # InsightDraft.confidence threshold
 MINIMUM_VERIFIER_SCORE = 0.5
+
+# ── Phase 11 — claim-based insights ──────────────────────────────────────
+# Tunable knobs for the new insight pipeline. See design/phase11-claim-based-insights.md.
+MIN_VOTE_STRENGTH = 0.3              # below this, the stance classifier should omit the vote
+ROUTE_CANDIDATES_TOP_K = 8           # how many candidate subjects to surface per fragment
+ROUTE_CANDIDATES_MIN_SIMILARITY = 0.5  # cosine similarity floor for candidate inclusion
+CLAIM_REGEN_VOTE_GAP = 5             # regenerate claim text after this many new votes since last regen
+SUBJECT_PROPOSER_TRIGGER_MAX_STRENGTH = 0.5  # if no existing-subject vote exceeds this, run the proposer
 DEFAULT_RECENT_MESSAGES_COUNT = 5
 DEFAULT_SESSION_MESSAGES_COUNT = 10
 DEFAULT_RETRIEVED_HISTORY_COUNT = 5
