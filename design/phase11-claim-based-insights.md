@@ -15,6 +15,20 @@ This shift moves the system from offline batch reflection toward **continuous be
 - Stance detection / NLI — the ML primitive: does this fragment support or contradict claim X?
 
 ---
+## Git changes
+```bash
+[main 6800cc3] new claims driven insights design and skeleton
+ 20 files changed, 1870 insertions(+), 5 deletions(-)
+ create mode 100644 design/phase11-claim-based-insights.md
+ create mode 100644 design/pressure_test_insight_prompts.py
+ create mode 100644 journal_agent/configure/prompts/claim_regenerator.py
+ create mode 100644 journal_agent/configure/prompts/stance_classifier.py
+ create mode 100644 journal_agent/configure/prompts/subject_proposer.py
+ create mode 100644 journal_agent/model/insights.py
+ create mode 100644 journal_agent/stores/subjects_repo.py
+ create mode 100644 journal_agent/tests/test_phase11_skeleton.py
+````
+---
 
 ## Conceptual model
 

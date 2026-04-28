@@ -5,42 +5,44 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message }: MessageBubbleProps) {
-  const isUser = message.role === 'user'
+  const { role, content } = message
+
+  if (role === 'system') {
+    return (
+      <div className="flex items-center gap-3 my-4 text-xs text-slate-500">
+        <div className="flex-1 h-px bg-slate-800" />
+        <span className="shrink-0">{content}</span>
+        <div className="flex-1 h-px bg-slate-800" />
+      </div>
+    )
+  }
+
+  const isUser = role === 'user'
 
   return (
-    <div className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
-      {!isUser && (
-        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-slate-700 flex items-center justify-center mr-2.5 mt-0.5">
-          <span className="text-xs text-slate-300 font-mono font-medium">AI</span>
-        </div>
-      )}
-
+    <div className="w-full mb-6">
+      <p className={`text-xs font-medium mb-1.5 ${isUser ? 'text-indigo-400' : 'text-slate-400'}`}>
+        {isUser ? 'You' : 'Journal Agent'}
+      </p>
       <div
         className={`
-          max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed
+          w-full px-4 py-3 rounded-lg text-sm leading-relaxed
           ${isUser
-            ? 'bg-indigo-600 text-white rounded-tr-sm'
-            : 'bg-slate-800 text-slate-100 rounded-tl-sm border border-slate-700'
+            ? 'bg-slate-800 border border-slate-700 text-slate-100'
+            : 'bg-slate-800/40 border border-slate-700/40 text-slate-100'
           }
         `}
       >
-        {message.content === '' && !isUser ? (
-          // Typing indicator while streaming
+        {content === '' ? (
           <span className="flex gap-1 items-center h-4">
             <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:0ms]" />
             <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:150ms]" />
             <span className="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:300ms]" />
           </span>
         ) : (
-          <span className="whitespace-pre-wrap">{message.content}</span>
+          <span className="whitespace-pre-wrap">{content}</span>
         )}
       </div>
-
-      {isUser && (
-        <div className="flex-shrink-0 w-7 h-7 rounded-full bg-indigo-500 flex items-center justify-center ml-2.5 mt-0.5">
-          <span className="text-xs text-white font-mono font-medium">You</span>
-        </div>
-      )}
     </div>
   )
 }

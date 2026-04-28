@@ -1,11 +1,10 @@
 export interface Message {
   id: string
-  role: 'user' | 'assistant'
+  role: 'user' | 'assistant' | 'system'
   content: string
   timestamp: Date
 }
 
 export interface ChatRequest {
-  messages: { role: string; content: string }[]
-  session_id?: string
+  message: string
 }

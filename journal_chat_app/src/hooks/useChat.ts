@@ -1,13 +1,14 @@
 import { useState, useCallback, useRef } from 'react'
 import { Message } from '../types'
 
-const API_URL = '/api/chat'  // proxied to http://localhost:8000/chat via vite.config.ts
+const BASE_URL = '/api'  // proxied to http://localhost:8000 via vite.config.ts
 
 function generateId(): string {
   return Math.random().toString(36).slice(2, 11)
 }
 
 export function useChat() {
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -19,10 +20,32 @@ export function useChat() {
     setIsLoading(false)
   }, [])
 
+  // Create a new server-side session; reuse existing one if already allocated.
+  const ensureSession = useCallback(async (): Promise<string> => {
+    if (sessionId) return sessionId
+    const res = await fetch(`${BASE_URL}/sessions`, { method: 'POST' })
+    if (!res.ok) throw new Error(`Failed to create session: ${res.status}`)
+    const data = await res.json()
+    setSessionId(data.session_id)
+    return data.session_id as string
+  }, [sessionId])
+
+  // Run the end-of-session pipeline on the server then drop the local session.
+  const endSession = useCallback(async (sid: string) => {
+    try {
+      await fetch(`${BASE_URL}/sessions/${sid}`, { method: 'DELETE' })
+    } catch {
+      // best-effort; don't block the UI
+    }
+    setSessionId(null)
+  }, [])
+
   const sendMessage = useCallback(async (content: string) => {
     if (!content.trim() || isLoading) return
 
     setError(null)
+
+    const isQuit = content.trim().toLowerCase() === '/quit'
 
     const userMessage: Message = {
       id: generateId(),
@@ -31,42 +54,54 @@ export function useChat() {
       timestamp: new Date(),
     }
 
-    // Optimistically add user message
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setIsLoading(true)
 
-    // Placeholder for the streaming assistant message
+    // Reserve a placeholder for the streaming assistant reply (not for /quit).
     const assistantId = generateId()
-    setMessages(prev => [
-      ...prev,
-      { id: assistantId, role: 'assistant', content: '', timestamp: new Date() },
-    ])
+    if (!isQuit) {
+      setMessages(prev => [
+        ...prev,
+        { id: assistantId, role: 'assistant', content: '', timestamp: new Date() },
+      ])
+    }
 
     abortControllerRef.current = new AbortController()
 
+    // Ensure a session exists before opening the stream.
+    let sid: string | null = null
     try {
-      const response = await fetch(API_URL, {
+      sid = await ensureSession()
+    } catch (err) {
+      setError((err as Error).message ?? 'Could not create session')
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      const response = await fetch(`${BASE_URL}/chat/${sid}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: abortControllerRef.current.signal,
-        body: JSON.stringify({
-          messages: [...messages, userMessage].map(m => ({
-            role: m.role,
-            content: m.content,
-          })),
-        }),
+        body: JSON.stringify({ message: content.trim() }),
       })
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
 
-      // ---------- SSE streaming ----------
+      // ---------- Typed SSE streaming ----------
+      // Wire format from the API:
+      //   event: token\ndata: {"text": "chunk"}\n\n
+      //   event: system\ndata: {"text": "..."}\n\n
+      //   event: done\ndata: {"text": ""}\n\n
+      //   event: error\ndata: {"text": "message"}\n\n
       const reader = response.body!.getReader()
       const decoder = new TextDecoder()
+      let currentEvent = 'token'
 
-      while (true) {
+      outer: while (true) {
         const { done, value } = await reader.read()
         if (done) break
 
@@ -74,51 +109,55 @@ export function useChat() {
         const lines = chunk.split('\n')
 
         for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6).trim()
-            if (data === '[DONE]') break
-
+          if (line.startsWith('event: ')) {
+            currentEvent = line.slice(7).trim()
+          } else if (line.startsWith('data: ')) {
+            let text = ''
             try {
-              // Expect JSON: { "text": "..." }
-              // Adjust this parsing to match whatever your FastAPI yields
-              const parsed = JSON.parse(data)
-              const text: string = parsed.text ?? parsed.content ?? data
-
-              setMessages(prev =>
-                prev.map(m =>
-                  m.id === assistantId
-                    ? { ...m, content: m.content + text }
-                    : m
-                )
-              )
+              const parsed = JSON.parse(line.slice(6).trim())
+              text = parsed.text ?? ''
             } catch {
-              // Raw text chunk (non-JSON SSE) — append as-is
+              text = line.slice(6).trim()
+            }
+
+            if (currentEvent === 'token' && text) {
               setMessages(prev =>
                 prev.map(m =>
-                  m.id === assistantId
-                    ? { ...m, content: m.content + data }
-                    : m
+                  m.id === assistantId ? { ...m, content: m.content + text } : m
                 )
               )
+            } else if (currentEvent === 'system' && text) {
+              setMessages(prev => [
+                ...prev,
+                { id: generateId(), role: 'system', content: text, timestamp: new Date() },
+              ])
+            } else if (currentEvent === 'done') {
+              break outer
+            } else if (currentEvent === 'error') {
+              setError(text || 'Server error')
+              setMessages(prev => prev.filter(m => m.id !== assistantId))
+              break outer
             }
+          } else if (line === '') {
+            // Blank line = SSE event boundary; reset event type to default.
+            currentEvent = 'token'
           }
-
-          // Hook point: handle custom event types from your LangGraph nodes
-          // e.g.  if (line.startsWith('event: node_update')) { ... }
         }
       }
     } catch (err) {
       if ((err as Error).name === 'AbortError') return
-
-      const message = (err as Error).message ?? 'Something went wrong'
-      setError(message)
-
-      // Remove the empty assistant placeholder on error
+      setError((err as Error).message ?? 'Something went wrong')
       setMessages(prev => prev.filter(m => m.id !== assistantId))
     } finally {
       setIsLoading(false)
     }
-  }, [messages, isLoading])
+
+    // After a /quit the server has already run its cleanup stream; now trigger
+    // the end-of-session pipeline and drop the local session reference.
+    if (isQuit && sid) {
+      await endSession(sid)
+    }
+  }, [isLoading, ensureSession, endSession])
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value),
@@ -133,7 +172,11 @@ export function useChat() {
     [input, sendMessage]
   )
 
-  const clearMessages = useCallback(() => setMessages([]), [])
+  // Clear local messages and drop the session so the next send starts fresh.
+  const clearMessages = useCallback(() => {
+    setMessages([])
+    setSessionId(null)
+  }, [])
 
   return {
     messages,
