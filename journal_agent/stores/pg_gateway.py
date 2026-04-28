@@ -376,9 +376,9 @@ class PgGateway:
         Returns [] on miss or error.
         """
         try:
-            window_start = fetch_params["window_start"] if fetch_params else None
-            window_end = fetch_params["window_end"] if fetch_params else None
-            limit = (fetch_params["limit"] if fetch_params else None) or FRAGMENTS_FETCH_LIMIT
+            window_start = fetch_params.window_start if fetch_params else None
+            window_end = fetch_params.window_end if fetch_params else None
+            limit = (fetch_params.limit if fetch_params else None) or FRAGMENTS_FETCH_LIMIT
 
             rows = self.fetch_rows(
                 """
@@ -500,9 +500,9 @@ class PgGateway:
         """
         try:
 
-            window_start = fetch_params["window_start"] if fetch_params else None
-            window_end = fetch_params["window_end"] if fetch_params else None
-            limit = (fetch_params["limit"] if fetch_params else None) or FRAGMENTS_FETCH_LIMIT
+            window_start = fetch_params.window_start if fetch_params else None
+            window_end = fetch_params.window_end if fetch_params else None
+            limit = (fetch_params.limit if fetch_params else None) or FRAGMENTS_FETCH_LIMIT
 
             sql = """
                   SELECT f.fragment_id,

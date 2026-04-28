@@ -25,7 +25,7 @@ from journal_agent.configure.prompts import (
     profile_scanner,
     socratic,
     thread_classifier,
-    verify_insights,
+    verify_insights, cluster_fragments,
 )
 
 __all__ = ["get_prompt", "get_prompt_version"]
@@ -46,6 +46,7 @@ _STATIC_REGISTRY: dict[str, str] = {
     PromptKey.FRAGMENT_EXTRACTOR.value:  extractor.TEMPLATE,
     PromptKey.VERIFY_INSIGHTS.value:     verify_insights.TEMPLATE,
     PromptKey.LABEL_CLUSTERS.value:      label_clusters.TEMPLATE,
+    PromptKey.CREATE_CLUSTERS.value:     cluster_fragments.TEMPLATE,
 }
 
 _TEMPLATE_REGISTRY: dict[str, PromptTemplateBuilder] = {
@@ -53,6 +54,7 @@ _TEMPLATE_REGISTRY: dict[str, PromptTemplateBuilder] = {
     PromptKey.CONVERSATION.value:    ConversationProfileTemplate(),
     PromptKey.SOCRATIC.value:        SocraticProfileTemplate(),
     PromptKey.GUIDANCE.value:        GuidanceProfileTemplate(),
+
 }
 
 _VERSION_REGISTRY: dict[str, str] = {

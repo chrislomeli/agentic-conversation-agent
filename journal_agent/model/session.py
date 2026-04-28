@@ -184,6 +184,7 @@ class PromptKey(Enum):
     THREAD_CLASSIFIER  = "thread_classifier"
     EXCHANGE_CLASSIFIER = "exchange_classifier"
     FRAGMENT_EXTRACTOR = "extractor"
+    CREATE_CLUSTERS = "create_clusters"
     LABEL_CLUSTERS     = "label_cluster"
     VERIFY_INSIGHTS    = "verify_insights"
 
@@ -354,10 +355,23 @@ class InsightVerifierScore(BaseModel):
 
 
 class Cluster(BaseModel):
-    cluster_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    fragment_ids: list[str]
-    centroid: list[float] | None = None  # mean of member embeddings
-    score: float = 0.0  # populated by score_clusters; used to filter trivia
+    cluster_id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="This field will automatically be populated with a uuid by Pydantic")
+    fragment_ids: list[str] = Field(default_factory=list, description="The fragments that make up this cluster")
+    centroid: list[float] | None = Field(default=None, description="This field is not used")
+    label: str = Field(description="A descriptive label for this cluster")
+    score: float  = Field(default=0, ge=0, le=1,
+                              description="Score the confidence level of this cluster from 0.0–1.0")  # 0.0–1.0  how much does this contain an explicit directive
+
+
+class ClusterList(BaseModel):
+    clusters: list[Cluster]
+
+class FragmentClusterRequest(BaseModel):
+    fragment_id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="This field will automatically be populated with a uuid by Pydantic")  # a unique uuid
+    content: str  = Field(description="The content of the fragment")  # your summary for searchable embedding
+    tags: list[str]  = Field(description="Tags associated with the fragment content.  Use this as additional information, not a required constraint.")  # tags
+    timestamp: datetime = Field(description="When this fragment was created")
+
 
 
 """

@@ -3,7 +3,7 @@ import logging
 from langgraph.graph import END, START, StateGraph
 
 from journal_agent.comms.llm_registry import LLMRegistry
-from journal_agent.graph.nodes.insight_nodes import make_cluster_fragments, make_label_clusters, make_verify_citations
+from journal_agent.graph.nodes.insight_nodes import make_create_clusters, make_label_clusters, make_verify_citations
 from journal_agent.graph.nodes.stores import (
     make_save_insights,
 )
@@ -29,7 +29,7 @@ def build_reflection_graph(
     builder = StateGraph(ReflectionState)  # no_qa
 
     # Reflection pipeline nodes
-    builder.add_node("cluster_fragments", make_cluster_fragments())
+    builder.add_node("cluster_fragments", make_create_clusters(llm=reflection_llm))
     builder.add_node("label_clusters", make_label_clusters(llm=reflection_llm))
     builder.add_node("verify_citations", make_verify_citations(llm=reflection_llm, max_concurrency=3))
 

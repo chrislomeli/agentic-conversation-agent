@@ -39,6 +39,7 @@ class ReflectionState(BaseModel):
     fetch_parameters: WindowParams | None = None
     fragments: list[Fragment] = Field(default_factory=list)
     clusters: list[Cluster] = Field(default_factory=list)
+    uncategorized_fragments: list[str] = Field(default_factory=list)
     insights: list[Insight] = Field(default_factory=list)
     verified_insights: list[Insight] = Field(default_factory=list)
     latest_insights: list[Insight] = Field(default_factory=list)

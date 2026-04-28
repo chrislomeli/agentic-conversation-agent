@@ -8,6 +8,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from sklearn.cluster import HDBSCAN
 
 from journal_agent.comms.llm_client import LLMClient
+from journal_agent.configure import context_builder
 from journal_agent.configure.config_builder import MINIMUM_VERIFIER_SCORE, MINIMUM_CLUSTER_LABEL_SCORE, \
     MINIMUM_CLUSTER_SCORE
 from journal_agent.configure.prompts import get_prompt
@@ -15,7 +16,7 @@ from journal_agent.graph.node_tracer import node_trace, logger
 from journal_agent.graph.nodes.classifiers import DEFAULT_LLM_CONCURRENCY
 from journal_agent.graph.state import ReflectionState
 from journal_agent.model.session import Cluster, Fragment, StatusValue, Insight, PromptKey, InsightDraft, \
-    InsightVerifierScore, VerifierStatus
+    InsightVerifierScore, VerifierStatus, ContextSpecification, ClusterList, FragmentClusterRequest
 
 import warnings
 
@@ -38,9 +39,9 @@ def score_cluster(
     cluster.score = len(cluster.fragment_ids) + recency_weight * span_days
 
 
-def make_cluster_fragments() -> Callable[..., dict]:
+def make_cluster_fragments_hdb() -> Callable[..., dict]:
     @node_trace("cluster_fragments")
-    def cluster_fragments(state: ReflectionState) -> dict:
+    def cluster_fragments_hdb(state: ReflectionState) -> dict:
         try:
             fragments = state.fragments
             if not fragments:
@@ -53,9 +54,12 @@ def make_cluster_fragments() -> Callable[..., dict]:
 
             # Group fragments by label; -1 = noise, skip those
             groups: dict[int, list] = defaultdict(list)
+            outliers: list[Fragment] =[]
             for fragment, label in zip(fragments, hdb.labels_):
                 if label != -1:
                     groups[label].append(fragment)
+                else:
+                    outliers.append(fragment)
 
             clusters = [
                 Cluster(
@@ -92,7 +96,45 @@ def make_cluster_fragments() -> Callable[..., dict]:
             logger.exception("Cluster fragments failed")
             return {"status": StatusValue.ERROR, "error_message": str(e)}
 
-    return cluster_fragments
+    return cluster_fragments_hdb
+
+def make_create_clusters(llm: LLMClient) -> Callable[ ..., Coroutine[Any, Any, dict]]:
+    @node_trace("cluster_fragments")
+    async def create_clusters(state: ReflectionState) -> dict:
+        try:
+            fragments = state.fragments
+            if not fragments:
+                return {"clusters": []}
+
+            fragment_context = json.dumps([
+                FragmentClusterRequest(
+                    fragment_id=f.fragment_id,
+                    content=f.content,
+                    tags=[i.tag for i in f.tags],
+                    timestamp=f.timestamp,
+                ).model_dump(mode="json")
+                for f in fragments
+            ])
+
+            prompt = get_prompt(key=PromptKey.CREATE_CLUSTERS)
+            messages = [
+                SystemMessage(content=prompt),
+                HumanMessage(content=fragment_context)
+            ]
+
+            # involve the llm
+            structured_llm = llm.astructured(ClusterList)
+            cluster_list: ClusterList = structured_llm.invoke(messages)
+
+            return {
+                "fragments": fragments,
+                "clusters": cluster_list.clusters
+            }
+        except Exception as e:
+            logger.exception("Cluster fragments failed")
+            return {"status": StatusValue.ERROR, "error_message": str(e)}
+
+    return create_clusters
 
 
 def make_label_clusters(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CONCURRENCY) -> Callable[

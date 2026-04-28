@@ -106,7 +106,6 @@ async def main():
 
     reflection_graph = build_reflection_graph(
         registry=registry,
-        fragment_store=fragment_store,
         insights_repo=insights_repo,
     )
 

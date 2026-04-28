@@ -33,10 +33,19 @@ class FragmentRepository:
         """Embed all fragments in one batch pass, then upsert to Postgres."""
         if not fragments:
             return
-        texts = [f.content for f in fragments]
+        texts = [
+            f"{f.content} {' '.join(t.tag for t in f.tags)}"
+            for f in fragments
+        ]
         embeddings = self._embedder.embed_batch(texts)
         for fragment, vec in zip(fragments, embeddings):
             self._pg.upsert_fragment(fragment, embedding=vec)
+
+
+    def reembed_all(self) :
+        fragments = self._pg.fetch_fragments_window(WindowParams(limit=1000))
+        self.save_fragments(fragments)
+
 
     def search_fragments(
         self,
