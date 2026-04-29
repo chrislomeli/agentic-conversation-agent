@@ -47,6 +47,7 @@ from journal_agent.graph.journal_graph import (
 from journal_agent.graph.reflection_graph import build_reflection_graph, build_claim_reflection_graph
 from journal_agent.model.session import Role, UserCommandValue, UserProfile
 from journal_agent.stores import (
+    CaptureRepository,
     InsightsRepository,
     JsonlGateway,
     FragmentRepository,
@@ -109,6 +110,7 @@ async def lifespan(app: FastAPI):
             insights_repo=insights_repo,
         )
         subjects_repo = SubjectsRepository(pg_gateway=pg)
+        capture_store = CaptureRepository(pg_gateway=pg)
         claim_reflection = build_claim_reflection_graph(
             registry=registry,
             subjects_repo=subjects_repo,
@@ -120,6 +122,7 @@ async def lifespan(app: FastAPI):
             insights_store=insights_repo,
             profile_store=profile_store,
             reflection_graph=reflection_graph,
+            capture_store=capture_store,
             claim_reflection_graph=claim_reflection,
             subjects_repo=subjects_repo,
             checkpointer=checkpointer,

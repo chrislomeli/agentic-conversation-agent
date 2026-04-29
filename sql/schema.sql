@@ -61,9 +61,26 @@ CREATE TABLE IF NOT EXISTS fragments (
     timestamp     TIMESTAMPTZ NOT NULL,
     created_at    TIMESTAMPTZ DEFAULT now()
 );
+
 -- HNSW index only applies to non-NULL rows, so leaving embedding NULL is safe.
 CREATE INDEX IF NOT EXISTS fragments_embedding_idx
     ON fragments USING hnsw (embedding vector_cosine_ops);
+
+
+-- ── captures (content + embedding) ───────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS captures (
+    fragment_id   TEXT PRIMARY KEY,
+    session_id    TEXT NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
+    content       TEXT NOT NULL,
+    tags          JSONB,
+    embedding     vector(384),            -- NULL-able; populated when embedding is available
+    timestamp     TIMESTAMPTZ NOT NULL,
+    created_at    TIMESTAMPTZ DEFAULT now()
+);
+
+-- HNSW index only applies to non-NULL rows, so leaving embedding NULL is safe.
+CREATE INDEX IF NOT EXISTS captures_embedding_idx
+    ON captures USING hnsw (embedding vector_cosine_ops);
 
 -- ── fragment_exchanges (junction) ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS fragment_exchanges (

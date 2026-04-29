@@ -228,6 +228,40 @@ class PgGateway:
                     [(fragment.fragment_id, eid) for eid in fragment.exchange_ids],
                 )
 
+    def upsert_capture(
+            self,
+            fragment: Fragment,
+            embedding: np.ndarray | None = None,
+    ) -> None:
+        """Upsert a user-initiated capture to the captures table.
+
+        Same shape as upsert_fragment but writes to `captures` only — no
+        junction table, no Phase 11 pipeline processing.
+        """
+        self.ensure_session(fragment.session_id)
+        tags_payload = (
+            Jsonb([t.model_dump() for t in fragment.tags]) if fragment.tags else None
+        )
+        vec = embedding.tolist() if embedding is not None else None
+        self.execute(
+            """
+            INSERT INTO captures (fragment_id, session_id, content, tags, embedding, timestamp)
+            VALUES (%s, %s, %s, %s, %s::vector, %s)
+            ON CONFLICT (fragment_id) DO UPDATE SET content   = EXCLUDED.content,
+                                                    tags      = EXCLUDED.tags,
+                                                    embedding = COALESCE(EXCLUDED.embedding, captures.embedding),
+                                                    timestamp = EXCLUDED.timestamp
+            """,
+            (
+                fragment.fragment_id,
+                fragment.session_id,
+                fragment.content,
+                tags_payload,
+                vec,
+                fragment.timestamp,
+            ),
+        )
+
     def upsert_profile(self, profile: UserProfile) -> None:
         """Upsert the single user profile row."""
         self.execute(
@@ -665,6 +699,54 @@ class PgGateway:
             return results
         except Exception:
             logger.exception("search_similar failed")
+            return []
+
+
+    def search_captures_similar(
+            self,
+            query_embedding: np.ndarray,
+            top_k: int = 5,
+            min_score: float = 0.3,
+    ) -> list[tuple[Fragment, float]]:
+        """Top-k cosine-similar captures.
+
+        Identical to search_similar but queries the `captures` table.
+        No junction table — exchange_ids is always empty.
+        """
+        sql = """
+              SELECT c.fragment_id,
+                     c.session_id,
+                     c.content,
+                     c.tags,
+                     c.timestamp,
+                     1.0 - (c.embedding <=> %s::vector) / 2.0 AS score
+              FROM captures c
+              WHERE c.embedding IS NOT NULL
+              ORDER BY c.embedding <=> %s::vector
+              LIMIT %s
+              """
+        try:
+            rows = self.fetch_rows(sql, (query_embedding, query_embedding, top_k))
+            if not rows:
+                return []
+            results: list[tuple[Fragment, float]] = []
+            for r in rows:
+                score = r["score"]
+                if score < min_score:
+                    continue
+                tag_data = r.get("tags") if isinstance(r.get("tags"), list) else []
+                fragment = Fragment(
+                    fragment_id=r["fragment_id"],
+                    session_id=r["session_id"],
+                    content=r["content"],
+                    exchange_ids=[],
+                    tags=[Tag(**t) if isinstance(t, dict) else t for t in tag_data],
+                    timestamp=r["timestamp"] or datetime.now(),
+                )
+                results.append((fragment, score))
+            return results
+        except Exception:
+            logger.exception("search_captures_similar failed")
             return []
 
 

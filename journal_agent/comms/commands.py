@@ -52,6 +52,12 @@ def _recall_prompt(args: str) -> str:
     return "Please recall my recent journal entries."
 
 
+def _capture_prompt(args: str) -> str:
+    if args:
+        return f"Please share what I've captured about: {args}"
+    return "Please share my recent captures."
+
+
 def parse_user_input(text: str) -> ParsedInput:
     """Convert a raw user message into a ParsedInput for one turn.
 
@@ -59,8 +65,9 @@ def parse_user_input(text: str) -> ParsedInput:
         ``/quit``                 — end the session
         ``/reflect``              — invoke the reflection graph
         ``/recall [topic]``       — search journal history
-        ``/save [n] <topic>``     — save the last n exchanges as a fragment
-        ``/save <topic> <text>``  — save inline text as a fragment
+        ``/save [n] <topic>``     — save the last n exchanges as a capture
+        ``/save <topic> <text>``  — save inline text as a capture
+        ``/capture [topic]``      — search saved captures
 
     Plain text becomes a normal conversation turn (command=NONE, message=text).
     """
@@ -88,6 +95,15 @@ def parse_user_input(text: str) -> ParsedInput:
             command=UserCommandValue.RECALL,
             command_args=args,
             message=_recall_prompt(args),
+        )
+
+    if stripped.startswith("/capture"):
+        parts = stripped.split(maxsplit=1)
+        args = parts[1].strip() if len(parts) > 1 else ""
+        return ParsedInput(
+            command=UserCommandValue.CAPTURE,
+            command_args=args,
+            message=_capture_prompt(args),
         )
 
     if stripped.startswith("/save"):

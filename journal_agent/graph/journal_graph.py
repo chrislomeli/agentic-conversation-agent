@@ -56,6 +56,7 @@ from journal_agent.graph.routing import _route_base, goto
 from journal_agent.graph.state import JournalState, ReflectionState
 from journal_agent.model.session import Fragment, Role, StatusValue, Tag, UserCommandValue
 from journal_agent.stores import (
+    CaptureRepository,
     FragmentRepository,
     ThreadsRepository,
     TranscriptRepository,
@@ -77,6 +78,7 @@ class Node:
     REFLECT2 = "reflect2"
     RECALL = "recall"
     CAPTURE = "capture"
+    CAPTURE_SEARCH = "capture_search"
 
     # End-of-session graph node (#1: collapsed 7-node chain into one)
     END_OF_SESSION = "end_of_session"
@@ -376,8 +378,27 @@ def _fragment_from_inline(topic: str, content: str, session_id: str) -> tuple[Fr
     return fragment, f"Saved note as '{topic}'."
 
 
-def make_capture_node(fragment_store: FragmentRepository) -> Callable[..., dict]:
-    """Factory: save exchanges or inline text as a named fragment in the vector store.
+def make_capture_search_node(capture_store: CaptureRepository) -> Callable[..., dict]:
+    """Factory: search the captures table by topic and surface matches as retrieved history."""
+
+    @node_trace("capture_search_node")
+    def capture_search_node(state: JournalState) -> dict:
+        try:
+            topic = state.user_command_args or ""
+            if not topic:
+                return {"retrieved_history": [], "status": StatusValue.PROCESSING}
+            matches = capture_store.search_captures(topic, top_k=10)
+            fragments = [f for f, _ in matches]
+            return {"retrieved_history": fragments, "status": StatusValue.PROCESSING}
+        except Exception as e:
+            logger.exception("Failed to search captures")
+            return {"status": StatusValue.ERROR, "error_message": str(e)}
+
+    return capture_search_node
+
+
+def make_capture_node(capture_store: CaptureRepository) -> Callable[..., dict]:
+    """Factory: save exchanges or inline text as a named capture in the captures table.
 
     Syntax:
         /save <n> <topic>       — last n exchanges from transcript
@@ -425,7 +446,7 @@ def make_capture_node(fragment_store: FragmentRepository) -> Callable[..., dict]
                     }
                 fragment, msg = _fragment_from_transcript(1, parts[0].strip(), session_id, exchanges)
 
-            fragment_store.save_fragments([fragment])
+            capture_store.save_captures([fragment])
             return {
                 "system_message": msg,
                 "user_command": UserCommandValue.NONE,
@@ -455,6 +476,8 @@ def route_on_start(state: JournalState) -> str:
         return Node.RECALL
     if state.user_command == UserCommandValue.SAVE:
         return Node.CAPTURE
+    if state.user_command == UserCommandValue.CAPTURE:
+        return Node.CAPTURE_SEARCH
     return Node.INTENT_CLASSIFIER
 
 
@@ -487,6 +510,7 @@ def build_conversation_graph(
         insights_store: InsightsRepository,
         profile_store: UserProfileRepository,
         reflection_graph: CompiledStateGraph,
+        capture_store: CaptureRepository | None = None,
         claim_reflection_graph: CompiledStateGraph | None = None,
         subjects_repo: SubjectsRepository | None = None,
         checkpointer: BaseCheckpointSaver | None = None,
@@ -515,10 +539,12 @@ def build_conversation_graph(
         builder.add_node(Node.REFLECT2,
                          make_claim_reflect_node(claim_reflection_graph, subjects_repo=subjects_repo))
     builder.add_node(Node.RECALL, make_recall_node(fragment_store=fragment_store))
-    builder.add_node(Node.CAPTURE, make_capture_node(fragment_store=fragment_store))
+    _capture_store = capture_store or CaptureRepository(pg_gateway=fragment_store._pg)
+    builder.add_node(Node.CAPTURE, make_capture_node(capture_store=_capture_store))
+    builder.add_node(Node.CAPTURE_SEARCH, make_capture_search_node(capture_store=_capture_store))
 
     # START dispatches by user_command.
-    start_targets = [Node.REFLECT, Node.RECALL, Node.CAPTURE, Node.INTENT_CLASSIFIER]
+    start_targets = [Node.REFLECT, Node.RECALL, Node.CAPTURE, Node.CAPTURE_SEARCH, Node.INTENT_CLASSIFIER]
     if claim_reflection_graph is not None and subjects_repo is not None:
         start_targets.append(Node.REFLECT2)
     builder.add_conditional_edges(START, route_on_start, start_targets)
@@ -539,6 +565,8 @@ def build_conversation_graph(
         builder.add_conditional_edges(Node.REFLECT2, goto(Node.GET_AI_RESPONSE),
                                       [Node.GET_AI_RESPONSE, END])
     builder.add_conditional_edges(Node.RECALL, goto(Node.GET_AI_RESPONSE),
+                                  [Node.GET_AI_RESPONSE, END])
+    builder.add_conditional_edges(Node.CAPTURE_SEARCH, goto(Node.GET_AI_RESPONSE),
                                   [Node.GET_AI_RESPONSE, END])
 
     # CAPTURE just sets system_message; the runner reads it after the turn.
