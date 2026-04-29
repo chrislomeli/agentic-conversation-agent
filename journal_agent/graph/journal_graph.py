@@ -61,6 +61,7 @@ from journal_agent.stores import (
     TranscriptRepository,
     TranscriptStore,
     UserProfileRepository, InsightsRepository,
+    SubjectsRepository,
 )
 
 logger = logging.getLogger(__name__)
@@ -73,6 +74,7 @@ class Node:
     INTENT_CLASSIFIER = "intent_classifier"
     PROFILE_SCANNER = "profile_scanner"
     REFLECT = "reflect"
+    REFLECT2 = "reflect2"
     RECALL = "recall"
     CAPTURE = "capture"
 
@@ -149,6 +151,7 @@ def make_get_ai_response(llm: LLMClient, session_store: TranscriptStore,
                 recent_messages=state.recent_messages,
                 retrieved_fragments=state.retrieved_history,
                 insights=state.latest_insights,
+                claim_insights=state.claim_insights or None,
             )
 
             # Stream the response. Each chunk emits an on_chat_model_stream
@@ -231,6 +234,95 @@ def make_reflect_node(reflection_graph: CompiledStateGraph, fragment_store: Frag
             }
 
     return reflect_node
+
+
+def make_claim_reflect_node(
+    claim_reflection_graph: CompiledStateGraph,
+    subjects_repo: SubjectsRepository,
+) -> Callable[..., Coroutine[Any, Any, dict]]:
+    """Factory: node that runs the Phase 11 claim-based reflection pipeline.
+
+    Fetches unprocessed fragments via SubjectsRepository, invokes the
+    claim reflection graph, then summarises active subjects + traction
+    as latest_insights for the AI response node to narrate.
+    """
+    from journal_agent.configure.prompts import get_prompt_version
+    from journal_agent.model.session import PromptKey
+    from journal_agent.graph.nodes.insight_nodes import compute_traction
+    from journal_agent.model.insights import Stance, SubjectSnapshot
+
+    @node_trace("claim_reflect_node")
+    async def claim_reflect_node(state: JournalState) -> dict:
+        try:
+            model_sig = f"stance_classifier/{get_prompt_version(PromptKey.STANCE_CLASSIFIER)}"
+
+            cursor = datetime.min
+            while True:
+                frag_ids = subjects_repo.fetch_unprocessed_fragment_ids(
+                    model_signature=model_sig, after=cursor, limit=500,
+                )
+                if not frag_ids:
+                    break
+
+                fragments = []
+                for fid in frag_ids:
+                    rows = subjects_repo._pg.fetch_rows(
+                        "SELECT * FROM fragments WHERE fragment_id = %s", (fid,),
+                    )
+                    if rows:
+                        r = rows[0]
+                        fragments.append(Fragment(
+                            fragment_id=r["fragment_id"],
+                            session_id=r.get("session_id", ""),
+                            content=r["content"],
+                            exchange_ids=[],
+                            tags=[],
+                            embedding=list(r["embedding"]) if r.get("embedding") is not None else [],
+                            timestamp=r["timestamp"],
+                        ))
+
+                if not fragments:
+                    break
+
+                reflection_input = ReflectionState(
+                    session_id=state.session_id,
+                    fragments=fragments,
+                    status=StatusValue.IDLE,
+                )
+                await claim_reflection_graph.ainvoke(reflection_input)
+                cursor = fragments[-1].timestamp
+
+            active_with_claims = subjects_repo.list_active_subjects_with_claims()
+            claim_insights = []
+            for subj, claim in active_with_claims:
+                votes = subjects_repo.fetch_votes_for_subject(subj.subject_id)
+                traction = compute_traction(votes)
+                support = sum(1 for v in votes if v.stance == Stance.SUPPORT)
+                contradict = sum(1 for v in votes if v.stance == Stance.CONTRADICT)
+                claim_insights.append(SubjectSnapshot(
+                    label=subj.label,
+                    claim=claim.text,
+                    traction=round(traction, 2),
+                    support=support,
+                    contradict=contradict,
+                ))
+
+            return {
+                "system_message": f"Claim-based reflection complete. "
+                                  f"{len(claim_insights)} active subject(s).",
+                "claim_insights": claim_insights,
+                "retrieved_history": [],
+                "status": StatusValue.PROCESSING,
+            }
+
+        except Exception as e:
+            logger.exception("Claim reflection failed")
+            return {
+                "status": StatusValue.ERROR,
+                "error_message": str(e),
+            }
+
+    return claim_reflect_node
 
 
 def make_recall_node(fragment_store: FragmentRepository) -> Callable[..., dict]:
@@ -357,6 +449,8 @@ def route_on_start(state: JournalState) -> str:
     """
     if state.user_command == UserCommandValue.REFLECT:
         return Node.REFLECT
+    if state.user_command == UserCommandValue.REFLECT2:
+        return Node.REFLECT2
     if state.user_command == UserCommandValue.RECALL:
         return Node.RECALL
     if state.user_command == UserCommandValue.SAVE:
@@ -393,6 +487,8 @@ def build_conversation_graph(
         insights_store: InsightsRepository,
         profile_store: UserProfileRepository,
         reflection_graph: CompiledStateGraph,
+        claim_reflection_graph: CompiledStateGraph | None = None,
+        subjects_repo: SubjectsRepository | None = None,
         checkpointer: BaseCheckpointSaver | None = None,
 ) -> CompiledStateGraph:
     """Build the per-turn conversation graph.
@@ -415,12 +511,17 @@ def build_conversation_graph(
 
     builder.add_node(Node.REFLECT,
                      make_reflect_node(reflection_graph, fragment_store=fragment_store, insights_store=insights_store))
+    if claim_reflection_graph is not None and subjects_repo is not None:
+        builder.add_node(Node.REFLECT2,
+                         make_claim_reflect_node(claim_reflection_graph, subjects_repo=subjects_repo))
     builder.add_node(Node.RECALL, make_recall_node(fragment_store=fragment_store))
     builder.add_node(Node.CAPTURE, make_capture_node(fragment_store=fragment_store))
 
     # START dispatches by user_command.
-    builder.add_conditional_edges(START, route_on_start,
-                                  [Node.REFLECT, Node.RECALL, Node.CAPTURE, Node.INTENT_CLASSIFIER])
+    start_targets = [Node.REFLECT, Node.RECALL, Node.CAPTURE, Node.INTENT_CLASSIFIER]
+    if claim_reflection_graph is not None and subjects_repo is not None:
+        start_targets.append(Node.REFLECT2)
+    builder.add_conditional_edges(START, route_on_start, start_targets)
 
     # Intent / profile / retrieve all funnel into get_ai_response.
     builder.add_conditional_edges(Node.INTENT_CLASSIFIER, route_on_intent,
@@ -434,6 +535,9 @@ def build_conversation_graph(
     # the recalled / reflected content rendered in conversation.
     builder.add_conditional_edges(Node.REFLECT, goto(Node.GET_AI_RESPONSE),
                                   [Node.GET_AI_RESPONSE, END])
+    if claim_reflection_graph is not None and subjects_repo is not None:
+        builder.add_conditional_edges(Node.REFLECT2, goto(Node.GET_AI_RESPONSE),
+                                      [Node.GET_AI_RESPONSE, END])
     builder.add_conditional_edges(Node.RECALL, goto(Node.GET_AI_RESPONSE),
                                   [Node.GET_AI_RESPONSE, END])
 

@@ -167,24 +167,25 @@ CREATE INDEX IF NOT EXISTS claims_embedding_idx
     ON claims USING hnsw (embedding vector_cosine_ops);
 
 -- ── votes ─────────────────────────────────────────────────────────────────────
--- Append-only timestamped evidence. Votes attach to subject (stable), not to
--- claim (mutable). claim_version_at_vote records which phrasing was evaluated
--- against. fragment_dated_at is the user-write timestamp and drives all
--- "as-of" belief queries; processed_at is for audit only.
+-- Append-only timestamped evidence. claim_id is the claim that was evaluated
+-- against when the vote was cast; it never changes. subject_id is denormalized
+-- for efficient traction queries ("all votes for subject X") without a join
+-- through claims. fragment_dated_at drives all "as-of" belief queries;
+-- processed_at is for audit only.
 CREATE TABLE IF NOT EXISTS votes (
-    vote_id               TEXT PRIMARY KEY,
-    subject_id            TEXT NOT NULL REFERENCES subjects(subject_id) ON DELETE CASCADE,
-    fragment_id           TEXT NOT NULL REFERENCES fragments(fragment_id) ON DELETE CASCADE,
-    stance                TEXT NOT NULL,  -- support|contradict
-    strength              DOUBLE PRECISION NOT NULL CHECK (strength >= 0.0 AND strength <= 1.0),
-    reasoning             TEXT NOT NULL,
-    claim_version_at_vote INT  NOT NULL,
-    fragment_dated_at     TIMESTAMPTZ NOT NULL,
-    processed_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
-    model_signature       TEXT NOT NULL,
-    signals               JSONB,
-    invalidated_at        TIMESTAMPTZ,
-    invalidation_reason   TEXT
+    vote_id             TEXT PRIMARY KEY,
+    subject_id          TEXT NOT NULL REFERENCES subjects(subject_id) ON DELETE CASCADE,
+    claim_id            TEXT NOT NULL REFERENCES claims(claim_id)     ON DELETE CASCADE,
+    fragment_id         TEXT NOT NULL REFERENCES fragments(fragment_id) ON DELETE CASCADE,
+    stance              TEXT NOT NULL,  -- support|contradict
+    strength            DOUBLE PRECISION NOT NULL CHECK (strength >= 0.0 AND strength <= 1.0),
+    reasoning           TEXT NOT NULL,
+    fragment_dated_at   TIMESTAMPTZ NOT NULL,
+    processed_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    model_signature     TEXT NOT NULL,
+    signals             JSONB,
+    invalidated_at      TIMESTAMPTZ,
+    invalidation_reason TEXT
 );
 -- One active vote per (subject, fragment, stance). Allows ambivalence
 -- (support+contradict on the same subject from one fragment) but not duplicates.

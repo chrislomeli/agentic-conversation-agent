@@ -71,6 +71,9 @@ packages = ["journal_agent"]
 testpaths = ["journal_agent/tests"]
 python_files = ["test_*.py"]
 asyncio_mode = "auto"
+markers = [
+    "integration: tests that require a live Postgres instance (deselect with -m 'not integration')",
+]
 
 [dependency-groups]
 dev = [

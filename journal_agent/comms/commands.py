@@ -75,6 +75,12 @@ def parse_user_input(text: str) -> ParsedInput:
             message=_REFLECT_PROMPT,
         )
 
+    if stripped == "/reflect2":
+        return ParsedInput(
+            command=UserCommandValue.REFLECT2,
+            message=_REFLECT_PROMPT,
+        )
+
     if stripped.startswith("/recall"):
         parts = stripped.split(maxsplit=1)
         args = parts[1].strip() if len(parts) > 1 else ""

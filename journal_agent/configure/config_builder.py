@@ -42,6 +42,7 @@ ROUTE_CANDIDATES_TOP_K = 8           # how many candidate subjects to surface pe
 ROUTE_CANDIDATES_MIN_SIMILARITY = 0.5  # cosine similarity floor for candidate inclusion
 CLAIM_REGEN_VOTE_GAP = 5             # regenerate claim text after this many new votes since last regen
 SUBJECT_PROPOSER_TRIGGER_MAX_STRENGTH = 0.5  # if no existing-subject vote exceeds this, run the proposer
+PROPOSER_DEDUP_SIMILARITY = 0.85     # in persist_votes, merge proposed subjects above this cosine similarity
 DEFAULT_RECENT_MESSAGES_COUNT = 5
 DEFAULT_SESSION_MESSAGES_COUNT = 10
 DEFAULT_RETRIEVED_HISTORY_COUNT = 5

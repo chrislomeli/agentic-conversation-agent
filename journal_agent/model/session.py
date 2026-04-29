@@ -42,6 +42,7 @@ class UserCommandValue(StrEnum):
     REFLECT = "reflection"
     RECALL = "recall"
     SAVE = "capture"
+    REFLECT2 = "reflection2"
 
 
 class StatusValue(StrEnum):

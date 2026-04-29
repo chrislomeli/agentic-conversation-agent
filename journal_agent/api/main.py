@@ -44,12 +44,13 @@ from journal_agent.graph.journal_graph import (
     build_conversation_graph,
     build_end_of_session_graph,
 )
-from journal_agent.graph.reflection_graph import build_reflection_graph
+from journal_agent.graph.reflection_graph import build_reflection_graph, build_claim_reflection_graph
 from journal_agent.model.session import Role, UserCommandValue, UserProfile
 from journal_agent.stores import (
     InsightsRepository,
     JsonlGateway,
     FragmentRepository,
+    SubjectsRepository,
     ThreadsRepository,
     TranscriptRepository,
     TranscriptStore,
@@ -107,6 +108,11 @@ async def lifespan(app: FastAPI):
             registry=registry,
             insights_repo=insights_repo,
         )
+        subjects_repo = SubjectsRepository(pg_gateway=pg)
+        claim_reflection = build_claim_reflection_graph(
+            registry=registry,
+            subjects_repo=subjects_repo,
+        )
         conversation = build_conversation_graph(
             registry=registry,
             session_store=session_store,
@@ -114,6 +120,8 @@ async def lifespan(app: FastAPI):
             insights_store=insights_repo,
             profile_store=profile_store,
             reflection_graph=reflection_graph,
+            claim_reflection_graph=claim_reflection,
+            subjects_repo=subjects_repo,
             checkpointer=checkpointer,
         )
         eos = build_end_of_session_graph(

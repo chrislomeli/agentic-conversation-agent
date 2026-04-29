@@ -7037,3 +7037,1881 @@ openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reach
 19:57:22  journal_agent.graph.node_tracer      node completed
 19:57:32  journal_agent.graph.node_tracer      node completed
 20:10:14  journal_agent.graph.node_tracer      node completed with error
+17:11:16  journal_agent.graph.node_tracer      node completed
+17:11:16  journal_agent.graph.node_tracer      node completed
+17:11:27  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 8cb118b5-1305-4794-bf74-5fa23a165c82
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1246. Please try again in 2.492s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:29  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 72bac892-148e-4f47-8111-bd8d7132d183
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1240. Please try again in 2.48s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:29  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 8f54ea7c-9c3d-4124-92c8-5eb5968315f1
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1244. Please try again in 2.488s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:29  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 71e86f64-498e-46ee-8849-5299ae9077c2
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1265. Please try again in 2.53s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:33  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment eaf4f5ec-61a9-4dbb-a0f8-37613cd5a9e4
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29796, Requested 1254. Please try again in 2.1s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:34  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 09bd0750-dd06-4d88-97de-e28f7532d094
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29085, Requested 1242. Please try again in 654ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:34  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment e8c1b240-f165-4848-8f83-858e97d5749d
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 28958, Requested 1207. Please try again in 330ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:34  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 6a814f8c-38c6-42cc-bb8c-3dad3d4910e9
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 28896, Requested 1213. Please try again in 218ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:41  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 54ca1f06-16e7-424f-a965-58fa9dea5211
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1191. Please try again in 2.382s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:41  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment ab6ded12-d3ba-45c8-b597-909ea9ecd8b1
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1197. Please try again in 2.394s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:42  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 4b650c06-7aee-476d-a1e3-89d0857e75f0
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1239. Please try again in 2.478s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:42  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 6ee16995-dfa4-4d95-8b1c-32465f56f35c
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1222. Please try again in 2.444s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:46  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment dd208334-4470-4297-beae-c1f609e24d27
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1225. Please try again in 2.45s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:46  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 5b497df2-9021-4328-9bd6-aef7b6553d81
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1233. Please try again in 2.466s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:47  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 688a9849-98f4-491c-93c0-c57bcb8806b5
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29865, Requested 1237. Please try again in 2.204s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:47  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment c7692f87-62b6-414f-9c54-98822b9d3ffa
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29878, Requested 1235. Please try again in 2.226s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:50  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 7c8d75ec-f307-4f69-bed4-2e005ec8cbea
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29908, Requested 1243. Please try again in 2.302s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:50  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 623af6e3-07f8-4203-a987-372c211607e2
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29889, Requested 1244. Please try again in 2.266s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:53  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 0ce581ff-01ed-4282-aadb-0bfbf325f3d8
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1223. Please try again in 2.446s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:56  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment d42b635c-25f3-43b8-bd4b-5a85fd2cd486
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29981, Requested 1233. Please try again in 2.428s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:56  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 72758bf8-81d4-489f-ab42-03c48b0c6ddc
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29948, Requested 1230. Please try again in 2.356s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:11:56  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 7d9e4f66-1158-4de0-9c16-00294086bbcd
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29599, Requested 1237. Please try again in 1.672s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:04  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 1082ec7c-b312-49fd-88f2-15a8303afad7
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1227. Please try again in 2.454s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:04  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment c97c5e65-e093-41eb-b500-01f800cb6fc0
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1226. Please try again in 2.452s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:04  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 632317c6-bbd8-4ee0-a604-93990efb0c1f
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1227. Please try again in 2.454s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:05  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 7bb72a34-00f6-4899-a474-b443cf7b5db1
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1250. Please try again in 2.5s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:09  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 8940fd63-07d8-4c72-b29e-5a4491ca65ef
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 28959, Requested 1228. Please try again in 374ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:09  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment b966936d-f451-4dee-b926-f4c3cffab561
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 28958, Requested 1219. Please try again in 354ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:12  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment e8cf1e6d-d12e-4ece-a698-3c02c9d92e5b
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1233. Please try again in 2.466s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:12  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment db5e5391-7fe6-45ea-9fe5-22bf43686c37
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1215. Please try again in 2.43s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:21  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 9a16c811-31d4-4cd8-a047-33f56ef5b909
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1228. Please try again in 2.456s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:21  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment d096da7b-e870-4eeb-8289-2487e9c0fd16
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1231. Please try again in 2.462s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:21  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment f2c92122-1447-4316-80ed-6bcc07b4cf10
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1240. Please try again in 2.48s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:21  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment c1275aca-d539-4b80-898c-eb4b54840277
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1229. Please try again in 2.458s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:26  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment d8e5a691-f657-4800-a13b-68389114afd1
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29296, Requested 1209. Please try again in 1.009s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:26  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 7ec689b9-6469-47c4-9918-9683ed43b8ae
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29277, Requested 1213. Please try again in 979ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:26  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 5d3130b8-30cc-4989-9d9d-90a829e3dc40
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29199, Requested 1244. Please try again in 886ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:27  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment e84a41b0-efbf-4057-9b23-8fd9fe2f536f
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29063, Requested 1235. Please try again in 596ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:33  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 86dd6c14-7172-4eed-9c1b-248bda78dc84
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1218. Please try again in 2.436s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:34  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 63ae8e75-7936-4ed0-a9ef-2524142bb7f3
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1203. Please try again in 2.406s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:34  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 4dde85fb-630b-49f9-8969-d0af5b8ea648
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1200. Please try again in 2.4s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:34  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 128d43f6-aa52-415f-8140-cc4216d6b054
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1197. Please try again in 2.394s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:38  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 17a1de14-b4f3-49a4-9740-63d1782085c1
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 28977, Requested 1205. Please try again in 364ms. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:40  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 12b50273-68cf-43c3-adf4-b7812844d301
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29557, Requested 1362. Please try again in 1.838s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:44  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment f5c86868-ba89-4a38-84e5-e74008a5c87b
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 30000, Requested 1197. Please try again in 2.394s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:45  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 0f6c1f09-43a7-4af1-a12b-9e0e38265125
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29853, Requested 1182. Please try again in 2.07s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:45  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment f7d0f197-87ea-4d12-beb2-6ed7f39dfb97
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29830, Requested 1201. Please try again in 2.062s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:45  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment b8d81831-dd1a-493d-8208-1377655aa3a1
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 3197, in ainvoke
+    input_ = await coro_with_context(part(), context, create_task=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/runnables/base.py", line 5708, in ainvoke
+    return await self.bound.ainvoke(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 478, in ainvoke
+    llm_result = await self.agenerate_prompt(
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1209, in agenerate_prompt
+    return await self.agenerate(
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1167, in agenerate
+    raise exceptions[0]
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_core/language_models/chat_models.py", line 1393, in _agenerate_with_cache
+    async for chunk in self._astream(messages, stop=stop, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 3205, in _astream
+    async for chunk in super()._astream(*args, **kwargs):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1709, in _astream
+    _handle_openai_api_error(e)
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/langchain_openai/chat_models/base.py", line 1684, in _astream
+    async with context_manager as response:
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/lib/streaming/chat/_completions.py", line 272, in __aenter__
+    raw_stream = await self.__api_request
+                 ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/resources/chat/completions/completions.py", line 2714, in create
+    return await self._post(
+           ^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1913, in post
+    return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/.venv/lib/python3.11/site-packages/openai/_base_client.py", line 1698, in request
+    raise self._make_status_error_from_response(err.response) from None
+openai.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for gpt-4o in organization org-ZbpfBdiOAYq9Fo9vA1a3PN48 on tokens per min (TPM): Limit 30000, Used 29756, Requested 1222. Please try again in 1.955s. Visit https://platform.openai.com/account/rate-limits to learn more.', 'type': 'tokens', 'param': None, 'code': 'rate_limit_exceeded'}}
+17:12:49  journal_agent.graph.node_tracer      node completed
+17:12:49  journal_agent.graph.node_tracer      node completed
+17:12:49  journal_agent.graph.node_tracer      node completed
+17:12:53  journal_agent.graph.node_tracer      node completed

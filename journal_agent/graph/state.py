@@ -12,11 +12,7 @@ from langchain_core.messages import BaseMessage
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, ConfigDict, Field
 
-from journal_agent.model.insights import (
-    ProposedSubject,
-    Subject,
-    Vote,
-)
+from journal_agent.model.insights import FragmentWorkItem, SubjectSnapshot
 from journal_agent.model.session import (
     Cluster,
     ContextSpecification,
@@ -52,17 +48,16 @@ class ReflectionState(BaseModel):
     latest_insights: list[Insight] = Field(default_factory=list)
 
     # Phase 11 (claim-based) — populated by the new reflection graph.
-    candidate_subjects: list[Subject] = Field(
+    # Each node enriches one dimension of each work item; persist_votes
+    # reads the whole list and writes to the DB. See model/insights.py
+    # for the FragmentWorkItem shape.
+    work_items: list[FragmentWorkItem] = Field(
         default_factory=list,
-        description="Subjects routed as candidates for the current fragment(s) by route_candidates.",
-    )
-    votes: list[Vote] = Field(
-        default_factory=list,
-        description="Votes produced by classify_stance, ready to persist.",
-    )
-    proposed_subject: ProposedSubject | None = Field(
-        default=None,
-        description="A new subject proposed by the proposer node, if any.",
+        description=(
+            "Fan-out unit for the claim-based reflection graph. Built from "
+            "state.fragments by route_candidates, then enriched in place by "
+            "classify_stance and propose_subject, then drained by persist_votes."
+        ),
     )
 
     status: StatusValue = StatusValue.IDLE
@@ -102,6 +97,7 @@ class JournalState(BaseModel):
     retrieved_history: list[Fragment] = Field(default_factory=list)
     fetch_parameters: WindowParams | None = None
     latest_insights: list[Insight] = Field(default_factory=list)
+    claim_insights: list[SubjectSnapshot] = Field(default_factory=list)
     context_specification: ContextSpecification = Field(default_factory=ContextSpecification)
     user_profile: UserProfile = Field(default_factory=UserProfile)
     user_command: UserCommandValue = UserCommandValue.NONE

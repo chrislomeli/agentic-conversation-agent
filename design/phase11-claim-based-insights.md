@@ -17,16 +17,37 @@ This shift moves the system from offline batch reflection toward **continuous be
 ---
 ## Git changes
 ```bash
-[main 6800cc3] new claims driven insights design and skeleton
- 20 files changed, 1870 insertions(+), 5 deletions(-)
- create mode 100644 design/phase11-claim-based-insights.md
- create mode 100644 design/pressure_test_insight_prompts.py
- create mode 100644 journal_agent/configure/prompts/claim_regenerator.py
- create mode 100644 journal_agent/configure/prompts/stance_classifier.py
- create mode 100644 journal_agent/configure/prompts/subject_proposer.py
- create mode 100644 journal_agent/model/insights.py
- create mode 100644 journal_agent/stores/subjects_repo.py
- create mode 100644 journal_agent/tests/test_phase11_skeleton.py
+~/Source/PROJECTS/agenticAI/journal_agent
+design
+    phase11-claim-based-insights.md
+    pressure_test_insight_prompts.py
+journal_agent
+    configure
+        prompts
+            __init__.py
+            claim_regenerator.py
+            cluster_fragments.py
+            stance_classifier.py
+            subject_proposer.py
+        config_builder.py
+    graph
+        nodes
+          insight_nodes.py
+        reflection_graph.py
+        state.py
+    model
+        insights.py
+        session.py
+    stores
+        __init__.py
+        pg_gateway.py
+        subjects_repo.py
+        tests
+        test_phase11_skeleton.py
+        journal_agent.log
+    sql
+        schema.sql
+    journal_agent.log
 ````
 ---
 

@@ -19,8 +19,10 @@ from journal_agent.configure.prompts import get_prompt, get_prompt_version
 from journal_agent.graph.reflection_graph import build_claim_reflection_graph
 from journal_agent.graph.state import ReflectionState
 from journal_agent.model.insights import (
+    CandidateSubject,
     Claim,
     FragmentProcessing,
+    FragmentWorkItem,
     InitialVote,
     ProcessingStatus,
     ProposedSubject,
@@ -34,7 +36,7 @@ from journal_agent.model.insights import (
     SubjectStatus,
     Vote,
 )
-from journal_agent.model.session import PromptKey
+from journal_agent.model.session import Fragment, PromptKey
 
 
 # ── Pydantic round-trips ──────────────────────────────────────────────────
@@ -61,11 +63,11 @@ def test_vote_round_trips():
     from datetime import datetime
     v = Vote(
         subject_id="sub-1",
+        claim_id="clm-0001",
         fragment_id="frag-1",
         stance=Stance.SUPPORT,
         strength=0.7,
         reasoning="user explicitly stated...",
-        claim_version_at_vote=1,
         fragment_dated_at=datetime(2026, 1, 15),
         model_signature="claude-sonnet-4-5/stance_classifier_v1",
     )
@@ -135,6 +137,35 @@ def test_regenerator_response_actions():
         RegeneratorResponse.model_validate(raw)
 
 
+def test_candidate_subject_round_trips():
+    subject = Subject(label="stance on solitude")
+    claim = Claim(subject_id=subject.subject_id, text="user values quiet alone time", version=1, is_current=True)
+    cs = CandidateSubject(subject=subject, current_claim=claim, similarity=0.78)
+    raw = cs.model_dump(mode="json")
+    cs2 = CandidateSubject.model_validate(raw)
+    assert cs2.subject.label == "stance on solitude"
+    assert cs2.current_claim.version == 1
+    assert cs2.similarity == 0.78
+
+
+def test_fragment_work_item_defaults_to_empty():
+    from datetime import datetime
+    fragment = Fragment(
+        session_id="test-session",
+        content="went for a walk",
+        exchange_ids=[],
+        tags=[],
+        timestamp=datetime(2026, 1, 15),
+    )
+    item = FragmentWorkItem(fragment=fragment)
+    assert item.candidates == []
+    assert item.votes == []
+    assert item.proposed_subject is None
+    raw = item.model_dump(mode="json")
+    item2 = FragmentWorkItem.model_validate(raw)
+    assert item2.fragment.content == "went for a walk"
+
+
 # ── Prompt registry ───────────────────────────────────────────────────────
 
 
@@ -201,12 +232,45 @@ async def test_claim_reflection_graph_runs_on_empty_state(fake_registry, fake_su
     initial = ReflectionState(session_id="test-session")
     result = await graph.ainvoke(initial)
     # End-to-end run should return a state-shaped dict without crashing.
-    assert "candidate_subjects" in result
-    assert "votes" in result
-    assert result["candidate_subjects"] == []
-    assert result["votes"] == []
+    assert "work_items" in result
+    assert result["work_items"] == []
     # Skeleton's persist_votes sets PROCESSING.
     assert "status" in result
+
+
+@pytest.mark.asyncio
+async def test_claim_reflection_graph_initializes_work_items_from_fragments(
+    fake_registry, fake_subjects_repo,
+):
+    """route_candidates should produce one FragmentWorkItem per input fragment,
+    even in the skeleton (with empty candidates)."""
+    from datetime import datetime
+
+    graph = build_claim_reflection_graph(
+        registry=fake_registry,
+        subjects_repo=fake_subjects_repo,
+    )
+    fragments = [
+        Fragment(
+            session_id="test-session",
+            content=f"fragment {i} content",
+            exchange_ids=[],
+            tags=[],
+            timestamp=datetime(2026, 1, i + 1),
+        )
+        for i in range(3)
+    ]
+    initial = ReflectionState(session_id="test-session", fragments=fragments)
+    result = await graph.ainvoke(initial)
+
+    # Skeleton route_candidates builds the work_items list.
+    assert len(result["work_items"]) == 3
+    # Each item carries its fragment; downstream stubs leave the rest empty.
+    for item, fragment in zip(result["work_items"], fragments):
+        assert item.fragment.fragment_id == fragment.fragment_id
+        assert item.candidates == []
+        assert item.votes == []
+        assert item.proposed_subject is None
 
 
 def test_claim_reflection_graph_has_expected_nodes(fake_registry, fake_subjects_repo):

@@ -21,6 +21,7 @@ import logging
 import tiktoken
 from langchain_core.messages import BaseMessage, SystemMessage
 
+from journal_agent.model.insights import SubjectSnapshot
 from journal_agent.model.session import Fragment, Insight, ContextSpecification
 
 logger = logging.getLogger(__name__)
@@ -73,6 +74,7 @@ class ContextBuilder:
         recent_messages: list[BaseMessage] | None = None,
         retrieved_fragments: list[Fragment] | None = None,
         insights: list[Insight] | None = None,
+        claim_insights: list[SubjectSnapshot] | None = None,
     ) -> list[BaseMessage]:
         """Build the full message list for one LLM call.
 
@@ -88,6 +90,7 @@ class ContextBuilder:
 
         Parameters
         ----------
+        claim_insights
         retrieved_fragments
         recent_messages
         session_messages
@@ -107,7 +110,10 @@ class ContextBuilder:
             for f in retrieved_fragments[:instruction.top_k_retrieved_history]
         ] if retrieved_fragments and instruction.top_k_retrieved_history else []
 
-        retrieved_insights = sorted([{"label": i.label, "body": i.body, "verifier_score": i.verifier_score} for i in insights  or [] ], key=lambda d: d['verifier_score'])
+        if claim_insights:
+            retrieved_insights = [s.model_dump() for s in claim_insights]
+        else:
+            retrieved_insights = sorted([{"label": i.label, "body": i.body, "verifier_score": i.verifier_score} for i in insights or []], key=lambda d: d['verifier_score'])
 
 
         # perform a calculation of the token count
@@ -115,7 +121,7 @@ class ContextBuilder:
         def calculate_tokens():
             count_prompt_tokens = self.count_string_tokens(prompt)
             count_retrieved_fragments_tokens = self.count_string_tokens(json.dumps(retrieved_fragments))
-            count_retrieved_insights_tokens = self.count_string_tokens(json.dumps(retrieved_insights)) if insights else 0
+            count_retrieved_insights_tokens = self.count_string_tokens(json.dumps(retrieved_insights)) if retrieved_insights else 0
             count_recent_tokens = self.count_message_tokens(recent_messages)
             count_session_tokens = self.count_message_tokens(session_messages)
             _count_all_tokens = count_prompt_tokens + count_retrieved_fragments_tokens + count_retrieved_insights_tokens + count_recent_tokens + count_session_tokens

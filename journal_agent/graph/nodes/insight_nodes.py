@@ -9,13 +9,30 @@ from sklearn.cluster import HDBSCAN
 
 from journal_agent.comms.llm_client import LLMClient
 from journal_agent.configure import context_builder
-from journal_agent.configure.config_builder import MINIMUM_VERIFIER_SCORE, MINIMUM_CLUSTER_LABEL_SCORE, \
-    MINIMUM_CLUSTER_SCORE
-from journal_agent.configure.prompts import get_prompt
+from journal_agent.configure.config_builder import (
+    MINIMUM_VERIFIER_SCORE,
+    MINIMUM_CLUSTER_LABEL_SCORE,
+    MINIMUM_CLUSTER_SCORE,
+    MIN_VOTE_STRENGTH,
+    ROUTE_CANDIDATES_TOP_K,
+    ROUTE_CANDIDATES_MIN_SIMILARITY,
+    SUBJECT_PROPOSER_TRIGGER_MAX_STRENGTH,
+    PROPOSER_DEDUP_SIMILARITY,
+)
+from journal_agent.configure.prompts import get_prompt, get_prompt_version
 from journal_agent.graph.node_tracer import node_trace, logger
 from journal_agent.graph.nodes.classifiers import DEFAULT_LLM_CONCURRENCY
 from journal_agent.graph.state import ReflectionState
-from journal_agent.model.insights import ProposedSubject, Subject, Vote
+from journal_agent.model.insights import (
+    CandidateSubject,
+    FragmentWorkItem,
+    ProposedSubject,
+    ProposerResponse,
+    Stance,
+    StanceResponse,
+    Subject,
+    Vote,
+)
 from journal_agent.model.session import Cluster, Fragment, StatusValue, Insight, PromptKey, InsightDraft, \
     InsightVerifierScore, VerifierStatus, ContextSpecification, ClusterList, FragmentClusterRequest
 from journal_agent.stores.subjects_repo import SubjectsRepository
@@ -263,20 +280,43 @@ def make_route_candidates(
 ) -> Callable[..., Coroutine[Any, Any, dict]]:
     """Build the route_candidates node.
 
+    Reads:  state.fragments
+    Writes: state.work_items (one FragmentWorkItem per fragment)
+
     Real behavior (TODO):
-        For each fragment in state.fragments, embed its content (or use its
-        existing embedding) and search the `claims` table by cosine similarity
-        on the current claim embeddings. Return the top-K candidate Subjects
-        whose current claims sit above ROUTE_CANDIDATES_MIN_SIMILARITY.
+        For each fragment in state.fragments (in parallel), use
+        fragment.embedding to call subjects_repo.search_candidate_subjects(...)
+        and bundle the returned (Subject, Claim, similarity) triples as
+        CandidateSubject objects. Wrap in a FragmentWorkItem.
 
     Skeleton behavior:
-        Return an empty candidate_subjects list.
+        Initialize one empty-candidates work item per fragment so downstream
+        nodes have a real list to map over. The shape is correct; only the
+        candidate-search step is stubbed.
     """
 
     @node_trace("route_candidates")
     async def route_candidates(state: ReflectionState) -> dict:
-        # TODO(phase11): vector search over current claim embeddings.
-        return {"candidate_subjects": []}
+        if not state.fragments:
+            return {"work_items": []}
+
+        async def search_one(fragment) -> FragmentWorkItem:
+            if not fragment.embedding:
+                return FragmentWorkItem(fragment=fragment)
+            raw = await asyncio.to_thread(
+                subjects_repo.search_candidate_subjects,
+                fragment.embedding,
+                ROUTE_CANDIDATES_TOP_K,
+                ROUTE_CANDIDATES_MIN_SIMILARITY,
+            )
+            candidates = [
+                CandidateSubject(subject=subj, current_claim=claim, similarity=sim)
+                for subj, claim, sim in raw
+            ]
+            return FragmentWorkItem(fragment=fragment, candidates=candidates)
+
+        work_items = await asyncio.gather(*(search_one(f) for f in state.fragments))
+        return {"work_items": list(work_items)}
 
     return route_candidates
 
@@ -287,21 +327,81 @@ def make_classify_stance(
 ) -> Callable[..., Coroutine[Any, Any, dict]]:
     """Build the classify_stance node.
 
+    Reads:  state.work_items[*].fragment + .candidates
+    Writes: state.work_items[*].votes
+
     Real behavior (TODO):
-        For each (fragment, candidate_subject) pair, call the LLM with the
-        stance_classifier prompt and parse a StanceResponse. Filter votes
-        below MIN_VOTE_STRENGTH. Convert each StanceVote into a persisted
-        Vote (filling fragment_id, fragment_dated_at, processed_at,
-        model_signature, claim_version_at_vote). Append to state.votes.
+        For each work item with non-empty candidates (in parallel, bounded
+        by max_concurrency), call the stance_classifier prompt with
+        (fragment, candidates). Parse StanceResponse. For each returned
+        StanceVote: convert to a real Vote — filling fragment_id,
+        fragment_dated_at (= fragment.timestamp), processed_at,
+        model_signature, and claim_version_at_vote (from the matching
+        candidate's current_claim.version). Drop votes below
+        MIN_VOTE_STRENGTH (defense in depth — the prompt also instructs this).
+        Items with no candidates skip the LLM call entirely.
 
     Skeleton behavior:
-        Return an empty votes list.
+        Pass through work_items unchanged.
     """
 
     @node_trace("classify_stance")
     async def classify_stance(state: ReflectionState) -> dict:
-        # TODO(phase11): per-fragment LLM call → StanceResponse → Vote rows.
-        return {"votes": []}
+        items = state.work_items
+        if not items:
+            return {}
+
+        sig = f"{llm.model}/stance_classifier/{get_prompt_version(PromptKey.STANCE_CLASSIFIER)}"
+        system = SystemMessage(get_prompt(PromptKey.STANCE_CLASSIFIER))
+        structured_llm = llm.astructured(StanceResponse)
+        sem = asyncio.Semaphore(max_concurrency)
+
+        claim_index: dict[str, str] = {
+            c.subject.subject_id: c.current_claim.claim_id
+            for item in items
+            for c in item.candidates
+        }
+
+        async def classify_item(item: FragmentWorkItem) -> FragmentWorkItem:
+            if not item.candidates:
+                return item
+            async with sem:
+                payload = {
+                    "candidate_subjects": [
+                        {"id": c.subject.subject_id, "current_claim": c.current_claim.text}
+                        for c in item.candidates
+                    ],
+                    "fragment": {
+                        "dated_at": item.fragment.timestamp.isoformat(),
+                        "text": item.fragment.content,
+                    },
+                }
+                try:
+                    response: StanceResponse = await structured_llm.ainvoke(
+                        [system, HumanMessage(content=json.dumps(payload))]
+                    )
+                except Exception:
+                    logger.exception("classify_stance LLM call failed for fragment %s", item.fragment.fragment_id)
+                    return item
+
+                votes = [
+                    Vote(
+                        subject_id=sv.subject_id,
+                        claim_id=claim_index.get(sv.subject_id, ""),
+                        fragment_id=item.fragment.fragment_id,
+                        stance=sv.stance,
+                        strength=sv.strength,
+                        reasoning=sv.reasoning,
+                        fragment_dated_at=item.fragment.timestamp,
+                        model_signature=sig,
+                    )
+                    for sv in response.votes
+                    if sv.strength >= MIN_VOTE_STRENGTH
+                ]
+                return item.model_copy(update={"votes": votes})
+
+        updated = await asyncio.gather(*(classify_item(item) for item in items))
+        return {"work_items": list(updated)}
 
     return classify_stance
 
@@ -309,39 +409,100 @@ def make_classify_stance(
 def make_propose_subject(
     llm: LLMClient,
     subjects_repo: SubjectsRepository,
+    max_concurrency: int = DEFAULT_LLM_CONCURRENCY,
 ) -> Callable[..., Coroutine[Any, Any, dict]]:
     """Build the propose_subject node.
 
+    Reads:  state.work_items[*] (where votes are weak/empty)
+            + subjects_repo.list_active_subjects() (loaded once for the node,
+              not per item — the LLM needs to see ALL active subjects, not
+              just the routed candidates, to avoid duplicate proposals)
+    Writes: state.work_items[*].proposed_subject
+
     Real behavior (TODO):
-        Run only when state.votes contains no vote with strength above
-        SUBJECT_PROPOSER_TRIGGER_MAX_STRENGTH. Call the LLM with the
-        subject_proposer prompt over (existing_subjects, fragment); parse
-        a ProposerResponse. If non-null, set state.proposed_subject and
-        append the bundled initial_vote to state.votes.
+        Filter work items where max(vote.strength) < SUBJECT_PROPOSER_TRIGGER_MAX_STRENGTH
+        (or votes is empty). For those, in parallel: call the subject_proposer
+        prompt. If response.new_subject is non-null, set
+        item.proposed_subject = response.new_subject. The bundled initial_vote
+        rides inside proposed_subject and gets materialized at persist time.
 
     Skeleton behavior:
-        Leave proposed_subject None and votes unchanged.
+        Pass through work_items unchanged.
     """
 
     @node_trace("propose_subject")
     async def propose_subject(state: ReflectionState) -> dict:
-        # TODO(phase11): conditional LLM call → ProposerResponse → optional new Subject + Vote.
-        return {"proposed_subject": None}
+        items = state.work_items
+        if not items:
+            return {}
+
+        active = await asyncio.to_thread(subjects_repo.list_active_subjects_with_claims)
+        existing_summary = [
+            {"label": subj.label, "current_claim": claim.text}
+            for subj, claim in active
+        ]
+
+        system = SystemMessage(get_prompt(PromptKey.SUBJECT_PROPOSER))
+        structured_llm = llm.astructured(ProposerResponse)
+        sem = asyncio.Semaphore(max_concurrency)
+
+        def needs_proposal(item: FragmentWorkItem) -> bool:
+            if not item.votes:
+                return True
+            return max(v.strength for v in item.votes) < SUBJECT_PROPOSER_TRIGGER_MAX_STRENGTH
+
+        async def propose_one(item: FragmentWorkItem) -> FragmentWorkItem:
+            async with sem:
+                payload = {
+                    "existing_subjects": existing_summary,
+                    "fragment": {
+                        "dated_at": item.fragment.timestamp.isoformat(),
+                        "text": item.fragment.content,
+                    },
+                }
+                try:
+                    response: ProposerResponse = await structured_llm.ainvoke(
+                        [system, HumanMessage(content=json.dumps(payload))]
+                    )
+                except Exception:
+                    logger.exception("propose_subject LLM call failed for fragment %s", item.fragment.fragment_id)
+                    return item
+                if response.new_subject is not None:
+                    return item.model_copy(update={"proposed_subject": response.new_subject})
+                return item
+
+        needs = [(i, item) for i, item in enumerate(items) if needs_proposal(item)]
+        if not needs:
+            return {}
+
+        results = await asyncio.gather(*(propose_one(item) for _, item in needs))
+        updated = list(items)
+        for (i, _), enriched in zip(needs, results):
+            updated[i] = enriched
+        return {"work_items": updated}
 
     return propose_subject
 
 
 def make_persist_votes(
     subjects_repo: SubjectsRepository,
+    llm: LLMClient,
 ) -> Callable[..., Coroutine[Any, Any, dict]]:
     """Build the persist_votes node.
 
-    Real behavior (TODO):
-        - If proposed_subject is set: create the Subject + first Claim in DB.
-        - Insert all rows in state.votes (subjects.last_activity_at updates).
-        - Insert one fragment_processing row per processed fragment with the
-          model_signature and the resulting vote_count.
-        - Update state.status = StatusValue.PROCESSING on success.
+    Reads:  state.work_items (everything)
+    Writes: DB only — subjects, claims, votes, fragment_processing rows
+
+    Real behavior (TODO), all in one transaction:
+        Step 1 — Dedupe proposed subjects across work items by embedding
+            similarity > PROPOSER_DEDUP_SIMILARITY. Pick a canonical proposal;
+            redirect followers' initial_votes to the canonical subject_id.
+        Step 2 — For each canonical proposal: create_subject_with_claim(...)
+            (creates Subject + Claim v1 + materializes initial_vote).
+        Step 3 — Bulk insert votes against existing subjects (work_items[*].votes)
+            plus any redirected follower initial_votes.
+        Step 4 — Insert one fragment_processing row per work item with the
+            model_signature and the resulting vote_count.
 
     Skeleton behavior:
         Set status to PROCESSING; do not touch the DB.
@@ -349,8 +510,116 @@ def make_persist_votes(
 
     @node_trace("persist_votes")
     async def persist_votes(state: ReflectionState) -> dict:
-        # TODO(phase11): write subjects/claims/votes/fragment_processing rows.
-        return {"status": StatusValue.PROCESSING}
+        items = state.work_items
+        if not items:
+            return {"status": StatusValue.COMPLETED}
+
+        sig = f"{llm.model}/stance_classifier/{get_prompt_version(PromptKey.STANCE_CLASSIFIER)}"
+
+        proposals = [
+            (i, item) for i, item in enumerate(items) if item.proposed_subject is not None
+        ]
+
+        canonical_map: dict[int, int] = {}
+        canonical_created: dict[int, tuple] = {}
+
+        if proposals:
+            embedder = subjects_repo._embedder
+            embs = [
+                await asyncio.to_thread(
+                    embedder.embed,
+                    f"{item.proposed_subject.label} {item.proposed_subject.initial_claim}",
+                )
+                for _, item in proposals
+            ]
+
+            assigned: set[int] = set()
+            for pi in range(len(proposals)):
+                if pi in assigned:
+                    continue
+                item_idx = proposals[pi][0]
+                canonical_map[item_idx] = item_idx
+                for pj in range(pi + 1, len(proposals)):
+                    if pj in assigned:
+                        continue
+                    norm_i = np.linalg.norm(embs[pi])
+                    norm_j = np.linalg.norm(embs[pj])
+                    if norm_i == 0 or norm_j == 0:
+                        continue
+                    sim = float(np.dot(embs[pi], embs[pj]) / (norm_i * norm_j))
+                    if sim >= PROPOSER_DEDUP_SIMILARITY:
+                        canonical_map[proposals[pj][0]] = item_idx
+                        assigned.add(pj)
+
+            for pi, (item_idx, item) in enumerate(proposals):
+                if item_idx not in canonical_map or canonical_map[item_idx] != item_idx:
+                    continue
+                fragment = item.fragment
+                first_vote = Vote(
+                    subject_id="placeholder",
+                    claim_id="placeholder",
+                    fragment_id=fragment.fragment_id,
+                    stance=item.proposed_subject.initial_vote.stance,
+                    strength=item.proposed_subject.initial_vote.strength,
+                    reasoning=item.proposed_subject.initial_vote.reasoning,
+                    fragment_dated_at=fragment.timestamp,
+                    model_signature=sig,
+                )
+                try:
+                    subject, claim, vote = await asyncio.to_thread(
+                        subjects_repo.create_subject_with_claim,
+                        item.proposed_subject,
+                        first_vote,
+                    )
+                    canonical_created[item_idx] = (subject, claim, vote)
+                except Exception:
+                    logger.exception(
+                        "create_subject_with_claim failed for fragment %s",
+                        fragment.fragment_id,
+                    )
+
+        extra_votes: list[Vote] = []
+        for i, item in proposals:
+            canonical_idx = canonical_map.get(i, i)
+            if canonical_idx == i:
+                continue
+            if canonical_idx not in canonical_created:
+                continue
+            canonical_subject, canonical_claim, _ = canonical_created[canonical_idx]
+            extra_votes.append(Vote(
+                subject_id=canonical_subject.subject_id,
+                claim_id=canonical_claim.claim_id,
+                fragment_id=item.fragment.fragment_id,
+                stance=item.proposed_subject.initial_vote.stance,
+                strength=item.proposed_subject.initial_vote.strength,
+                reasoning=item.proposed_subject.initial_vote.reasoning,
+                fragment_dated_at=item.fragment.timestamp,
+                model_signature=sig,
+            ))
+
+        all_votes = [v for item in items for v in item.votes] + extra_votes
+        if all_votes:
+            await asyncio.to_thread(subjects_repo.insert_votes, all_votes)
+
+        for i, item in enumerate(items):
+            vote_count = len(item.votes)
+            if item.proposed_subject is not None:
+                canonical_idx = canonical_map.get(i, i)
+                if canonical_idx == i and i in canonical_created:
+                    vote_count += 1
+            try:
+                await asyncio.to_thread(
+                    subjects_repo.record_processing,
+                    item.fragment.fragment_id,
+                    sig,
+                    vote_count,
+                )
+            except Exception:
+                logger.exception(
+                    "record_processing failed for fragment %s", item.fragment.fragment_id
+                )
+
+        return {"status": StatusValue.COMPLETED}
 
     return persist_votes
 
@@ -384,7 +653,9 @@ def compute_traction(votes: list[Vote], strategy: str = "simple_sum") -> float:
         Scalar traction score. Sign indicates net stance; magnitude indicates
         accumulated evidence weight.
     """
-    # TODO(phase11): implement simple_sum and the strategies above.
-    raise NotImplementedError(
-        f"compute_traction({strategy=!r}) not yet implemented in skeleton."
-    )
+    if strategy == "simple_sum":
+        return sum(
+            v.strength if v.stance == Stance.SUPPORT else -v.strength
+            for v in votes
+        )
+    raise NotImplementedError(f"compute_traction: unknown strategy {strategy!r}")

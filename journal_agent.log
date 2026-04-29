@@ -364,3 +364,723 @@ Traceback (most recent call last):
   File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
     raise RuntimeError("unexpected")
 RuntimeError: unexpected
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node completed with error
+14:31:03  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+14:31:03  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+14:31:03  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node completed with error
+17:09:53  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:09:53  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:09:53  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:09:53  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 9a409dbf-53e0-44c1-aa1a-43d5577dce0a
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:09:53  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 9a409dbf-53e0-44c1-aa1a-43d5577dce0a
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:09:53  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 9a409dbf-53e0-44c1-aa1a-43d5577dce0a
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:09:53  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 14446a01-4197-4976-9a41-f246a33c15aa
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:09:53  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 14446a01-4197-4976-9a41-f246a33c15aa
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:09:53  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 14446a01-4197-4976-9a41-f246a33c15aa
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:09:53  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 8efdb2a9-b194-4677-85c4-0bae31ec18ec
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:09:53  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 8efdb2a9-b194-4677-85c4-0bae31ec18ec
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:09:53  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 8efdb2a9-b194-4677-85c4-0bae31ec18ec
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node completed with error
+17:21:41  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:21:41  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:21:41  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:21:41  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 8c334d87-1b8b-442d-bc8d-ba5007ec8577
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:21:41  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 8c334d87-1b8b-442d-bc8d-ba5007ec8577
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:21:41  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 8c334d87-1b8b-442d-bc8d-ba5007ec8577
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:21:41  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment ac3c5244-e00c-4b0b-aa12-897fd7868848
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:21:41  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment ac3c5244-e00c-4b0b-aa12-897fd7868848
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:21:41  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment ac3c5244-e00c-4b0b-aa12-897fd7868848
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:21:41  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 42e3165b-9a91-41ea-9bca-2c58363800c9
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:21:41  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 42e3165b-9a91-41ea-9bca-2c58363800c9
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:21:41  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 42e3165b-9a91-41ea-9bca-2c58363800c9
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:24:33  journal_agent.graph.node_tracer      node completed with error
+17:24:33  journal_agent.graph.node_tracer      node completed with error
+17:24:33  journal_agent.graph.node_tracer      node completed with error
+17:24:33  journal_agent.graph.node_tracer      node completed with error
+17:24:33  journal_agent.graph.node_tracer      node completed with error
+17:24:33  journal_agent.graph.node_tracer      node completed with error
+17:24:33  journal_agent.graph.node_tracer      node completed with error
+17:24:33  journal_agent.graph.node_tracer      node completed with error
+17:24:33  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node completed with error
+17:24:34  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:24:34  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:24:34  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:24:34  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 42600dd7-a679-498a-8d3a-293c5b911d98
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:24:34  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 42600dd7-a679-498a-8d3a-293c5b911d98
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:24:34  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 42600dd7-a679-498a-8d3a-293c5b911d98
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:24:34  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment f7419f8e-4e7f-4900-83fa-e186d88b4eeb
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:24:34  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment f7419f8e-4e7f-4900-83fa-e186d88b4eeb
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:24:34  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment f7419f8e-4e7f-4900-83fa-e186d88b4eeb
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:24:34  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 0558a673-41af-4f16-ab88-b6db7b8f4a99
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:24:34  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 0558a673-41af-4f16-ab88-b6db7b8f4a99
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:24:34  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 0558a673-41af-4f16-ab88-b6db7b8f4a99
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node completed with error
+17:31:55  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:31:55  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:31:55  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:31:55  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 378747ff-2153-4c85-bbe1-f1326da77d9f
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:31:55  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 378747ff-2153-4c85-bbe1-f1326da77d9f
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:31:55  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 378747ff-2153-4c85-bbe1-f1326da77d9f
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:31:55  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 9e0f1693-bca9-4e9d-b217-ab5d8dcb414b
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:31:55  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 9e0f1693-bca9-4e9d-b217-ab5d8dcb414b
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:31:55  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 9e0f1693-bca9-4e9d-b217-ab5d8dcb414b
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:31:55  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment b3b15010-9723-45b0-8707-e36032714268
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:31:55  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment b3b15010-9723-45b0-8707-e36032714268
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:31:55  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment b3b15010-9723-45b0-8707-e36032714268
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node completed with error
+17:37:15  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:37:15  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:37:15  journal_agent.graph.node_tracer      node raised exception
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/node_tracer.py", line 88, in wrapper
+    result = func(state)
+             ^^^^^^^^^^^
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/tests/test_observability.py", line 165, in exc_node
+    raise RuntimeError("unexpected")
+RuntimeError: unexpected
+17:37:15  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 3cfe464e-3d3e-4e92-9e03-c4eae450b2b0
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:37:15  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 3cfe464e-3d3e-4e92-9e03-c4eae450b2b0
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:37:15  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 3cfe464e-3d3e-4e92-9e03-c4eae450b2b0
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:37:15  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment d7f5ee82-5e57-4e0a-9e62-e2cd3e9995c0
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:37:15  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment d7f5ee82-5e57-4e0a-9e62-e2cd3e9995c0
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:37:15  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment d7f5ee82-5e57-4e0a-9e62-e2cd3e9995c0
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:37:15  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 59dafa9b-351f-40fa-a65b-21efdf3e05ed
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:37:15  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 59dafa9b-351f-40fa-a65b-21efdf3e05ed
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression
+17:37:15  journal_agent.graph.node_tracer      propose_subject LLM call failed for fragment 59dafa9b-351f-40fa-a65b-21efdf3e05ed
+Traceback (most recent call last):
+  File "/Users/chrislomeli/Source/PROJECTS/agenticAI/journal_agent/journal_agent/graph/nodes/insight_nodes.py", line 464, in propose_one
+    response: ProposerResponse = await structured_llm.ainvoke(
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object MagicMock can't be used in 'await' expression

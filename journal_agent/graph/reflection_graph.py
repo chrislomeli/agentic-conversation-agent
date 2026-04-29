@@ -94,7 +94,7 @@ def build_claim_reflection_graph(
         "propose_subject",
         make_propose_subject(llm=classifier_llm, subjects_repo=subjects_repo),
     )
-    builder.add_node("persist_votes", make_persist_votes(subjects_repo=subjects_repo))
+    builder.add_node("persist_votes", make_persist_votes(subjects_repo=subjects_repo, llm=classifier_llm))
 
     builder.add_edge(START, "route_candidates")
     builder.add_conditional_edges("route_candidates", goto("classify_stance"))

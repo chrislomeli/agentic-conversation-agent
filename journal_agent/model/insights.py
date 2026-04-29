@@ -14,6 +14,11 @@ Plus the LLM-facing structured-output models used by the three new prompts:
     ProposerResponse     — subject_proposer output
     RegeneratorResponse  — claim_regenerator output
 
+And the in-flight work-item shapes that flow through the reflection graph:
+
+    CandidateSubject     — Subject + its current Claim + similarity score
+    FragmentWorkItem     — one fragment's accumulating per-node state
+
 Design doc: design/phase11-claim-based-insights.md
 """
 
@@ -25,6 +30,8 @@ from enum import StrEnum
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+from journal_agent.model.session import Fragment
 
 # ── Persistent entities ──────────────────────────────────────────────────
 
@@ -112,13 +119,11 @@ class Vote(BaseModel):
 
     vote_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     subject_id: str
+    claim_id: str = Field(description="The claim that was evaluated against when this vote was cast.")
     fragment_id: str
     stance: Stance
     strength: float = Field(ge=0.0, le=1.0, description="LLM confidence in the vote (>=0.3 floor).")
     reasoning: str = Field(description="LLM explanation citing the fragment passage.")
-    claim_version_at_vote: int = Field(
-        description="Version of the claim that was evaluated against when this vote was cast."
-    )
     fragment_dated_at: datetime = Field(
         description="When the user wrote the fragment. Drives all 'as-of' belief queries."
     )
@@ -151,6 +156,25 @@ class FragmentProcessing(BaseModel):
     vote_count: int = Field(default=0, ge=0)
     status: ProcessingStatus = Field(default=ProcessingStatus.SUCCESS)
     error_detail: str | None = Field(default=None)
+
+
+# ── Computed summaries (not persisted) ───────────────────────────────────
+
+
+class SubjectSnapshot(BaseModel):
+    """Computed summary of a subject's current claim and vote traction.
+
+    Built by the claim_reflect_node after running the Phase 11 pipeline.
+    Combines Subject.label + Claim.text + aggregated vote counts into a
+    single serialisable record for injection into the AI context prompt.
+    Not persisted — reconstructed fresh each time /reflect2 is called.
+    """
+
+    label: str
+    claim: str
+    traction: float
+    support: int
+    contradict: int
 
 
 # ── LLM-facing structured outputs ────────────────────────────────────────
@@ -225,3 +249,50 @@ class RegeneratorResponse(BaseModel):
         default=None,
         description="Explanation of why the subject should fork. Required when action='fork_suggested'.",
     )
+
+
+# ── Reflection-graph work items ──────────────────────────────────────────
+
+
+class CandidateSubject(BaseModel):
+    """A candidate subject for a fragment, surfaced by the routing step.
+
+    Bundles the Subject (identity), its current Claim (the text the LLM will
+    actually vote against), and the cosine similarity score from the routing
+    search. Carrying all three forward avoids a re-fetch in classify_stance
+    and keeps the routing's relevance signal available for downstream weighting.
+    """
+
+    subject: Subject
+    current_claim: Claim
+    similarity: float = Field(
+        ge=0.0,
+        le=1.0,
+        description="Cosine similarity between the fragment's embedding and the current claim's embedding.",
+    )
+
+
+class FragmentWorkItem(BaseModel):
+    """One fragment's accumulating state as it flows through the reflection graph.
+
+    Each node maps over `state.work_items` in parallel and enriches one
+    dimension of each item:
+
+        route_candidates    → fills `candidates`
+        classify_stance     → fills `votes` (only against EXISTING subjects)
+        propose_subject     → fills `proposed_subject` (when the LLM proposes a new one)
+        persist_votes       → reads everything; materializes proposed_subject's
+                              initial_vote into a real Vote at write time
+
+    Note: votes for newly-proposed subjects do NOT live in `votes` — they ride
+    inside `proposed_subject.initial_vote` until persist time, when the new
+    subject finally has a real subject_id. This keeps `votes` cleanly typed
+    (every Vote here references an existing subject row).
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    fragment: Fragment
+    candidates: list[CandidateSubject] = Field(default_factory=list)
+    votes: list[Vote] = Field(default_factory=list)
+    proposed_subject: ProposedSubject | None = None

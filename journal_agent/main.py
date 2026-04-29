@@ -36,12 +36,13 @@ from journal_agent.graph.journal_graph import (
     build_conversation_graph,
     build_end_of_session_graph,
 )
-from journal_agent.graph.reflection_graph import build_reflection_graph
+from journal_agent.graph.reflection_graph import build_reflection_graph, build_claim_reflection_graph
 from journal_agent.model.session import Role, UserCommandValue, UserProfile
 from journal_agent.stores import (
     InsightsRepository,
     JsonlGateway,
     FragmentRepository,
+    SubjectsRepository,
     ThreadsRepository,
     TranscriptRepository,
     TranscriptStore,
@@ -61,7 +62,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pydantic.*")
 
 
 def _build_stores():
-    """Return (session_store, fragment_store, profile_store, insights_repo,
+    """Return (pg, session_store, fragment_store, profile_store, insights_repo,
              transcript_store, thread_store, classified_thread_store).
 
     Every write path fans out to JSONL and Postgres.
@@ -79,6 +80,7 @@ def _build_stores():
     session_store = TranscriptStore(repository=transcript_store)
 
     return (
+        pg,
         session_store,
         fragment_store,
         profile_store,
@@ -106,6 +108,7 @@ async def main():
     )
 
     (
+        pg,
         session_store,
         fragment_store,
         profile_store,
@@ -134,6 +137,12 @@ async def main():
         insights_repo=insights_repo,
     )
 
+    subjects_repo = SubjectsRepository(pg_gateway=pg)
+    claim_reflection = build_claim_reflection_graph(
+        registry=registry,
+        subjects_repo=subjects_repo,
+    )
+
     async with make_postgres_checkpointer(setup=True) as checkpointer:
         conversation = build_conversation_graph(
             registry=registry,
@@ -142,6 +151,8 @@ async def main():
             insights_store=insights_repo,
             profile_store=profile_store,
             reflection_graph=reflection_graph,
+            claim_reflection_graph=claim_reflection,
+            subjects_repo=subjects_repo,
             checkpointer=checkpointer,
         )
         eos = build_end_of_session_graph(
