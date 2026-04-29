@@ -79,7 +79,7 @@ class PgGateway:
         self._pool.close()
 
     @contextmanager
-    def _conn(self) -> Generator:
+    def conn(self) -> Generator:
         """Borrow a connection from the pool; psycopg3 auto-commits on clean exit."""
         with self._pool.connection() as conn:
             yield conn
@@ -90,16 +90,13 @@ class PgGateway:
 
     def fetch_rows(self, sql: str, params: tuple = ()) -> list[dict[str, Any]]:
         """Run a SELECT; return every row as a dict."""
-        with self._conn() as conn, conn.cursor() as cur:
-            try:
-                cur.execute(sql, params)
-                return cur.fetchall()
-            except Exception as e:
-                raise (e)
+        with self.conn() as conn, conn.cursor() as cur:
+            cur.execute(sql, params)
+            return cur.fetchall()
 
     def execute(self, sql: str, params: tuple = ()) -> int:
         """Run a mutating statement; return rowcount."""
-        with self._conn() as conn, conn.cursor() as cur:
+        with self.conn() as conn, conn.cursor() as cur:
             cur.execute(sql, params)
             return cur.rowcount
 
@@ -141,7 +138,7 @@ class PgGateway:
             )
             for ex in exchanges
         ]
-        with self._conn() as conn, conn.cursor() as cur:
+        with self.conn() as conn, conn.cursor() as cur:
             cur.executemany(sql, rows)
             return cur.rowcount
 
@@ -174,7 +171,7 @@ class PgGateway:
             "DELETE FROM thread_exchanges WHERE thread_id = %s", (thread_id,)
         )
         if thread.exchange_ids:
-            with self._conn() as conn, conn.cursor() as cur:
+            with self.conn() as conn, conn.cursor() as cur:
                 cur.executemany(
                     "INSERT INTO thread_exchanges (thread_id, exchange_id, position) "
                     "VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
@@ -221,7 +218,7 @@ class PgGateway:
             (fragment.fragment_id,),
         )
         if fragment.exchange_ids:
-            with self._conn() as conn, conn.cursor() as cur:
+            with self.conn() as conn, conn.cursor() as cur:
                 cur.executemany(
                     "INSERT INTO fragment_exchanges (fragment_id, exchange_id) "
                     "VALUES (%s, %s) ON CONFLICT DO NOTHING",
@@ -329,7 +326,7 @@ class PgGateway:
             )
             for i in insights
         ]
-        with self._conn() as conn, conn.cursor() as cur:
+        with self.conn() as conn, conn.cursor() as cur:
             cur.executemany(sql, rows)
             if cur.rowcount != expected_insights:
                 raise RuntimeError(
@@ -350,7 +347,7 @@ class PgGateway:
                   VALUES (%s, %s)
                   ON CONFLICT DO NOTHING \
                   """
-            with self._conn() as conn, conn.cursor() as cur:
+            with self.conn() as conn, conn.cursor() as cur:
                 cur.executemany(sql, junction_rows)
                 # if cur.rowcount != expected_junction:
                 #     raise RuntimeError(
@@ -748,108 +745,6 @@ class PgGateway:
         except Exception:
             logger.exception("search_captures_similar failed")
             return []
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Phase 11 — Claim-based insights (skeleton method stubs on PgGateway).
-#
-# These methods are called by SubjectsRepository. Bodies raise NotImplementedError;
-# they will be filled in alongside the repository implementation.
-# Design doc: design/phase11-claim-based-insights.md
-# ─────────────────────────────────────────────────────────────────────────────
-
-def _phase11_subjects_upsert_subject(self: PgGateway, *args, **kwargs):
-    """INSERT or UPDATE a row in subjects."""
-    raise NotImplementedError("PgGateway.upsert_subject — phase 11 skeleton")
-
-
-def _phase11_subjects_fetch_subject(self: PgGateway, *args, **kwargs):
-    """SELECT one subject by id."""
-    raise NotImplementedError("PgGateway.fetch_subject — phase 11 skeleton")
-
-
-def _phase11_subjects_fetch_active_subjects(self: PgGateway, *args, **kwargs):
-    """SELECT subjects WHERE status='active' ORDER BY last_activity_at DESC."""
-    raise NotImplementedError("PgGateway.fetch_active_subjects — phase 11 skeleton")
-
-
-def _phase11_subjects_update_subject_status(self: PgGateway, *args, **kwargs):
-    """UPDATE subjects SET status=... WHERE subject_id=..."""
-    raise NotImplementedError("PgGateway.update_subject_status — phase 11 skeleton")
-
-
-def _phase11_claims_insert_claim(self: PgGateway, *args, **kwargs):
-    """INSERT INTO claims (...). Caller manages is_current flipping in a transaction."""
-    raise NotImplementedError("PgGateway.insert_claim — phase 11 skeleton")
-
-
-def _phase11_claims_fetch_current_claim(self: PgGateway, *args, **kwargs):
-    """SELECT claims WHERE subject_id=... AND is_current=TRUE."""
-    raise NotImplementedError("PgGateway.fetch_current_claim — phase 11 skeleton")
-
-
-def _phase11_claims_demote_current_claim(self: PgGateway, *args, **kwargs):
-    """UPDATE claims SET is_current=FALSE WHERE subject_id=... AND is_current=TRUE."""
-    raise NotImplementedError("PgGateway.demote_current_claim — phase 11 skeleton")
-
-
-def _phase11_claims_search_candidates(self: PgGateway, *args, **kwargs):
-    """Cosine top-K over current claims. Returns list of (subject_id, claim_id, score)."""
-    raise NotImplementedError("PgGateway.search_candidate_claims — phase 11 skeleton")
-
-
-def _phase11_votes_insert_votes(self: PgGateway, *args, **kwargs):
-    """Bulk INSERT INTO votes; ON CONFLICT (subject_id, fragment_id, stance) DO NOTHING.
-    Also bumps subjects.last_activity_at via a single UPDATE."""
-    raise NotImplementedError("PgGateway.insert_votes — phase 11 skeleton")
-
-
-def _phase11_votes_fetch_subject_votes(self: PgGateway, *args, **kwargs):
-    """SELECT votes WHERE subject_id=... [AND fragment_dated_at <= as_of] AND invalidated_at IS NULL."""
-    raise NotImplementedError("PgGateway.fetch_subject_votes — phase 11 skeleton")
-
-
-def _phase11_votes_count_active(self: PgGateway, *args, **kwargs):
-    """SELECT count(*) FROM votes WHERE subject_id=... AND invalidated_at IS NULL."""
-    raise NotImplementedError("PgGateway.count_active_votes — phase 11 skeleton")
-
-
-def _phase11_votes_invalidate_for_fragment(self: PgGateway, *args, **kwargs):
-    """UPDATE votes SET invalidated_at=now(), invalidation_reason=... WHERE fragment_id=..."""
-    raise NotImplementedError("PgGateway.invalidate_votes_for_fragment — phase 11 skeleton")
-
-
-def _phase11_processing_insert_processing(self: PgGateway, *args, **kwargs):
-    """INSERT INTO fragment_processing (...)."""
-    raise NotImplementedError("PgGateway.insert_fragment_processing — phase 11 skeleton")
-
-
-def _phase11_processing_fetch_unprocessed(self: PgGateway, *args, **kwargs):
-    """SELECT fragment_id FROM fragments WHERE NOT EXISTS (
-        SELECT 1 FROM fragment_processing
-        WHERE fragment_id = fragments.fragment_id
-          AND model_signature = ...
-          AND status = 'success'
-    ) [AND fragments.timestamp > after] LIMIT ..."""
-    raise NotImplementedError("PgGateway.fetch_unprocessed_for_signature — phase 11 skeleton")
-
-
-# Bind the stubs onto PgGateway so calls like `pg.upsert_subject(...)` resolve.
-# Real implementations replace these methods directly in PR2.
-PgGateway.upsert_subject = _phase11_subjects_upsert_subject
-PgGateway.fetch_subject = _phase11_subjects_fetch_subject
-PgGateway.fetch_active_subjects = _phase11_subjects_fetch_active_subjects
-PgGateway.update_subject_status = _phase11_subjects_update_subject_status
-PgGateway.insert_claim = _phase11_claims_insert_claim
-PgGateway.fetch_current_claim = _phase11_claims_fetch_current_claim
-PgGateway.demote_current_claim = _phase11_claims_demote_current_claim
-PgGateway.search_candidate_claims = _phase11_claims_search_candidates
-PgGateway.insert_votes = _phase11_votes_insert_votes
-PgGateway.fetch_subject_votes = _phase11_votes_fetch_subject_votes
-PgGateway.count_active_votes = _phase11_votes_count_active
-PgGateway.invalidate_votes_for_fragment = _phase11_votes_invalidate_for_fragment
-PgGateway.insert_fragment_processing = _phase11_processing_insert_processing
-PgGateway.fetch_unprocessed_for_signature = _phase11_processing_fetch_unprocessed
 
 
 # ── Module-level singleton (lazy) ──────────────────────────────────────────────

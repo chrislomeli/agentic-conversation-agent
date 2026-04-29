@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import logging
+import uuid
 from collections import defaultdict
 from datetime import datetime
 
@@ -60,7 +61,7 @@ class SubjectsRepository:
 
     # ── private row-mapping helpers ───────────────────────────────────────
 
-    def _row_to_subject(self, r: dict) -> Subject:
+    def _row_to_subject(self, r: dict, created_key: str = "created_at") -> Subject:
         return Subject(
             subject_id=r["subject_id"],
             label=r["label"],
@@ -68,7 +69,7 @@ class SubjectsRepository:
             status=SubjectStatus(r["status"]),
             parent_subject_id=r.get("parent_subject_id"),
             merged_into_id=r.get("merged_into_id"),
-            created_at=r["created_at"],
+            created_at=r[created_key],
             last_activity_at=r["last_activity_at"],
         )
 
@@ -124,7 +125,7 @@ class SubjectsRepository:
             INSERT INTO subjects (...)
             INSERT INTO claims (..., version=1, is_current=TRUE)
                 with embedding over `label || text`
-            INSERT INTO votes (..., claim_version_at_vote=1)
+            INSERT INTO votes (..., claim_id=<new claim id>)
 
         Returns the persisted records (with server-assigned IDs and timestamps).
         """
@@ -154,7 +155,7 @@ class SubjectsRepository:
             "claim_id": claim.claim_id,
         })
 
-        with self._pg._conn() as conn:
+        with self._pg.conn() as conn:
             with conn.cursor() as cur:
                 cur.execute(
                     """
@@ -254,7 +255,7 @@ class SubjectsRepository:
         )
         result = []
         for r in rows:
-            subject = self._row_to_subject({**r, "created_at": r["subject_created_at"]})
+            subject = self._row_to_subject(r, created_key="subject_created_at")
             claim = self._row_to_claim(r, text_key="claim_text", created_key="claim_created_at")
             result.append((subject, claim))
         return result
@@ -277,12 +278,10 @@ class SubjectsRepository:
     ) -> Claim:
         """Append a new Claim version and flip is_current.
 
-        Real SQL (TODO):
-            UPDATE claims SET is_current=FALSE WHERE subject_id=...
-                AND is_current=TRUE
-            INSERT INTO claims (..., version=N+1, is_current=TRUE,
-                regenerated_at_vote_count=...)
-                with embedding over `label || new_text`
+        SELECT FOR UPDATE on the subject row serialises concurrent regenerations:
+        a second caller blocks at the lock until the first commits, then reads the
+        already-incremented MAX(version). Version is computed in SQL so there is no
+        window between reading it and writing it.
 
         Returns the new Claim. Old versions are retained for audit.
         """
@@ -290,13 +289,44 @@ class SubjectsRepository:
         if subject is None:
             raise ValueError(f"Subject not found: {subject_id}")
 
-        current = self.get_current_claim(subject_id)
-        next_version = (current.version + 1) if current else 1
-
+        # Embed outside the transaction — CPU work, no lock needed.
         vec = self._embedder.embed(f"{subject.label} {new_text}")
         now = datetime.now()
+        new_claim_id = str(uuid.uuid4())
 
-        new_claim = Claim(
+        with self._pg.conn() as conn:
+            with conn.cursor() as cur:
+                # Lock the subject row for the duration of this transaction.
+                # Any concurrent call to regenerate_claim for this subject blocks here.
+                cur.execute(
+                    "SELECT subject_id FROM subjects WHERE subject_id = %s FOR UPDATE",
+                    (subject_id,),
+                )
+                cur.execute(
+                    "UPDATE claims SET is_current = FALSE WHERE subject_id = %s AND is_current = TRUE",
+                    (subject_id,),
+                )
+                # Version is derived from the current max inside the same transaction,
+                # so no concurrent caller can observe the same value.
+                cur.execute(
+                    """
+                    INSERT INTO claims (claim_id, subject_id, text, version, is_current,
+                        embedding, regenerated_at_vote_count, created_at)
+                    SELECT %s, %s, %s, COALESCE(MAX(version), 0) + 1, TRUE, %s::vector, %s, %s
+                    FROM claims WHERE subject_id = %s
+                    RETURNING version
+                    """,
+                    (
+                        new_claim_id, subject_id, new_text,
+                        vec.tolist(), regenerated_at_vote_count, now,
+                        subject_id,
+                    ),
+                )
+                row = cur.fetchone()
+                next_version = row["version"]
+
+        return Claim(
+            claim_id=new_claim_id,
             subject_id=subject_id,
             text=new_text,
             version=next_version,
@@ -305,26 +335,6 @@ class SubjectsRepository:
             regenerated_at_vote_count=regenerated_at_vote_count,
             created_at=now,
         )
-
-        with self._pg._conn() as conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    "UPDATE claims SET is_current = FALSE WHERE subject_id = %s AND is_current = TRUE",
-                    (subject_id,),
-                )
-                cur.execute(
-                    """
-                    INSERT INTO claims (claim_id, subject_id, text, version, is_current,
-                        embedding, regenerated_at_vote_count, created_at)
-                    VALUES (%s, %s, %s, %s, %s, %s::vector, %s, %s)
-                    """,
-                    (
-                        new_claim.claim_id, subject_id, new_text, next_version, True,
-                        vec.tolist(), regenerated_at_vote_count, now,
-                    ),
-                )
-
-        return new_claim
 
     def search_candidate_subjects(
         self,
@@ -369,7 +379,7 @@ class SubjectsRepository:
             similarity = float(r["similarity"])
             if similarity < min_similarity:
                 continue
-            subject = self._row_to_subject({**r, "created_at": r["subject_created_at"]})
+            subject = self._row_to_subject(r, created_key="subject_created_at")
             claim = self._row_to_claim(r, text_key="claim_text", created_key="claim_created_at")
             results.append((subject, claim, similarity))
 
@@ -403,7 +413,7 @@ class SubjectsRepository:
             if v.fragment_dated_at > subject_max_dated[v.subject_id]:
                 subject_max_dated[v.subject_id] = v.fragment_dated_at
 
-        with self._pg._conn() as conn:
+        with self._pg.conn() as conn:
             with conn.cursor() as cur:
                 cur.executemany(
                     """
@@ -543,3 +553,40 @@ class SubjectsRepository:
             (model_signature, after, after, limit),
         )
         return [r["fragment_id"] for r in rows]
+
+    def fetch_unprocessed_fragments(
+        self,
+        model_signature: str,
+        limit: int = 500,
+    ) -> list:
+        """Return Fragment objects that have no SUCCESS row in fragment_processing
+        for the given model_signature.
+
+        Combines the ID lookup and the fragment fetch into one query so the
+        caller (make_claim_reflect_node) never does N+1 per-fragment fetches.
+        Tags and embeddings are populated from the fragments table.
+        """
+        sql = """
+            SELECT f.fragment_id, f.session_id, f.content, f.tags,
+                   f.embedding, f.timestamp,
+                   COALESCE(
+                       array_agg(fe.exchange_id) FILTER (WHERE fe.exchange_id IS NOT NULL),
+                       ARRAY[]::text[]
+                   ) AS exchange_ids
+            FROM fragments f
+            LEFT JOIN fragment_exchanges fe ON fe.fragment_id = f.fragment_id
+            WHERE NOT EXISTS (
+                SELECT 1 FROM fragment_processing fp
+                WHERE fp.fragment_id    = f.fragment_id
+                  AND fp.model_signature = %s
+                  AND fp.status          = 'success'
+            )
+            GROUP BY f.fragment_id, f.session_id, f.content, f.tags, f.embedding, f.timestamp
+            ORDER BY f.timestamp
+            LIMIT %s
+        """
+        return self._pg.fetch_fragments(sql, (model_signature, limit))
+
+    def embed_text(self, text: str):
+        """Embed a text string using the repo's embedder. Returns a numpy array."""
+        return self._embedder.embed(text)

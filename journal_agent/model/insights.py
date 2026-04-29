@@ -111,8 +111,8 @@ class Claim(BaseModel):
 class Vote(BaseModel):
     """Append-only timestamped evidence that a fragment supports/contradicts a subject.
 
-    Attaches to subject_id (stable), not claim_id (mutable). claim_version_at_vote
-    records which phrasing was evaluated against — useful when the claim drifts.
+    Attaches to subject_id (stable) for efficient traction queries. claim_id records
+    which claim version was evaluated against — useful when the claim drifts.
     fragment_dated_at is the user-write timestamp; all belief queries filter on
     this. processed_at is for audit only.
     """

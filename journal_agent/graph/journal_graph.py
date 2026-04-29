@@ -32,6 +32,7 @@ Routing functions inspect ``JournalState.status``:
     (intent / profile).
 """
 
+import asyncio
 import logging
 from collections.abc import Callable
 from datetime import datetime
@@ -258,31 +259,12 @@ def make_claim_reflect_node(
         try:
             model_sig = f"stance_classifier/{get_prompt_version(PromptKey.STANCE_CLASSIFIER)}"
 
-            cursor = datetime.min
             while True:
-                frag_ids = subjects_repo.fetch_unprocessed_fragment_ids(
-                    model_signature=model_sig, after=cursor, limit=500,
+                fragments = await asyncio.to_thread(
+                    subjects_repo.fetch_unprocessed_fragments,
+                    model_sig,
+                    500,
                 )
-                if not frag_ids:
-                    break
-
-                fragments = []
-                for fid in frag_ids:
-                    rows = subjects_repo._pg.fetch_rows(
-                        "SELECT * FROM fragments WHERE fragment_id = %s", (fid,),
-                    )
-                    if rows:
-                        r = rows[0]
-                        fragments.append(Fragment(
-                            fragment_id=r["fragment_id"],
-                            session_id=r.get("session_id", ""),
-                            content=r["content"],
-                            exchange_ids=[],
-                            tags=[],
-                            embedding=list(r["embedding"]) if r.get("embedding") is not None else [],
-                            timestamp=r["timestamp"],
-                        ))
-
                 if not fragments:
                     break
 
@@ -292,7 +274,6 @@ def make_claim_reflect_node(
                     status=StatusValue.IDLE,
                 )
                 await claim_reflection_graph.ainvoke(reflection_input)
-                cursor = fragments[-1].timestamp
 
             active_with_claims = subjects_repo.list_active_subjects_with_claims()
             claim_insights = []

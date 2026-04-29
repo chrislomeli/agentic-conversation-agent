@@ -524,10 +524,9 @@ def make_persist_votes(
         canonical_created: dict[int, tuple] = {}
 
         if proposals:
-            embedder = subjects_repo._embedder
             embs = [
                 await asyncio.to_thread(
-                    embedder.embed,
+                    subjects_repo.embed_text,
                     f"{item.proposed_subject.label} {item.proposed_subject.initial_claim}",
                 )
                 for _, item in proposals
@@ -601,11 +600,16 @@ def make_persist_votes(
         if all_votes:
             await asyncio.to_thread(subjects_repo.insert_votes, all_votes)
 
+        proposal_index = {i: item for i, item in proposals}
         for i, item in enumerate(items):
             vote_count = len(item.votes)
-            if item.proposed_subject is not None:
+            if i in proposal_index:
                 canonical_idx = canonical_map.get(i, i)
                 if canonical_idx == i and i in canonical_created:
+                    # Canonical: initial_vote was persisted by create_subject_with_claim.
+                    vote_count += 1
+                elif canonical_idx != i and canonical_idx in canonical_created:
+                    # Follower: initial_vote was redirected into extra_votes and persisted.
                     vote_count += 1
             try:
                 await asyncio.to_thread(
