@@ -43,6 +43,9 @@ ROUTE_CANDIDATES_MIN_SIMILARITY = 0.5  # cosine similarity floor for candidate i
 CLAIM_REGEN_VOTE_GAP = 5             # regenerate claim text after this many new votes since last regen
 SUBJECT_PROPOSER_TRIGGER_MAX_STRENGTH = 0.5  # if no existing-subject vote exceeds this, run the proposer
 PROPOSER_DEDUP_SIMILARITY = 0.85     # in persist_votes, merge proposed subjects above this cosine similarity
+INSIGHT_BATCH_SIZE = 8               # insights per verify_citations batch
+STANCE_BATCH_SIZE = 4                # fragments per classify_stance batch — kept small to limit cross-fragment contamination in the LLM's per-item judgment
+COLD_START_SUBJECT_THRESHOLD = 20    # below this many active subjects, the reflection graph runs cluster_seed_subjects instead of the per-fragment path
 DEFAULT_RECENT_MESSAGES_COUNT = 5
 DEFAULT_SESSION_MESSAGES_COUNT = 10
 DEFAULT_RETRIEVED_HISTORY_COUNT = 5
@@ -87,7 +90,7 @@ def _redacted_settings_json(settings: Settings) -> str:
 # ═══════════════════════════════════════════════════════════════════════════════
 literals = {
     "AI_ENV_FILE": "/Users/chrislomeli/Source/SECRETS/.env",
-    "USE_MODEL": LLMLabel.GPT_MINI,
+    # "USE_MODEL": LLMLabel.GPT_MINI,
 }
 
 
@@ -99,9 +102,9 @@ def configure_environment() -> Settings:
     """
     os.environ.setdefault("AI_ENV_FILE", literals["AI_ENV_FILE"])
     settings = get_settings()  # Load .env file (API keys, project names, etc.)
-    connection = models.get(literals["USE_MODEL"], models[LLMLabel.GPT_MINI])
-    settings.llm_model = connection
-    settings.llm_source = connection.provider if connection else LLMProvider.STUB
+    # connection = models.get(literals["USE_MODEL"], models[LLMLabel.GPT_MINI])
+    # settings.llm_model = connection
+    # settings.llm_source = connection.provider if connection else LLMProvider.STUB
 
     # Set up Python logging so we can see what's happening
     logging.basicConfig(
@@ -116,12 +119,22 @@ def configure_environment() -> Settings:
     # Suppress sklearn FutureWarning about HDBSCAN `copy` default change
     warnings.filterwarnings("ignore", category=FutureWarning, module="sklearn")
 
-    # Route node_tracer output to a file so it never clutters the console chat
+    # node_tracer records carry extra fields (node, elapsed_ms, status) that the
+    # root logger's basic format would silently drop. Give the tracer its own
+    # handlers with the extended format, and disable propagation so we don't
+    # double-log a basic-format copy via the root handler.
     node_tracer_logger = logging.getLogger("journal_agent.graph.node_tracer")
     node_tracer_logger.propagate = False
+    _tracer_format = logging.Formatter(
+        "%(asctime)s  %(name)-35s  [%(node)s] %(elapsed_ms)sms  %(status)s  %(message)s",
+        datefmt="%H:%M:%S",
+    )
     _fh = logging.FileHandler("journal_agent.log")
-    _fh.setFormatter(logging.Formatter("%(asctime)s  %(name)-35s  %(message)s", datefmt="%H:%M:%S"))
+    _fh.setFormatter(_tracer_format)
     node_tracer_logger.addHandler(_fh)
+    _ch = logging.StreamHandler()
+    _ch.setFormatter(_tracer_format)
+    node_tracer_logger.addHandler(_ch)
 
     # Print what we're using (redacted)
     print(_redacted_settings_json(settings))

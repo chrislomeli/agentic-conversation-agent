@@ -75,7 +75,7 @@ models: dict[LLMLabel, LLMModel | None] = {
         key_label="openai_api_key", provider=LLMProvider.OPENAI, model="gpt-4o-mini"
     ),
     LLMLabel.GPT_NANO: LLMModel(
-        key_label="openai_api_key", provider=LLMProvider.OPENAI, model="gpt-4o-mini"
+        key_label="openai_api_key", provider=LLMProvider.OPENAI, model="gpt-4o-nano"
     ),
     LLMLabel.GPT: LLMModel(key_label="openai_api_key", provider=LLMProvider.OPENAI, model="gpt-4o"),
     # Anthropic models
@@ -101,8 +101,8 @@ models: dict[LLMLabel, LLMModel | None] = {
 # If a role is absent here it falls back to the default ("conversation").
 LLM_ROLE_CONFIG: dict[str, LLMLabel] = {
     "conversation": LLMLabel.OLLAMA_LLAMA3,
-    "classifier": LLMLabel.GPT,
-    "extractor": LLMLabel.GPT,
+    "classifier": LLMLabel.GPT_MINI,
+    "extractor": LLMLabel.GPT_MINI,
 }
 
 

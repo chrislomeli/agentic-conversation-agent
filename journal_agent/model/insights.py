@@ -227,6 +227,33 @@ class ProposerResponse(BaseModel):
     new_subject: ProposedSubject | None = None
 
 
+class BatchStanceItem(BaseModel):
+    """Per-fragment result returned by the batch stance classifier."""
+
+    fragment_id: str
+    votes: list[StanceVote] = Field(default_factory=list)
+
+
+class BatchStanceResponse(BaseModel):
+    """Output of the stance_classifier_batch prompt. One result per input item."""
+
+    results: list[BatchStanceItem] = Field(default_factory=list)
+
+
+class BatchVerifierItem(BaseModel):
+    """Per-insight result returned by the batch verifier."""
+
+    insight_id: str
+    verifier_score: float = Field(ge=0.0, le=1.0)
+    verifier_comments: str
+
+
+class BatchVerifierResponse(BaseModel):
+    """Output of the verify_insights_batch prompt. One result per input item."""
+
+    results: list[BatchVerifierItem] = Field(default_factory=list)
+
+
 class RegeneratorAction(StrEnum):
     NO_CHANGE = "no_change"
     REWRITE = "rewrite"

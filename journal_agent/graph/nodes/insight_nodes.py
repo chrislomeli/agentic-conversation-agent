@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 from collections import defaultdict
 from typing import Callable, Coroutine, Any
 
@@ -8,7 +9,6 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from sklearn.cluster import HDBSCAN
 
 from journal_agent.comms.llm_client import LLMClient
-from journal_agent.configure import context_builder
 from journal_agent.configure.config_builder import (
     MINIMUM_VERIFIER_SCORE,
     MINIMUM_CLUSTER_LABEL_SCORE,
@@ -18,28 +18,42 @@ from journal_agent.configure.config_builder import (
     ROUTE_CANDIDATES_MIN_SIMILARITY,
     SUBJECT_PROPOSER_TRIGGER_MAX_STRENGTH,
     PROPOSER_DEDUP_SIMILARITY,
+    INSIGHT_BATCH_SIZE,
+    STANCE_BATCH_SIZE,
 )
 from journal_agent.configure.prompts import get_prompt, get_prompt_version
-from journal_agent.graph.node_tracer import node_trace, logger
+from journal_agent.graph.node_tracer import node_trace
 from journal_agent.graph.nodes.classifiers import DEFAULT_LLM_CONCURRENCY
 from journal_agent.graph.state import ReflectionState
 from journal_agent.model.insights import (
+    BatchStanceResponse,
+    BatchVerifierResponse,
     CandidateSubject,
     FragmentWorkItem,
     ProposedSubject,
     ProposerResponse,
     Stance,
-    StanceResponse,
-    Subject,
     Vote,
 )
 from journal_agent.model.session import Cluster, Fragment, StatusValue, Insight, PromptKey, InsightDraft, \
-    InsightVerifierScore, VerifierStatus, ContextSpecification, ClusterList, FragmentClusterRequest
+    VerifierStatus, ClusterList, FragmentClusterRequest
 from journal_agent.stores.subjects_repo import SubjectsRepository
 
 import warnings
 
 warnings.filterwarnings("ignore", message=".*Expected `none`.*", category=UserWarning, module="pydantic")
+
+logger = logging.getLogger(__name__)
+
+
+def stance_model_signature(llm: LLMClient) -> str:
+    """Single source of truth for the model_signature stamped on stance votes.
+
+    The reflect node uses this to ask `fetch_unprocessed_fragments` for work;
+    classify_stance and persist_votes use it to write votes and processing rows.
+    Any drift between callers makes every fragment look unprocessed forever.
+    """
+    return f"{llm.model}/stance_classifier/{get_prompt_version(PromptKey.STANCE_CLASSIFIER_BATCH)}"
 
 
 def score_cluster(
@@ -208,52 +222,71 @@ def make_label_clusters(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CONCU
     return label_clusters
 
 
-def make_verify_citations(llm: LLMClient, max_concurrency: int = DEFAULT_LLM_CONCURRENCY) -> Callable[..., Coroutine[Any, Any, dict]]:
+def make_verify_citations(
+    llm: LLMClient,
+    max_concurrency: int = DEFAULT_LLM_CONCURRENCY,
+    batch_size: int = INSIGHT_BATCH_SIZE,
+) -> Callable[..., Coroutine[Any, Any, dict]]:
     @node_trace("verify_citations")
     async def verify_citations(state: ReflectionState) -> dict:
         try:
-            system = SystemMessage(get_prompt(PromptKey.VERIFY_INSIGHTS))
-            structured_llm = llm.astructured(InsightVerifierScore)
+            system = SystemMessage(get_prompt(PromptKey.VERIFY_INSIGHTS_BATCH))
+            structured_llm = llm.astructured(BatchVerifierResponse)
             sem = asyncio.Semaphore(max_concurrency)
 
-            fragments = state.fragments
+            frag_content = {f.fragment_id: f.content for f in state.fragments}
             insights = state.insights
 
-            async def worker(insight: Insight) -> Insight:
+            batches = [insights[i:i + batch_size] for i in range(0, len(insights), batch_size)]
+
+            async def verify_batch(batch: list[Insight]) -> list[Insight]:
                 async with sem:
-                    cited_fragments = [f.content for f in fragments if f.fragment_id in insight.fragment_ids]
-                    cited_text = "\n\n".join(f"- {c}" for c in cited_fragments)
-                    payload = f"""
-                    INSIGHT BEING VERIFIED:
-    
-                    Label: {insight.label}
-                    Body:  {insight.body}
-                    
-                    FRAGMENTS (fragments cited as evidence):
-                    {cited_text}
-                    """
+                    payload = {
+                        "items": [
+                            {
+                                "insight_id": insight.insight_id,
+                                "label": insight.label,
+                                "body": insight.body,
+                                "fragments": [frag_content[fid] for fid in insight.fragment_ids if fid in frag_content],
+                            }
+                            for insight in batch
+                        ]
+                    }
+                    try:
+                        response: BatchVerifierResponse = await structured_llm.ainvoke(
+                            [system, HumanMessage(content=json.dumps(payload))]
+                        )
+                    except Exception:
+                        logger.exception("verify_citations batch LLM call failed")
+                        return batch
 
-                    human = HumanMessage(content=payload)
-                    score: InsightVerifierScore = await structured_llm.ainvoke([system, human])
-                    if not cited_fragments:
-                        return insight.model_copy(update={
-                            "verifier_status": VerifierStatus.FAILED,
-                            "verifier_score": 0.0,
-                            "verifier_comments": "No cited fragments found.",
-                        })
-                    return insight.model_copy(update={
-                        "verifier_score": score.verifier_score,
-                        "verifier_comments": score.verifier_comments,
-                        "verifier_status": VerifierStatus.VERIFIED if score.verifier_score >= MINIMUM_VERIFIER_SCORE else VerifierStatus.FAILED,
-                    })
+                    score_map = {r.insight_id: r for r in response.results}
+                    verified = []
+                    for insight in batch:
+                        result = score_map.get(insight.insight_id)
+                        cited = [frag_content[fid] for fid in insight.fragment_ids if fid in frag_content]
+                        if not cited:
+                            verified.append(insight.model_copy(update={
+                                "verifier_status": VerifierStatus.FAILED,
+                                "verifier_score": 0.0,
+                                "verifier_comments": "No cited fragments found.",
+                            }))
+                        elif result is None:
+                            verified.append(insight.model_copy(update={
+                                "verifier_status": VerifierStatus.FAILED,
+                                "verifier_score": 0.0,
+                                "verifier_comments": "Verifier did not return a result for this insight.",
+                            }))
+                        else:
+                            verified.append(insight.model_copy(update={
+                                "verifier_score": result.verifier_score,
+                                "verifier_comments": result.verifier_comments,
+                                "verifier_status": VerifierStatus.VERIFIED if result.verifier_score >= MINIMUM_VERIFIER_SCORE else VerifierStatus.FAILED,
+                            }))
+                    return verified
 
-            verified_insights = await asyncio.gather(
-                *(worker(i) for i in insights)
-            )
-
-            # print("\nVerified insights:\n")
-            # for insight in verified_insights:
-            #     print(json.dumps(insight.model_dump(), indent=2, default=str))
+            batched_results = await asyncio.gather(*(verify_batch(b) for b in batches))
+            verified_insights = [insight for batch in batched_results for insight in batch]
 
             return {"verified_insights": verified_insights}
 
@@ -324,25 +357,15 @@ def make_route_candidates(
 def make_classify_stance(
     llm: LLMClient,
     max_concurrency: int = DEFAULT_LLM_CONCURRENCY,
+    batch_size: int = STANCE_BATCH_SIZE,
 ) -> Callable[..., Coroutine[Any, Any, dict]]:
     """Build the classify_stance node.
 
     Reads:  state.work_items[*].fragment + .candidates
     Writes: state.work_items[*].votes
 
-    Real behavior (TODO):
-        For each work item with non-empty candidates (in parallel, bounded
-        by max_concurrency), call the stance_classifier prompt with
-        (fragment, candidates). Parse StanceResponse. For each returned
-        StanceVote: convert to a real Vote — filling fragment_id,
-        fragment_dated_at (= fragment.timestamp), processed_at,
-        model_signature, and claim_version_at_vote (from the matching
-        candidate's current_claim.version). Drop votes below
-        MIN_VOTE_STRENGTH (defense in depth — the prompt also instructs this).
-        Items with no candidates skip the LLM call entirely.
-
-    Skeleton behavior:
-        Pass through work_items unchanged.
+    Sends fragments in batches to reduce API call count. Items with no
+    candidates are skipped. Votes below MIN_VOTE_STRENGTH are dropped.
     """
 
     @node_trace("classify_stance")
@@ -351,9 +374,9 @@ def make_classify_stance(
         if not items:
             return {}
 
-        sig = f"{llm.model}/stance_classifier/{get_prompt_version(PromptKey.STANCE_CLASSIFIER)}"
-        system = SystemMessage(get_prompt(PromptKey.STANCE_CLASSIFIER))
-        structured_llm = llm.astructured(StanceResponse)
+        sig = stance_model_signature(llm)
+        system = SystemMessage(get_prompt(PromptKey.STANCE_CLASSIFIER_BATCH))
+        structured_llm = llm.astructured(BatchStanceResponse)
         sem = asyncio.Semaphore(max_concurrency)
 
         claim_index: dict[str, str] = {
@@ -361,47 +384,68 @@ def make_classify_stance(
             for item in items
             for c in item.candidates
         }
+        frag_by_id = {item.fragment.fragment_id: item.fragment for item in items}
 
-        async def classify_item(item: FragmentWorkItem) -> FragmentWorkItem:
-            if not item.candidates:
-                return item
+        active = [item for item in items if item.candidates]
+        batches = [active[i:i + batch_size] for i in range(0, len(active), batch_size)]
+
+        async def classify_batch(batch: list[FragmentWorkItem]) -> list[tuple[str, list]]:
             async with sem:
                 payload = {
-                    "candidate_subjects": [
-                        {"id": c.subject.subject_id, "current_claim": c.current_claim.text}
-                        for c in item.candidates
-                    ],
-                    "fragment": {
-                        "dated_at": item.fragment.timestamp.isoformat(),
-                        "text": item.fragment.content,
-                    },
+                    "items": [
+                        {
+                            "fragment_id": item.fragment.fragment_id,
+                            "candidate_subjects": [
+                                {"id": c.subject.subject_id, "current_claim": c.current_claim.text}
+                                for c in item.candidates
+                            ],
+                            "fragment": {
+                                "dated_at": item.fragment.timestamp.isoformat(),
+                                "text": item.fragment.content,
+                            },
+                        }
+                        for item in batch
+                    ]
                 }
                 try:
-                    response: StanceResponse = await structured_llm.ainvoke(
+                    response: BatchStanceResponse = await structured_llm.ainvoke(
                         [system, HumanMessage(content=json.dumps(payload))]
                     )
+                    return [(r.fragment_id, r.votes) for r in response.results]
                 except Exception:
-                    logger.exception("classify_stance LLM call failed for fragment %s", item.fragment.fragment_id)
-                    return item
+                    logger.exception("classify_stance batch LLM call failed")
+                    return [(item.fragment.fragment_id, []) for item in batch]
 
-                votes = [
+        batch_results = await asyncio.gather(*(classify_batch(b) for b in batches))
+
+        votes_by_fragment: dict[str, list[Vote]] = {}
+        for batch_result in batch_results:
+            for fragment_id, stance_votes in batch_result:
+                frag = frag_by_id.get(fragment_id)
+                if frag is None:
+                    continue
+                votes_by_fragment[fragment_id] = [
                     Vote(
                         subject_id=sv.subject_id,
                         claim_id=claim_index.get(sv.subject_id, ""),
-                        fragment_id=item.fragment.fragment_id,
+                        fragment_id=fragment_id,
                         stance=sv.stance,
                         strength=sv.strength,
                         reasoning=sv.reasoning,
-                        fragment_dated_at=item.fragment.timestamp,
+                        fragment_dated_at=frag.timestamp,
                         model_signature=sig,
                     )
-                    for sv in response.votes
+                    for sv in stance_votes
                     if sv.strength >= MIN_VOTE_STRENGTH
                 ]
-                return item.model_copy(update={"votes": votes})
 
-        updated = await asyncio.gather(*(classify_item(item) for item in items))
-        return {"work_items": list(updated)}
+        updated = [
+            item.model_copy(update={"votes": votes_by_fragment[item.fragment.fragment_id]})
+            if item.fragment.fragment_id in votes_by_fragment
+            else item
+            for item in items
+        ]
+        return {"work_items": updated}
 
     return classify_stance
 
@@ -414,26 +458,29 @@ def make_propose_subject(
     """Build the propose_subject node.
 
     Reads:  state.work_items[*] (where votes are weak/empty)
-            + subjects_repo.list_active_subjects() (loaded once for the node,
-              not per item — the LLM needs to see ALL active subjects, not
+            + subjects_repo.list_active_subjects_with_claims() (loaded once
+              for the node — the LLM needs to see ALL active subjects, not
               just the routed candidates, to avoid duplicate proposals)
     Writes: state.work_items[*].proposed_subject
 
-    Real behavior (TODO):
-        Filter work items where max(vote.strength) < SUBJECT_PROPOSER_TRIGGER_MAX_STRENGTH
-        (or votes is empty). For those, in parallel: call the subject_proposer
-        prompt. If response.new_subject is non-null, set
-        item.proposed_subject = response.new_subject. The bundled initial_vote
-        rides inside proposed_subject and gets materialized at persist time.
-
-    Skeleton behavior:
-        Pass through work_items unchanged.
+    Per-item rather than batched: the proposer's "bias toward not creating"
+    rule depends on independent per-fragment evaluation. Batching produced
+    sympathetic-creation across items in the same prompt.
     """
 
     @node_trace("propose_subject")
     async def propose_subject(state: ReflectionState) -> dict:
         items = state.work_items
         if not items:
+            return {}
+
+        def needs_proposal(item: FragmentWorkItem) -> bool:
+            if not item.votes:
+                return True
+            return max(v.strength for v in item.votes) < SUBJECT_PROPOSER_TRIGGER_MAX_STRENGTH
+
+        needs = [(i, item) for i, item in enumerate(items) if needs_proposal(item)]
+        if not needs:
             return {}
 
         active = await asyncio.to_thread(subjects_repo.list_active_subjects_with_claims)
@@ -445,11 +492,6 @@ def make_propose_subject(
         system = SystemMessage(get_prompt(PromptKey.SUBJECT_PROPOSER))
         structured_llm = llm.astructured(ProposerResponse)
         sem = asyncio.Semaphore(max_concurrency)
-
-        def needs_proposal(item: FragmentWorkItem) -> bool:
-            if not item.votes:
-                return True
-            return max(v.strength for v in item.votes) < SUBJECT_PROPOSER_TRIGGER_MAX_STRENGTH
 
         async def propose_one(item: FragmentWorkItem) -> FragmentWorkItem:
             async with sem:
@@ -465,17 +507,17 @@ def make_propose_subject(
                         [system, HumanMessage(content=json.dumps(payload))]
                     )
                 except Exception:
-                    logger.exception("propose_subject LLM call failed for fragment %s", item.fragment.fragment_id)
+                    logger.exception(
+                        "propose_subject LLM call failed for fragment %s",
+                        item.fragment.fragment_id,
+                    )
                     return item
                 if response.new_subject is not None:
                     return item.model_copy(update={"proposed_subject": response.new_subject})
                 return item
 
-        needs = [(i, item) for i, item in enumerate(items) if needs_proposal(item)]
-        if not needs:
-            return {}
-
         results = await asyncio.gather(*(propose_one(item) for _, item in needs))
+
         updated = list(items)
         for (i, _), enriched in zip(needs, results):
             updated[i] = enriched
@@ -514,7 +556,7 @@ def make_persist_votes(
         if not items:
             return {"status": StatusValue.COMPLETED}
 
-        sig = f"{llm.model}/stance_classifier/{get_prompt_version(PromptKey.STANCE_CLASSIFIER)}"
+        sig = stance_model_signature(llm)
 
         proposals = [
             (i, item) for i, item in enumerate(items) if item.proposed_subject is not None
@@ -626,6 +668,194 @@ def make_persist_votes(
         return {"status": StatusValue.COMPLETED}
 
     return persist_votes
+
+
+# ── Cold-start path: cluster_seed_subjects ────────────────────────────────
+
+
+def make_cluster_seed_subjects(
+    llm: LLMClient,
+    subjects_repo: SubjectsRepository,
+    max_concurrency: int = DEFAULT_LLM_CONCURRENCY,
+) -> Callable[..., Coroutine[Any, Any, dict]]:
+    """Build the cluster_seed_subjects node (cold-start path).
+
+    Reads:  state.fragments
+    Writes: DB only — bulk-creates Subjects + Claims + initial Votes; sets
+            state.status = COMPLETED so the graph exits without traversing
+            the per-fragment path.
+
+    Pipeline (single LLM cluster call + one LLM call per cluster + DB writes):
+        1. Cluster all fragments via the CREATE_CLUSTERS prompt (LLM-based —
+           we deliberately don't use HDBSCAN here because journal-text
+           embeddings don't always separate distinct subjects cleanly).
+        2. For each cluster, in parallel: invoke SEED_SUBJECT_FROM_CLUSTER
+           → ProposedSubject (or null for incoherent clusters).
+        3. For each non-null proposal, persist:
+              - the first cluster member anchors create_subject_with_claim
+                (which handles Subject + Claim + first Vote in one txn)
+              - the rest of the cluster members are bulk-inserted as Votes
+                pointing at the new subject_id, sharing the proposed
+                initial_vote's stance/strength/reasoning.
+              - every cluster member gets a fragment_processing row.
+        4. For LLM-rejected clusters (proposed=null): still record
+           fragment_processing rows with vote_count=0 so they don't loop
+           back next run.
+        5. Outliers (fragments not assigned to any cluster) are also
+           recorded as processed with vote_count=0.
+
+    Persistence failures: log and skip — affected fragments remain
+    unprocessed and will be retried on the next reflect run.
+
+    Design doc: design/phase11-claim-based-insights.md
+    """
+
+    @node_trace("cluster_seed_subjects")
+    async def cluster_seed_subjects(state: ReflectionState) -> dict:
+        try:
+            fragments = state.fragments
+            if not fragments:
+                return {"status": StatusValue.COMPLETED}
+
+            sig = stance_model_signature(llm)
+            frag_by_id = {f.fragment_id: f for f in fragments}
+
+            # Step 1 — cluster fragments via LLM
+            cluster_payload = json.dumps([
+                FragmentClusterRequest(
+                    fragment_id=f.fragment_id,
+                    content=f.content,
+                    tags=[t.tag for t in f.tags],
+                    timestamp=f.timestamp,
+                ).model_dump(mode="json")
+                for f in fragments
+            ])
+            cluster_system = SystemMessage(get_prompt(PromptKey.CREATE_CLUSTERS))
+            cluster_runnable = llm.astructured(ClusterList)
+            try:
+                cluster_list: ClusterList = await cluster_runnable.ainvoke(
+                    [cluster_system, HumanMessage(content=cluster_payload)]
+                )
+            except Exception:
+                logger.exception("cluster_seed_subjects: clustering LLM call failed")
+                return {"status": StatusValue.ERROR, "error_message": "clustering failed"}
+
+            clusters = cluster_list.clusters
+            logger.info("cluster_seed_subjects: %d fragments → %d clusters", len(fragments), len(clusters))
+
+            # Step 2 — label each cluster (parallel, LLM-bounded)
+            seed_system = SystemMessage(get_prompt(PromptKey.SEED_SUBJECT_FROM_CLUSTER))
+            seed_runnable = llm.astructured(ProposerResponse)
+            sem = asyncio.Semaphore(max_concurrency)
+
+            async def label_cluster(cluster: Cluster) -> tuple[Cluster, ProposedSubject | None]:
+                async with sem:
+                    payload = {
+                        "cluster": [
+                            {
+                                "fragment_id": fid,
+                                "dated_at": frag_by_id[fid].timestamp.isoformat(),
+                                "text": frag_by_id[fid].content,
+                            }
+                            for fid in cluster.fragment_ids if fid in frag_by_id
+                        ]
+                    }
+                    if not payload["cluster"]:
+                        return cluster, None
+                    try:
+                        response: ProposerResponse = await seed_runnable.ainvoke(
+                            [seed_system, HumanMessage(content=json.dumps(payload))]
+                        )
+                        return cluster, response.new_subject
+                    except Exception:
+                        logger.exception("seed_subject_from_cluster LLM call failed")
+                        return cluster, None
+
+            labeled = await asyncio.gather(*(label_cluster(c) for c in clusters))
+
+            # Step 3 — persist per cluster
+            clustered_ids: set[str] = set()
+
+            async def _safe_record(fid: str, vote_count: int) -> None:
+                try:
+                    await asyncio.to_thread(
+                        subjects_repo.record_processing, fid, sig, vote_count
+                    )
+                except Exception:
+                    logger.exception("record_processing failed for fragment %s", fid)
+
+            for cluster, proposed in labeled:
+                cluster_frag_ids = [fid for fid in cluster.fragment_ids if fid in frag_by_id]
+                if not cluster_frag_ids:
+                    continue
+
+                if proposed is None:
+                    # Cluster incoherent per LLM — drop but mark processed.
+                    for fid in cluster_frag_ids:
+                        await _safe_record(fid, 0)
+                    clustered_ids.update(cluster_frag_ids)
+                    continue
+
+                anchor_fid = cluster_frag_ids[0]
+                anchor_frag = frag_by_id[anchor_fid]
+                first_vote = Vote(
+                    subject_id="placeholder",  # rewritten by create_subject_with_claim
+                    claim_id="placeholder",
+                    fragment_id=anchor_fid,
+                    stance=proposed.initial_vote.stance,
+                    strength=proposed.initial_vote.strength,
+                    reasoning=proposed.initial_vote.reasoning,
+                    fragment_dated_at=anchor_frag.timestamp,
+                    model_signature=sig,
+                )
+                try:
+                    subject, claim, _ = await asyncio.to_thread(
+                        subjects_repo.create_subject_with_claim,
+                        proposed,
+                        first_vote,
+                    )
+                except Exception:
+                    logger.exception(
+                        "create_subject_with_claim failed for cluster anchor %s — fragments stay unprocessed for retry",
+                        anchor_fid,
+                    )
+                    continue
+
+                rest_votes = [
+                    Vote(
+                        subject_id=subject.subject_id,
+                        claim_id=claim.claim_id,
+                        fragment_id=fid,
+                        stance=proposed.initial_vote.stance,
+                        strength=proposed.initial_vote.strength,
+                        reasoning=proposed.initial_vote.reasoning,
+                        fragment_dated_at=frag_by_id[fid].timestamp,
+                        model_signature=sig,
+                    )
+                    for fid in cluster_frag_ids[1:]
+                ]
+                if rest_votes:
+                    try:
+                        await asyncio.to_thread(subjects_repo.insert_votes, rest_votes)
+                    except Exception:
+                        logger.exception("insert_votes failed for subject %s", subject.subject_id)
+
+                for fid in cluster_frag_ids:
+                    await _safe_record(fid, 1)
+                clustered_ids.update(cluster_frag_ids)
+
+            # Step 4 — outliers
+            for f in fragments:
+                if f.fragment_id not in clustered_ids:
+                    await _safe_record(f.fragment_id, 0)
+
+            return {"status": StatusValue.COMPLETED}
+
+        except Exception as e:
+            logger.exception("cluster_seed_subjects failed")
+            return {"status": StatusValue.ERROR, "error_message": str(e)}
+
+    return cluster_seed_subjects
 
 
 # ── Vote weighting strategy (stub) ────────────────────────────────────────

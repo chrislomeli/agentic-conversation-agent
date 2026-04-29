@@ -20,7 +20,7 @@ import json
 import logging
 import uuid
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 
 import numpy as np
 from psycopg.types.json import Jsonb
@@ -229,6 +229,17 @@ class SubjectsRepository:
             (status, subject_id),
         )
 
+    def count_active_subjects(self) -> int:
+        """Cheap count of active subjects. Used by the cold-start gate in the
+        claim reflection graph: when this drops below COLD_START_SUBJECT_THRESHOLD,
+        the graph runs cluster_seed_subjects instead of the per-fragment path.
+        """
+        rows = self._pg.fetch_rows(
+            "SELECT COUNT(*) AS cnt FROM subjects WHERE status = 'active'",
+            (),
+        )
+        return int(rows[0]["cnt"]) if rows else 0
+
     def list_active_subjects_with_claims(self, limit: int = 100) -> list[tuple[Subject, Claim]]:
         """Return (Subject, current Claim) pairs for all active subjects.
 
@@ -408,7 +419,7 @@ class SubjectsRepository:
             for v in votes
         ]
 
-        subject_max_dated: dict[str, datetime] = defaultdict(lambda: datetime.min)
+        subject_max_dated: dict[str, datetime] = defaultdict(lambda: datetime.min.replace(tzinfo=timezone.utc))
         for v in votes:
             if v.fragment_dated_at > subject_max_dated[v.subject_id]:
                 subject_max_dated[v.subject_id] = v.fragment_dated_at

@@ -55,6 +55,8 @@ _ALLOWED_MSGPACK_MODULES: list[tuple[str, str]] = [
     ("journal_agent.model.session", "VerifierStatus"),
     ("journal_agent.model.session", "Insight"),
     ("journal_agent.model.session", "ScoreCard"),
+    # journal_agent.model.insights — Phase 11
+    ("journal_agent.model.insights", "SubjectSnapshot"),
     # journal_agent.graph.state
     ("journal_agent.graph.state", "WindowParams"),
 ]

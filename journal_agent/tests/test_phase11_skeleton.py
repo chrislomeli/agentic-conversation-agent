@@ -212,7 +212,15 @@ def fake_registry():
 
 @pytest.fixture
 def fake_subjects_repo():
-    return MagicMock()
+    """Repo mock pre-configured to route through the per-fragment path.
+
+    `count_active_subjects` must return a real int (the START router compares it
+    against COLD_START_SUBJECT_THRESHOLD). Existing tests assume the per-fragment
+    path runs, so we default the count high.
+    """
+    repo = MagicMock()
+    repo.count_active_subjects.return_value = 999
+    return repo
 
 
 def test_claim_reflection_graph_compiles(fake_registry, fake_subjects_repo):
@@ -279,5 +287,11 @@ def test_claim_reflection_graph_has_expected_nodes(fake_registry, fake_subjects_
         subjects_repo=fake_subjects_repo,
     )
     nodes = set(graph.get_graph().nodes.keys())
-    expected = {"route_candidates", "classify_stance", "propose_subject", "persist_votes"}
+    expected = {
+        "cluster_seed_subjects",
+        "route_candidates",
+        "classify_stance",
+        "propose_subject",
+        "persist_votes",
+    }
     assert expected.issubset(nodes)

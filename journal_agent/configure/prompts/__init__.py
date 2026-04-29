@@ -16,6 +16,7 @@ and versions via ``get_prompt_version(key)``.
 
 from journal_agent.configure.prompts import (
     claim_regenerator,
+    cluster_fragments,
     conversation,
     decomposer,
     exchange_classifier,
@@ -24,11 +25,14 @@ from journal_agent.configure.prompts import (
     intent_classifier,
     label_clusters,
     profile_scanner,
+    seed_subject_from_cluster,
     socratic,
     stance_classifier,
+    stance_classifier_batch,
     subject_proposer,
     thread_classifier,
-    verify_insights, cluster_fragments,
+    verify_insights,
+    verify_insights_batch,
 )
 
 __all__ = ["get_prompt", "get_prompt_version"]
@@ -50,9 +54,12 @@ _STATIC_REGISTRY: dict[str, str] = {
     PromptKey.VERIFY_INSIGHTS.value:     verify_insights.TEMPLATE,
     PromptKey.LABEL_CLUSTERS.value:      label_clusters.TEMPLATE,
     PromptKey.CREATE_CLUSTERS.value:     cluster_fragments.TEMPLATE,
-    PromptKey.STANCE_CLASSIFIER.value:   stance_classifier.TEMPLATE,
-    PromptKey.SUBJECT_PROPOSER.value:    subject_proposer.TEMPLATE,
-    PromptKey.CLAIM_REGENERATOR.value:   claim_regenerator.TEMPLATE,
+    PromptKey.STANCE_CLASSIFIER.value:        stance_classifier.TEMPLATE,
+    PromptKey.STANCE_CLASSIFIER_BATCH.value:  stance_classifier_batch.TEMPLATE,
+    PromptKey.SUBJECT_PROPOSER.value:         subject_proposer.TEMPLATE,
+    PromptKey.SEED_SUBJECT_FROM_CLUSTER.value: seed_subject_from_cluster.TEMPLATE,
+    PromptKey.VERIFY_INSIGHTS_BATCH.value:    verify_insights_batch.TEMPLATE,
+    PromptKey.CLAIM_REGENERATOR.value:        claim_regenerator.TEMPLATE,
 }
 
 _TEMPLATE_REGISTRY: dict[str, PromptTemplateBuilder] = {
@@ -76,9 +83,12 @@ _VERSION_REGISTRY: dict[str, str] = {
     PromptKey.CONVERSATION.value:        conversation.VERSION,
     PromptKey.SOCRATIC.value:            socratic.VERSION,
     PromptKey.GUIDANCE.value:            guidance.VERSION,
-    PromptKey.STANCE_CLASSIFIER.value:   stance_classifier.VERSION,
-    PromptKey.SUBJECT_PROPOSER.value:    subject_proposer.VERSION,
-    PromptKey.CLAIM_REGENERATOR.value:   claim_regenerator.VERSION,
+    PromptKey.STANCE_CLASSIFIER.value:        stance_classifier.VERSION,
+    PromptKey.STANCE_CLASSIFIER_BATCH.value:  stance_classifier_batch.VERSION,
+    PromptKey.SUBJECT_PROPOSER.value:         subject_proposer.VERSION,
+    PromptKey.SEED_SUBJECT_FROM_CLUSTER.value: seed_subject_from_cluster.VERSION,
+    PromptKey.VERIFY_INSIGHTS_BATCH.value:    verify_insights_batch.VERSION,
+    PromptKey.CLAIM_REGENERATOR.value:        claim_regenerator.VERSION,
 }
 
 

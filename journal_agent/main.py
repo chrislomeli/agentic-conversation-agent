@@ -98,6 +98,8 @@ def _build_stores():
 
 
 async def main():
+
+
     """Configure dependencies and run an interactive terminal session."""
     settings = configure_environment()
     print("Using", {k: v.value for k, v in LLM_ROLE_CONFIG.items()})

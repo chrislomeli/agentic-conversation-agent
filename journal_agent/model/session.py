@@ -190,9 +190,12 @@ class PromptKey(Enum):
     LABEL_CLUSTERS     = "label_cluster"
     VERIFY_INSIGHTS    = "verify_insights"
     # Phase 11 — claim-based insights
-    STANCE_CLASSIFIER  = "stance_classifier"
-    SUBJECT_PROPOSER   = "subject_proposer"
-    CLAIM_REGENERATOR  = "claim_regenerator"
+    STANCE_CLASSIFIER       = "stance_classifier"
+    STANCE_CLASSIFIER_BATCH = "stance_classifier_batch"
+    SUBJECT_PROPOSER        = "subject_proposer"
+    SEED_SUBJECT_FROM_CLUSTER = "seed_subject_from_cluster"
+    VERIFY_INSIGHTS_BATCH   = "verify_insights_batch"
+    CLAIM_REGENERATOR       = "claim_regenerator"
 
 
 class ContextSpecification(BaseModel):

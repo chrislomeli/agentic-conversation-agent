@@ -1,10 +1,13 @@
 import logging
+from typing import Callable
 
 from langgraph.graph import END, START, StateGraph
 
 from journal_agent.comms.llm_registry import LLMRegistry
+from journal_agent.configure.config_builder import COLD_START_SUBJECT_THRESHOLD
 from journal_agent.graph.nodes.insight_nodes import (
     make_classify_stance,
+    make_cluster_seed_subjects,
     make_create_clusters,
     make_label_clusters,
     make_persist_votes,
@@ -20,6 +23,28 @@ from journal_agent.graph.state import ReflectionState
 from journal_agent.stores import InsightsRepository, SubjectsRepository
 
 logger = logging.getLogger(__name__)
+
+
+def should_cold_start(subjects_repo: SubjectsRepository) -> Callable[[ReflectionState], str]:
+    """Build the START router for the claim reflection graph.
+
+    Returns 'cluster_seed_subjects' when the active subject space is sparse
+    (< COLD_START_SUBJECT_THRESHOLD), otherwise 'route_candidates'. The
+    decision is made once at graph entry; the rest of the graph is straight-line.
+
+    On count failure, falls back to the per-fragment path so a transient DB
+    error never silently bulk-creates seed subjects.
+    """
+
+    def route(state: ReflectionState) -> str:
+        try:
+            count = subjects_repo.count_active_subjects()
+        except Exception:
+            logger.exception("count_active_subjects failed; defaulting to route_candidates")
+            return "route_candidates"
+        return "cluster_seed_subjects" if count < COLD_START_SUBJECT_THRESHOLD else "route_candidates"
+
+    return route
 
 
 def build_reflection_graph(
@@ -88,15 +113,27 @@ def build_claim_reflection_graph(
     # noinspection PyTypeChecker
     builder = StateGraph(ReflectionState)  # no_qa
 
+    builder.add_node(
+        "cluster_seed_subjects",
+        make_cluster_seed_subjects(llm=classifier_llm, subjects_repo=subjects_repo),
+    )
     builder.add_node("route_candidates", make_route_candidates(subjects_repo=subjects_repo))
-    builder.add_node("classify_stance", make_classify_stance(llm=classifier_llm))
+    builder.add_node("classify_stance", make_classify_stance(llm=classifier_llm, max_concurrency=2))
     builder.add_node(
         "propose_subject",
         make_propose_subject(llm=classifier_llm, subjects_repo=subjects_repo),
     )
     builder.add_node("persist_votes", make_persist_votes(subjects_repo=subjects_repo, llm=classifier_llm))
 
-    builder.add_edge(START, "route_candidates")
+    builder.add_conditional_edges(
+        START,
+        should_cold_start(subjects_repo),
+        {
+            "cluster_seed_subjects": "cluster_seed_subjects",
+            "route_candidates": "route_candidates",
+        },
+    )
+    builder.add_edge("cluster_seed_subjects", END)
     builder.add_conditional_edges("route_candidates", goto("classify_stance"))
     builder.add_conditional_edges("classify_stance", goto("propose_subject"))
     builder.add_conditional_edges("propose_subject", goto("persist_votes"))

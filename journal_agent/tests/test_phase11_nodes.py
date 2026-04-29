@@ -21,18 +21,23 @@ import numpy as np
 import pytest
 
 from journal_agent.configure.config_builder import (
+    COLD_START_SUBJECT_THRESHOLD,
     MIN_VOTE_STRENGTH,
     PROPOSER_DEDUP_SIMILARITY,
     SUBJECT_PROPOSER_TRIGGER_MAX_STRENGTH,
 )
 from journal_agent.graph.nodes.insight_nodes import (
     make_classify_stance,
+    make_cluster_seed_subjects,
     make_persist_votes,
     make_propose_subject,
     make_route_candidates,
 )
+from journal_agent.graph.reflection_graph import should_cold_start
 from journal_agent.graph.state import ReflectionState
 from journal_agent.model.insights import (
+    BatchStanceItem,
+    BatchStanceResponse,
     CandidateSubject,
     Claim,
     FragmentProcessing,
@@ -41,12 +46,11 @@ from journal_agent.model.insights import (
     ProposedSubject,
     ProposerResponse,
     Stance,
-    StanceResponse,
     StanceVote,
     Subject,
     Vote,
 )
-from journal_agent.model.session import Fragment, PromptKey
+from journal_agent.model.session import Cluster, ClusterList, Fragment, PromptKey
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -149,13 +153,18 @@ class FakeSubjectsRepo:
         candidate_results: list[tuple[Subject, Claim, float]] | None = None,
         active_with_claims: list[tuple[Subject, Claim]] | None = None,
         created_subject: tuple[Subject, Claim, Vote] | None = None,
+        active_count: int = 0,
     ):
         self._candidates = candidate_results or []
         self._active_with_claims = active_with_claims or []
         self._created = created_subject
+        self._active_count = active_count
         self.inserted_votes: list[list[Vote]] = []
         self.processing_records: list[dict] = []
         self.create_calls: list[tuple] = []
+
+    def count_active_subjects(self) -> int:
+        return self._active_count
 
     def search_candidate_subjects(self, embedding, top_k, min_similarity):
         # Must return list[tuple[Subject, Claim, float]] — same shape as the real repo.
@@ -260,8 +269,10 @@ def _item_with_candidate(fragment_id: str = "frag-001") -> FragmentWorkItem:
 
 @pytest.mark.asyncio
 async def test_classify_stance_maps_response_to_votes():
-    response = StanceResponse(votes=[
-        StanceVote(subject_id="sub-001", stance=Stance.SUPPORT, strength=0.8, reasoning="daily practice"),
+    response = BatchStanceResponse(results=[
+        BatchStanceItem(fragment_id="frag-001", votes=[
+            StanceVote(subject_id="sub-001", stance=Stance.SUPPORT, strength=0.8, reasoning="daily practice"),
+        ]),
     ])
     llm = FakeLLM([response])
     node = make_classify_stance(llm)
@@ -282,8 +293,10 @@ async def test_classify_stance_maps_response_to_votes():
 @pytest.mark.asyncio
 async def test_classify_stance_filters_votes_below_min_strength():
     below = MIN_VOTE_STRENGTH - 0.01
-    response = StanceResponse(votes=[
-        StanceVote(subject_id="sub-001", stance=Stance.SUPPORT, strength=below, reasoning="weak"),
+    response = BatchStanceResponse(results=[
+        BatchStanceItem(fragment_id="frag-001", votes=[
+            StanceVote(subject_id="sub-001", stance=Stance.SUPPORT, strength=below, reasoning="weak"),
+        ]),
     ])
     llm = FakeLLM([response])
     node = make_classify_stance(llm)
@@ -308,9 +321,11 @@ async def test_classify_stance_skips_llm_when_no_candidates():
 
 @pytest.mark.asyncio
 async def test_classify_stance_allows_ambivalent_votes():
-    response = StanceResponse(votes=[
-        StanceVote(subject_id="sub-001", stance=Stance.SUPPORT, strength=0.7, reasoning="one thing"),
-        StanceVote(subject_id="sub-001", stance=Stance.CONTRADICT, strength=0.6, reasoning="another"),
+    response = BatchStanceResponse(results=[
+        BatchStanceItem(fragment_id="frag-001", votes=[
+            StanceVote(subject_id="sub-001", stance=Stance.SUPPORT, strength=0.7, reasoning="one thing"),
+            StanceVote(subject_id="sub-001", stance=Stance.CONTRADICT, strength=0.6, reasoning="another"),
+        ]),
     ])
     llm = FakeLLM([response])
     node = make_classify_stance(llm)
@@ -563,3 +578,152 @@ async def test_persist_votes_distinct_proposals_both_created():
     await node(state)
 
     assert len(repo.create_calls) == 2
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# make_cluster_seed_subjects (cold-start path)
+# ═════════════════════════════════════════════════════════════════════════════
+
+
+def _cluster(fragment_ids: list[str], label: str = "test cluster") -> Cluster:
+    return Cluster(fragment_ids=fragment_ids, label=label, score=0.8)
+
+
+@pytest.mark.asyncio
+async def test_cluster_seed_subjects_empty_fragments_completes():
+    repo = FakeSubjectsRepo()
+    llm = FakeLLM([])
+    node = make_cluster_seed_subjects(llm, repo)
+    state = _reflection_state([])
+
+    result = await node(state)
+
+    from journal_agent.model.session import StatusValue as SV
+    assert result["status"] == SV.COMPLETED
+    assert repo.create_calls == []
+    assert repo.processing_records == []
+
+
+@pytest.mark.asyncio
+async def test_cluster_seed_subjects_creates_subject_per_cluster():
+    """Two clusters → two subjects, every fragment recorded as processed."""
+    fragments = [
+        _fragment(fragment_id="frag-001"),
+        _fragment(fragment_id="frag-002"),
+        _fragment(fragment_id="frag-003"),
+    ]
+    cluster_response = ClusterList(clusters=[
+        _cluster(["frag-001", "frag-002"], label="cluster A"),
+        _cluster(["frag-003"], label="cluster B"),
+    ])
+    seed_a = ProposerResponse(new_subject=_proposed_subject("stance on A"))
+    seed_b = ProposerResponse(new_subject=_proposed_subject("stance on B"))
+
+    llm = FakeLLM([cluster_response, seed_a, seed_b])
+    repo = FakeSubjectsRepo()
+    node = make_cluster_seed_subjects(llm, repo)
+    state = _reflection_state(fragments)
+
+    await node(state)
+
+    assert len(repo.create_calls) == 2
+    # frag-002 gets a follow-up vote (it's not the anchor); frag-003 is solo so no follow-ups
+    inserted = [v for batch in repo.inserted_votes for v in batch]
+    assert len(inserted) == 1
+    assert inserted[0].fragment_id == "frag-002"
+    assert {r["fragment_id"] for r in repo.processing_records} == {"frag-001", "frag-002", "frag-003"}
+    counts = {r["fragment_id"]: r["vote_count"] for r in repo.processing_records}
+    assert counts["frag-001"] == 1
+    assert counts["frag-002"] == 1
+    assert counts["frag-003"] == 1
+
+
+@pytest.mark.asyncio
+async def test_cluster_seed_subjects_skips_null_proposals_but_records_processing():
+    """LLM rejects a cluster (null) — fragments still recorded as processed (vote_count=0)."""
+    fragments = [_fragment(fragment_id="frag-001"), _fragment(fragment_id="frag-002")]
+    cluster_response = ClusterList(clusters=[_cluster(["frag-001", "frag-002"])])
+    seed_null = ProposerResponse(new_subject=None)
+
+    llm = FakeLLM([cluster_response, seed_null])
+    repo = FakeSubjectsRepo()
+    node = make_cluster_seed_subjects(llm, repo)
+    state = _reflection_state(fragments)
+
+    await node(state)
+
+    assert repo.create_calls == []
+    assert repo.inserted_votes == []
+    counts = {r["fragment_id"]: r["vote_count"] for r in repo.processing_records}
+    assert counts["frag-001"] == 0
+    assert counts["frag-002"] == 0
+
+
+@pytest.mark.asyncio
+async def test_cluster_seed_subjects_marks_outliers_processed():
+    """Fragments not assigned to any cluster are marked processed with vote_count=0."""
+    fragments = [
+        _fragment(fragment_id="frag-001"),
+        _fragment(fragment_id="frag-002"),
+        _fragment(fragment_id="frag-003"),
+    ]
+    cluster_response = ClusterList(clusters=[_cluster(["frag-001", "frag-002"])])
+    seed = ProposerResponse(new_subject=_proposed_subject())
+
+    llm = FakeLLM([cluster_response, seed])
+    repo = FakeSubjectsRepo()
+    node = make_cluster_seed_subjects(llm, repo)
+    state = _reflection_state(fragments)
+
+    await node(state)
+
+    counts = {r["fragment_id"]: r["vote_count"] for r in repo.processing_records}
+    assert counts["frag-003"] == 0  # outlier
+    assert counts["frag-001"] == 1  # cluster member
+    assert counts["frag-002"] == 1  # cluster member
+
+
+@pytest.mark.asyncio
+async def test_cluster_seed_subjects_clustering_failure_returns_error():
+    """If the clustering LLM call fails, the node returns ERROR without DB writes."""
+    fragments = [_fragment()]
+    llm = MagicMock()
+    runnable = MagicMock()
+    runnable.ainvoke = AsyncMock(side_effect=RuntimeError("LLM down"))
+    llm.astructured = MagicMock(return_value=runnable)
+    llm.model = "fake-model"
+
+    repo = FakeSubjectsRepo()
+    node = make_cluster_seed_subjects(llm, repo)
+    state = _reflection_state(fragments)
+
+    result = await node(state)
+
+    from journal_agent.model.session import StatusValue as SV
+    assert result["status"] == SV.ERROR
+    assert repo.create_calls == []
+    assert repo.processing_records == []
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# should_cold_start router
+# ═════════════════════════════════════════════════════════════════════════════
+
+
+def test_should_cold_start_routes_to_cluster_when_subjects_sparse():
+    repo = FakeSubjectsRepo(active_count=COLD_START_SUBJECT_THRESHOLD - 1)
+    router = should_cold_start(repo)
+    assert router(_reflection_state([])) == "cluster_seed_subjects"
+
+
+def test_should_cold_start_routes_to_route_candidates_when_at_threshold():
+    repo = FakeSubjectsRepo(active_count=COLD_START_SUBJECT_THRESHOLD)
+    router = should_cold_start(repo)
+    assert router(_reflection_state([])) == "route_candidates"
+
+
+def test_should_cold_start_falls_back_to_route_candidates_on_count_failure():
+    repo = FakeSubjectsRepo()
+    repo.count_active_subjects = MagicMock(side_effect=RuntimeError("DB down"))
+    router = should_cold_start(repo)
+    assert router(_reflection_state([])) == "route_candidates"

@@ -242,6 +242,7 @@ def make_reflect_node(reflection_graph: CompiledStateGraph, fragment_store: Frag
 def make_claim_reflect_node(
     claim_reflection_graph: CompiledStateGraph,
     subjects_repo: SubjectsRepository,
+    llm: LLMClient,
 ) -> Callable[..., Coroutine[Any, Any, dict]]:
     """Factory: node that runs the Phase 11 claim-based reflection pipeline.
 
@@ -249,15 +250,13 @@ def make_claim_reflect_node(
     claim reflection graph, then summarises active subjects + traction
     as latest_insights for the AI response node to narrate.
     """
-    from journal_agent.configure.prompts import get_prompt_version
-    from journal_agent.model.session import PromptKey
-    from journal_agent.graph.nodes.insight_nodes import compute_traction
+    from journal_agent.graph.nodes.insight_nodes import compute_traction, stance_model_signature
     from journal_agent.model.insights import Stance, SubjectSnapshot
 
     @node_trace("claim_reflect_node")
     async def claim_reflect_node(state: JournalState) -> dict:
         try:
-            model_sig = f"stance_classifier/{get_prompt_version(PromptKey.STANCE_CLASSIFIER)}"
+            model_sig = stance_model_signature(llm)
 
             while True:
                 fragments = await asyncio.to_thread(
@@ -518,7 +517,7 @@ def build_conversation_graph(
                      make_reflect_node(reflection_graph, fragment_store=fragment_store, insights_store=insights_store))
     if claim_reflection_graph is not None and subjects_repo is not None:
         builder.add_node(Node.REFLECT2,
-                         make_claim_reflect_node(claim_reflection_graph, subjects_repo=subjects_repo))
+                         make_claim_reflect_node(claim_reflection_graph, subjects_repo=subjects_repo, llm=classifier_llm))
     builder.add_node(Node.RECALL, make_recall_node(fragment_store=fragment_store))
     _capture_store = capture_store or CaptureRepository(pg_gateway=fragment_store._pg)
     builder.add_node(Node.CAPTURE, make_capture_node(capture_store=_capture_store))
