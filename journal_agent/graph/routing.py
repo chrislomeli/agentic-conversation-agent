@@ -1,11 +1,8 @@
-import logging
+() allows me to  import logging
+# journal_agent/graph/routing.py
 from typing import Callable
 
-# journal_agent/graph/routing.py
-from collections.abc import Mapping
-from typing import Any, Callable
 from langgraph.graph import END
-
 
 from journal_agent.model.session import StatusValue
 
